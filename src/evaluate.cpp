@@ -181,6 +181,7 @@ namespace {
     Pawns::Entry* pe;
     Bitboard mobilityArea[COLOR_NB];
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
+    Bitboard blocked[COLOR_NB];
 
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
@@ -190,6 +191,9 @@ namespace {
     // attackedBy2[color] are the squares attacked by at least 2 units of a given
     // color, including x-rays. But diagonal x-rays through pawns are not computed.
     Bitboard attackedBy2[COLOR_NB];
+
+    // attackedBy2P are the squares atacked by 2 pawns of a given color
+    Bitboard attackedBy2P[COLOR_NB];
 
     // kingRing[color] are the squares adjacent to the king, plus (only for a
     // king on its first rank) the squares two ranks in front. For instance,
@@ -228,20 +232,35 @@ namespace {
 
     const Square ksq = pos.square<KING>(Us);
 
-    Bitboard dblAttackByPawn = pawn_double_attacks_bb<Us>(pos.pieces(Us, PAWN));
+    // Initialize attackedBy[] for king and pawns
+    if (Us == WHITE)
+    {
+        const Square ksqB = pos.square<KING>(BLACK);
+
+        attackedBy[WHITE][KING] = pos.attacks_from<KING>(ksq);
+        attackedBy[WHITE][PAWN] = pe->pawn_attacks(WHITE);
+        attackedBy[WHITE][ALL_PIECES] = attackedBy[WHITE][KING] | attackedBy[WHITE][PAWN];
+        attackedBy2[WHITE]            = attackedBy[WHITE][KING] & attackedBy[WHITE][PAWN];
+        attackedBy2P[WHITE] = pawn_double_attacks_bb<WHITE>(pos.pieces(WHITE, PAWN));
+
+        attackedBy[BLACK][KING] = pos.attacks_from<KING>(ksqB);
+        attackedBy[BLACK][PAWN] = pe->pawn_attacks(BLACK);
+        attackedBy[BLACK][ALL_PIECES] = attackedBy[BLACK][KING] | attackedBy[BLACK][PAWN];
+        attackedBy2[BLACK]            = attackedBy[BLACK][KING] & attackedBy[BLACK][PAWN];
+        attackedBy2P[BLACK] = pawn_double_attacks_bb<BLACK>(pos.pieces(BLACK, PAWN));
+    }
+
+    Bitboard qBlock2 = attackedBy2P[Them] & ~attackedBy[Us][PAWN];
+
+    Bitboard b = pos.pieces(Us, PAWN);
+    blocked[Us] = b & shift<Down>(pos.pieces() | qBlock2);
 
     // Find our pawns that are blocked or on the first two ranks
-    Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
+    b &= blocked[Us] | LowRanks;
 
     // Squares occupied by those pawns, by our king or queen or controlled by
     // enemy pawns are excluded from the mobility area.
     mobilityArea[Us] = ~(b | pos.pieces(Us, KING, QUEEN) | pe->pawn_attacks(Them));
-
-    // Initialize attackedBy[] for king and pawns
-    attackedBy[Us][KING] = pos.attacks_from<KING>(ksq);
-    attackedBy[Us][PAWN] = pe->pawn_attacks(Us);
-    attackedBy[Us][ALL_PIECES] = attackedBy[Us][KING] | attackedBy[Us][PAWN];
-    attackedBy2[Us] = dblAttackByPawn | (attackedBy[Us][KING] & attackedBy[Us][PAWN]);
 
     // Init our king safety tables
     kingRing[Us] = attackedBy[Us][KING];
@@ -258,7 +277,7 @@ namespace {
     kingAttacksCount[Them] = kingAttackersWeight[Them] = 0;
 
     // Remove from kingRing[] the squares defended by two pawns
-    kingRing[Us] &= ~dblAttackByPawn;
+    kingRing[Us] &= ~attackedBy2P[Us];
   }
 
 
@@ -325,10 +344,8 @@ namespace {
             {
                 // Penalty according to number of pawns on the same color square as the
                 // bishop, bigger when the center files are blocked with pawns.
-                Bitboard blocked = pos.pieces(Us, PAWN) & shift<Down>(pos.pieces());
-
-                score -= BishopPawns * pos.pawns_on_same_color_squares(Us, s)
-                                     * (1 + popcount(blocked & CenterFiles));
+                score -= BishopPawns * pe->pawns_on_same_color_squares(Us, s)
+                                     * (1 + popcount(blocked[Us] & CenterFiles));
 
                 // Bonus for bishop on a long diagonal which can "see" both center squares
                 if (more_than_one(attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & Center))
