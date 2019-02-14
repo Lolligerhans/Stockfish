@@ -194,6 +194,10 @@ namespace {
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
     Bitboard blocked[COLOR_NB];
 
+    // shadow[color][piece type] is a bitboard containing squares to exclude
+    // from the mobility area
+    //Bitboard shadow[COLOR_NB]; TODO
+
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
     // is also calculated is ALL_PIECES.
@@ -329,7 +333,16 @@ namespace {
             kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
         }
 
-        int mob = popcount(b & mobilityArea[Us]);
+        int mob;
+        if (Pt == ROOK)
+        {
+            Bitboard noShadow = ~0;
+            if (forward_file_bb(Us, s) & blocked[Us])
+                noShadow = file_bb(file_of(s));
+            mob = popcount(b & mobilityArea[Us] & noShadow);
+        }
+        else
+            mob = popcount(b & mobilityArea[Us]);
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
@@ -670,6 +683,7 @@ namespace {
                 bonus -= make_score(0, king_proximity(Us, blockSq + Up) * w);
 
             // If the pawn is free to advance, then increase the bonus
+            //if (!(blocked[Us] & s)) TODO
             if (pos.empty(blockSq))
             {
                 // If there is a rook or queen attacking/defending the pawn from behind,
