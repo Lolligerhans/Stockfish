@@ -336,10 +336,10 @@ namespace {
         int mob;
         if (Pt == ROOK)
         {
-            Bitboard noShadow = ~0;
-            if (forward_file_bb(Us, s) & blocked[Us])
-                noShadow = file_bb(file_of(s));
-            mob = popcount(b & mobilityArea[Us] & noShadow);
+            Bitboard light = (forward_file_bb(Us, s) & blocked[Us])
+                ? ~file_bb(file_of(s))
+                : ~0;
+            mob = popcount(b & mobilityArea[Us] & light);
         }
         else
             mob = popcount(b & mobilityArea[Us]);
