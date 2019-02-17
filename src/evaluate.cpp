@@ -143,8 +143,8 @@ namespace {
   constexpr Score MinorBehindPawn    = S( 18,  3);
   constexpr Score Outpost            = S(  9,  3);
   constexpr Score PawnlessFlank      = S( 17, 95);
-  constexpr Score PotentialN        = S(5, 5);
-  constexpr Score PotentialB        = S(5, 5);
+  constexpr Score PotentialN        = S(5, 10);
+  constexpr Score PotentialB        = S(5, 10);
   constexpr Score PotentialR        = S(5, 5);
   constexpr Score PotentialQ        = S(5, 5);
   constexpr Score RestrictedPiece    = S(  7,  7);
@@ -489,8 +489,10 @@ namespace {
         if (cnt)
         {
             Bitboard atkSquares = attacks_bb<KNIGHT>(s, pos.pieces());
-            atkSquares &= ~blocked[Us];
-            score += PotentialN * cnt * (popcount(atkSquares&ownAll[Us]));
+            // TOTO use pseudo blocked instead of blocked. include literally
+            //      all pseudo blocks by using shift(ownAll) & pawn/us
+            atkSquares &= ~pos.pieces(Us, PAWN);
+            score += PotentialN * popcount(atkSquares&ownAll[Us]);
         }
 
         // bishops
@@ -498,15 +500,14 @@ namespace {
         // NOTE hopefully attackedBy is faster rthan pos.pieces()
         if (cnt)
         {
-            bool rightColor = cnt > 1
-                || bool(DarkSquares & s) == bool(DarkSquares & attackedBy[Us][BISHOP]);
+            bool rightColor = bool(DarkSquares & s) == bool(DarkSquares & attackedBy[Us][BISHOP]);
             if (rightColor)
             {
                 Bitboard atkSquares = attacks_bb<BISHOP>(s, pos.pieces() ^
                         pos.pieces(QUEEN));
                 // NOTE bishop cnt is 1 at most
-                atkSquares &= ~blocked[Us];
-                score += PotentialB * (popcount(atkSquares & ownAll[Us]));
+                atkSquares &= ~pos.pieces(Us, PAWN);
+                score += PotentialB * popcount(atkSquares & ownAll[Us]);
             }
         }
 
