@@ -472,10 +472,13 @@ namespace {
     constexpr Color Them = ~Us;
     
     // find blocked pawns not protected by a pawn
-    // TODO add pseudo-blocked as well?
-    Bitboard b = blocked[Them] & ~attackedBy[Them][PAWN];
+    Bitboard b = blocked[Them] & ~attackedBy[Them][PAWN]; // NOTE ownage?
 
-    // TODO add bonus if an pawndefenders of attack squares are breakable?
+    // TODO remove [squares attacked by unbreakable, owned, opponent pawn] from
+    // atkSquares
+    // TODO remove squares occupied by [own bloked pawn] from atkSquare
+    // TODO add pseudo-blocked as well to the above?
+    // TODO add bonus if pawndefenders of attack squares are breakable?
     Score score = SCORE_ZERO;
     while (b)
     {
@@ -486,21 +489,27 @@ namespace {
         if (cnt)
         {
             Bitboard atkSquares = attacks_bb<KNIGHT>(s, pos.pieces());
+            atkSquares &= ~blocked[Us];
             score += PotentialN * cnt *
                 (popcount(atkSquares) + popcount(atkSquares&ownAll[Us]));
         }
-        
+
         // bishops
         cnt = pos.count<BISHOP>(Us);
         // NOTE hopefully attackedBy is faster rthan pos.pieces()
-        bool rightColor = cnt > 1
-            || bool(DarkSquares & s) == bool(DarkSquares & attackedBy[Us][BISHOP]);
         if (cnt)
         {
-            Bitboard atkSquares = attacks_bb<BISHOP>(s, pos.pieces() ^
-                    pos.pieces(QUEEN));
-            score += PotentialN * cnt *
-                (popcount(atkSquares) + popcount(atkSquares & ownAll[Us]));
+            bool rightColor = cnt > 1
+                || bool(DarkSquares & s) == bool(DarkSquares & attackedBy[Us][BISHOP]);
+            if (rightColor)
+            {
+                Bitboard atkSquares = attacks_bb<BISHOP>(s, pos.pieces() ^
+                        pos.pieces(QUEEN));
+                // NOTE bishop cnt is 1 at most
+                atkSquares &= ~blocked[Us];
+                score += PotentialB *
+                    (popcount(atkSquares) + popcount(atkSquares & ownAll[Us]));
+            }
         }
 
         // rooks
@@ -958,7 +967,7 @@ namespace {
 
     this->ownage();
 
-    score += potential<WHITE>() - potential<BLACK>;
+    score += potential<WHITE>() - potential<BLACK>();
 
     score += mobility[WHITE] - mobility[BLACK];
 
