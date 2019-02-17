@@ -502,8 +502,7 @@ namespace {
         {
             Bitboard atkSquares = attacks_bb<KNIGHT>(s, pos.pieces());
             atkSquares &= ~blocked[Us];
-            score += PotentialN * cnt *
-                (popcount(atkSquares) + popcount(atkSquares&ownAll[Us]));
+            score += PotentialN * cnt * (popcount(atkSquares&ownAll[Us]));
         }
 
         // bishops
@@ -519,8 +518,7 @@ namespace {
                         pos.pieces(QUEEN));
                 // NOTE bishop cnt is 1 at most
                 atkSquares &= ~blocked[Us];
-                score += PotentialB *
-                    (popcount(atkSquares) + popcount(atkSquares & ownAll[Us]));
+                score += PotentialB * (popcount(atkSquares & ownAll[Us]));
             }
         }
 
