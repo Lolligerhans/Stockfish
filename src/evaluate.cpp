@@ -153,10 +153,10 @@ namespace {
   constexpr Score LongDiagonalBishop = S( 45,  0);
   constexpr Score MinorBehindPawn    = S( 18,  3);
   constexpr Score PawnlessFlank      = S( 17, 95);
-  constexpr Score PotentialN        = S(5, 10);
-  constexpr Score PotentialB        = S(5, 10);
-  constexpr Score PotentialR        = S(5, 5);
-  constexpr Score PotentialQ        = S(5, 5);
+  constexpr Score PotentialN         = S( 15,  5);
+  constexpr Score PotentialB         = S( 15,  5);
+  constexpr Score PotentialR         = S(  5,  5);
+  constexpr Score PotentialQ         = S(  5,  5);
   constexpr Score RestrictedPiece    = S(  7,  7);
   constexpr Score RookOnPawn         = S( 10, 32);
   constexpr Score SliderOnQueen      = S( 59, 18);
@@ -512,7 +512,8 @@ namespace {
         // NOTE hopefully attackedBy is faster rthan pos.pieces()
         if (cnt)
         {
-            bool rightColor = bool(DarkSquares & s) == bool(DarkSquares & attackedBy[Us][BISHOP]);
+            bool rightColor = bool(DarkSquares & s)
+                           == bool(DarkSquares & attackedBy[Us][BISHOP]);
             if (rightColor)
             {
                 Bitboard atkSquares = attacks_bb<BISHOP>(s, pos.pieces() ^
