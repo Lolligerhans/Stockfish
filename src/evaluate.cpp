@@ -515,6 +515,9 @@ namespace {
                 (popcount(atkSquares) + popcount(atkSquares & ownAll[Us]));
         }
 
+        // rooks
+        //cnt = pos.count<ROOK>(Us);
+
         // TODO add queen/rook as well?
     }
     return score;
@@ -966,6 +969,8 @@ namespace {
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
     this->ownage();
+
+    score += potential<WHITE>() - potential<BLACK>;
 
     score += mobility[WHITE] - mobility[BLACK];
 
