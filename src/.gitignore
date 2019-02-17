@@ -1,1 +1,7 @@
 Session.vim
+*.o
+*.swp
+.gitignore
+.depend
+do
+stockfish

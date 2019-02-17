@@ -143,6 +143,10 @@ namespace {
   constexpr Score MinorBehindPawn    = S( 18,  3);
   constexpr Score Outpost            = S(  9,  3);
   constexpr Score PawnlessFlank      = S( 17, 95);
+  constexpr Score PotentialN        = S(5, 5);
+  constexpr Score PotentialB        = S(5, 5);
+  constexpr Score PotentialR        = S(5, 5);
+  constexpr Score PotentialQ        = S(5, 5);
   constexpr Score RestrictedPiece    = S(  7,  7);
   constexpr Score RookOnPawn         = S( 10, 32);
   constexpr Score SliderOnQueen      = S( 59, 18);
@@ -169,6 +173,8 @@ namespace {
   private:
     template<Color Us> void initialize();
     template<Color Us, PieceType Pt> Score pieces();
+    void ownage();
+    template<Color Us> Score potential() const;
     template<Color Us> Score king() const;
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
@@ -183,6 +189,15 @@ namespace {
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
     Bitboard blocked[COLOR_NB];
 
+    // own..[color] are bitboards attacked by a majority of pawns or pieces
+    Bitboard own2P [COLOR_NB]; // owned by 2 pawn attacks
+    Bitboard own1P [COLOR_NB]; // owned by 1 pawn attack
+    Bitboard ownP  [COLOR_NB]; // owned by 1 or 2 pawn attacks
+    Bitboard own2  [COLOR_NB]; // with equal pawn- but 2 non-pawn attakcs
+    Bitboard own1  [COLOR_NB]; // with equal pawn- but 1 non-pawn attack
+    Bitboard own   [COLOR_NB]; // with equal pawn but 1 or 2 nonpawn attacks
+    Bitboard ownAll[COLOR_NB]; // any of the above
+
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
     // is also calculated is ALL_PIECES.
@@ -192,8 +207,16 @@ namespace {
     // color, including x-rays. But diagonal x-rays through pawns are not computed.
     Bitboard attackedBy2[COLOR_NB];
 
-    // attackedBy2P are the squares atacked by 2 pawns of a given color
-    Bitboard attackedBy2P[COLOR_NB];
+    // attackedBy2pawn are the squares atacked by 2 pawns of a given color
+    Bitboard attackedBy2pawn[COLOR_NB];
+
+    // attackedBy2piece[color] are the squares attacked by 2 non-pawn pieces of
+    // a given color
+    Bitboard attackedBy2piece[COLOR_NB];
+
+    // attackedByPiece[color] are the sqaure attacked by at least 1 non-pawn
+    // piece.  Covers the non-existent option attackedBy[color][not PAWN].
+    Bitboard attackedByPiece[COLOR_NB];
 
     // kingRing[color] are the squares adjacent to the king, plus (only for a
     // king on its first rank) the squares two ranks in front. For instance,
@@ -241,16 +264,18 @@ namespace {
         attackedBy[WHITE][PAWN] = pe->pawn_attacks(WHITE);
         attackedBy[WHITE][ALL_PIECES] = attackedBy[WHITE][KING] | attackedBy[WHITE][PAWN];
         attackedBy2[WHITE]            = attackedBy[WHITE][KING] & attackedBy[WHITE][PAWN];
-        attackedBy2P[WHITE] = pawn_double_attacks_bb<WHITE>(pos.pieces(WHITE, PAWN));
+        attackedBy2pawn[WHITE] = pawn_double_attacks_bb<WHITE>(pos.pieces(WHITE, PAWN));
+        attackedBy2piece[WHITE] = attackedBy[WHITE][KING];
 
         attackedBy[BLACK][KING] = pos.attacks_from<KING>(ksqB);
         attackedBy[BLACK][PAWN] = pe->pawn_attacks(BLACK);
         attackedBy[BLACK][ALL_PIECES] = attackedBy[BLACK][KING] | attackedBy[BLACK][PAWN];
         attackedBy2[BLACK]            = attackedBy[BLACK][KING] & attackedBy[BLACK][PAWN];
-        attackedBy2P[BLACK] = pawn_double_attacks_bb<BLACK>(pos.pieces(BLACK, PAWN));
+        attackedBy2pawn[BLACK] = pawn_double_attacks_bb<BLACK>(pos.pieces(BLACK, PAWN));
+        attackedBy2piece[BLACK] = attackedBy[BLACK][KING];
     }
 
-    Bitboard qBlock2 = attackedBy2P[Them] & ~attackedBy[Us][PAWN];
+    Bitboard qBlock2 = attackedBy2pawn[Them] & ~attackedBy[Us][PAWN];
 
     Bitboard b = pos.pieces(Us, PAWN);
     blocked[Us] = b & shift<Down>(pos.pieces() | qBlock2);
@@ -277,7 +302,7 @@ namespace {
     kingAttacksCount[Them] = kingAttackersWeight[Them] = 0;
 
     // Remove from kingRing[] the squares defended by two pawns
-    kingRing[Us] &= ~attackedBy2P[Us];
+    kingRing[Us] &= ~attackedBy2pawn[Us];
   }
 
 
@@ -302,11 +327,13 @@ namespace {
         b = Pt == BISHOP ? attacks_bb<BISHOP>(s, pos.pieces() ^ pos.pieces(QUEEN))
           : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
                          : pos.attacks_from<Pt>(s);
+        // NOTE Include x-ray attacks for Queens?
 
         if (pos.blockers_for_king(Us) & s)
             b &= LineBB[pos.square<KING>(Us)][s];
 
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
+        attackedBy2piece[Us] |= attackedBy[Us][ALL_PIECES] & b;
         attackedBy[Us][Pt] |= b;
         attackedBy[Us][ALL_PIECES] |= b;
 
@@ -400,6 +427,86 @@ namespace {
     return score;
   }
 
+
+  // Evaluation::ownage() computes vulnerability bitboards for a given
+  // color
+  template<Tracing T>
+  void Evaluation<T>::ownage() {
+
+    // pawn ownage
+    own2P[WHITE] = attackedBy2pawn[WHITE] & ~attackedBy[BLACK][PAWN];
+    own2P[BLACK] = attackedBy2pawn[BLACK] & ~attackedBy[WHITE][PAWN];
+    own1P[WHITE] = (attackedBy2pawn[WHITE] & ~attackedBy2pawn[BLACK])
+                 | (attackedBy[WHITE][PAWN] & ~attackedBy[BLACK][PAWN]);
+    own1P[WHITE] &= ~own2P[WHITE]; // attackedBy[][] does not filter for multiple pawn attakcs
+    own1P[BLACK] = (attackedBy2pawn[BLACK] & ~attackedBy2pawn[WHITE])
+                 | (attackedBy[BLACK][PAWN] & ~attackedBy[WHITE][PAWN]);
+    own1P[BLACK] &= ~own2P[BLACK];
+    ownP [WHITE] = own2P[WHITE] | own1P[WHITE];
+    ownP [BLACK] = own2P[BLACK] | own1P[BLACK];
+
+    // piece ownage
+    attackedByPiece[WHITE] = attackedBy[WHITE][ALL_PIECES] & ~attackedBy[WHITE][PAWN];
+    attackedByPiece[BLACK] = attackedBy[BLACK][ALL_PIECES] & ~attackedBy[BLACK][PAWN];
+    Bitboard undecided = ~(ownP[WHITE] | ownP[BLACK]);
+    own2 [WHITE] = undecided & attackedBy2piece[WHITE] & ~attackedByPiece[BLACK];
+    own2 [BLACK] = undecided & attackedBy2piece[BLACK] & ~attackedByPiece[WHITE];
+    own1 [WHITE] = (attackedBy2piece[WHITE] & ~attackedBy2piece[BLACK])
+                 | (attackedByPiece[WHITE] & ~attackedByPiece[BLACK]);
+    own1 [WHITE] &= ~own2[WHITE];
+    own1 [BLACK] = (attackedBy2piece[BLACK] & ~attackedBy2piece[WHITE])
+                 | (attackedByPiece[BLACK] & ~attackedByPiece[WHITE]);
+    own1 [BLACK] &= ~own2[BLACK];
+    own  [WHITE] = own2[WHITE] | own1[WHITE];
+    own  [BLACK] = own2[BLACK] | own1[BLACK];
+    ownAll[WHITE] = ownP[WHITE] | own[WHITE];
+    ownAll[BLACK] = ownP[BLACK] | own[BLACK];
+
+  }
+
+  // Evaluation::potential() assigns bonuses for chances to attack the
+  // opponents pawns
+  template<Tracing T> template<Color Us>
+  Score Evaluation<T>::potential() const {
+
+    constexpr Color Them = ~Us;
+    
+    // find blocked pawns not protected by a pawn
+    // TODO add pseudo-blocked as well?
+    Bitboard b = blocked[Them] & ~attackedBy[Them][PAWN];
+
+    // TODO add bonus if an pawndefenders of attack squares are breakable?
+    Score score = SCORE_ZERO;
+    while (b)
+    {
+        Square s = pop_lsb(&b);
+
+        // knights
+        int cnt = pos.count<KNIGHT>(Us);
+        if (cnt)
+        {
+            Bitboard atkSquares = attacks_bb<KNIGHT>(s, pos.pieces());
+            score += PotentialN * cnt *
+                (popcount(atkSquares) + popcount(atkSquares&ownAll[Us]));
+        }
+        
+        // bishops
+        cnt = pos.count<BISHOP>(Us);
+        // NOTE hopefully attackedBy is faster rthan pos.pieces()
+        bool rightColor = cnt > 1
+            || bool(DarkSquares & s) == bool(DarkSquares & attackedBy[Us][BISHOP]);
+        if (cnt)
+        {
+            Bitboard atkSquares = attacks_bb<BISHOP>(s, pos.pieces() ^
+                    pos.pieces(QUEEN));
+            score += PotentialN * cnt *
+                (popcount(atkSquares) + popcount(atkSquares & ownAll[Us]));
+        }
+
+        // TODO add queen/rook as well?
+    }
+    return score;
+  }
 
   // Evaluation::king() assigns bonuses and penalties to a king of a given color
   template<Tracing T> template<Color Us>
@@ -845,6 +952,8 @@ namespace {
             + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
+
+    this->ownage();
 
     score += mobility[WHITE] - mobility[BLACK];
 
