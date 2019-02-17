@@ -472,7 +472,7 @@ namespace {
     constexpr Color Them = ~Us;
     
     // find opponents loose pawns
-    Bitboard b = pos.pieces[Them][PAWN] & ~ownAll[Them];
+    Bitboard b = pos.pieces(Them, PAWN) & ~ownAll[Them];
 
     // TODO remove [squares attacked by unbreakable, owned, opponent pawn] from
     // atkSquares
