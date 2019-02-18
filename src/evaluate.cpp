@@ -464,18 +464,28 @@ namespace {
 
   }
 
-  // Evaluation::potential() assigns bonuses for chances to attack the
-  // opponents pawns
+  // Evaluation::potential() assigns a bonus for owned squares from which we
+  // cann attack opponents immovable loose pawns
   template<Tracing T> template<Color Us>
   Score Evaluation<T>::potential() const {
 
     constexpr Color Them = ~Us;
-    
-    // find opponents loose pawns
-    Bitboard b = pos.pieces(Them, PAWN) & ~ownAll[Them];
+    constexpr Direction Up   = (Us == WHITE) ? NORTH : SOUTH;
+    constexpr Bitboard LightSquares = ~DarkSquares;
 
-    // TODO remove [squares attacked by unbreakable, owned, opponent pawn] from
-    // atkSquares
+    // find opponents immovable pawns
+    Bitboard b = (pos.pieces(Them, PAWN) & shift<Up>(ownAll[Us])) | blocked[Them];
+
+    // keep those which are loose
+    b &= ~ownAll[Them];
+
+    int const cntN = pos.count<KNIGHT>(Us);
+    int const cntB = pos.count<BISHOP>(Us);
+    bool const darkB  = bool(DarkSquares  & attackedBy[Us][BISHOP]);
+    bool const lightB = bool(LightSquares & attackedBy[Us][BISHOP]);
+    Bitboard vulnerableN = 0,
+             vulnerableB = 0;
+
     // TODO remove squares occupied by [own bloked pawn] from atkSquare
     // TODO add pseudo-blocked as well to the above?
     // TODO add bonus if pawndefenders of attack squares are breakable?
@@ -484,31 +494,23 @@ namespace {
     {
         Square s = pop_lsb(&b);
 
-        // knights
-        int cnt = pos.count<KNIGHT>(Us);
-        if (cnt)
+        if (cntN)
         {
             Bitboard atkSquares = attacks_bb<KNIGHT>(s, pos.pieces());
-            // TOTO use pseudo blocked instead of blocked. include literally
-            //      all pseudo blocks by using shift(ownAll) & pawn/us
             atkSquares &= ~pos.pieces(Us, PAWN);
-            score += PotentialN * popcount(atkSquares&ownAll[Us]);
+            vulnerableN |= atkSquares;
         }
 
-        // bishops
-        cnt = pos.count<BISHOP>(Us);
-        // NOTE hopefully attackedBy is faster rthan pos.pieces()
-        if (cnt)
+        if (cntB)
         {
-            bool rightColor = bool(DarkSquares & s)
-                           == bool(DarkSquares & attackedBy[Us][BISHOP]);
-            if (rightColor)
+            bool relevantColor = (DarkSquares  & s && darkB)
+                               | (LightSquares & s && lightB);
+            if (relevantColor)
             {
                 Bitboard atkSquares = attacks_bb<BISHOP>(s, pos.pieces() ^
                         pos.pieces(QUEEN));
-                // NOTE bishop cnt is 1 at most
                 atkSquares &= ~pos.pieces(Us, PAWN);
-                score += PotentialB * popcount(atkSquares & ownAll[Us]);
+                vulnerableB |= atkSquares;
             }
         }
 
@@ -516,6 +518,18 @@ namespace {
         //cnt = pos.count<ROOK>(Us);
 
         // TODO add queen/rook as well?
+    }
+
+    // give bonus for every squares which can can used to attack opponents weak pawns
+    // TODO allow also squares not owned, but  occupied by us? (ownAll[Us] | pos.pieces(Us))
+    if (cntN) score += PotentialN * popcount(vulnerableN & ownAll[Us]);
+    if (cntB)
+    {
+        // mask pawns vulnerable against bishops if we don't have the correct bishop
+        Bitboard tmp = 0;
+        if (darkB)  tmp |= vulnerableB & DarkSquares;
+        if (lightB) tmp |= vulnerableB & LightSquares;
+        score += PotentialB * popcount(tmp & ownAll[Us]);
     }
     return score;
   }
@@ -647,6 +661,7 @@ namespace {
     // square with a pawn, or because they defend the square twice and we don't.
     stronglyProtected =  attackedBy[Them][PAWN]
                        | (attackedBy2[Them] & ~attackedBy2[Us]);
+    // TODO replace with ownage
 
     // Non-pawn enemies, strongly protected
     defended = nonPawnEnemies & stronglyProtected;
