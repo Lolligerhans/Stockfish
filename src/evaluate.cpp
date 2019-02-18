@@ -509,7 +509,6 @@ namespace {
         if (cntN)
         {
             Bitboard atkSquares = attacks_bb<KNIGHT>(s, pos.pieces());
-            atkSquares &= ~pos.pieces(Us, PAWN);
             vulnerableN |= atkSquares;
         }
 
@@ -521,7 +520,6 @@ namespace {
             {
                 Bitboard atkSquares = attacks_bb<BISHOP>(s, pos.pieces() ^
                         pos.pieces(QUEEN));
-                atkSquares &= ~pos.pieces(Us, PAWN);
                 vulnerableB |= atkSquares;
             }
         }
@@ -531,6 +529,11 @@ namespace {
 
         // TODO add queen/rook as well?
     }
+
+    // squares occupied by our own pawns can not be used to attack
+    // TODO remove only our own immovable pawns?
+    vulnerableN &= ~pos.pieces(Us, PAWN);
+    vulnerableB &= ~pos.pieces(Us, PAWN);
 
     // give bonus for every squares which can can used to attack opponents weak pawns
     // TODO allow also squares not owned, but  occupied by us? (ownAll[Us] | pos.pieces(Us))
