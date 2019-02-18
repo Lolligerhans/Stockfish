@@ -152,6 +152,7 @@ namespace {
   constexpr Score KnightOnQueen      = S( 16, 12);
   constexpr Score LongDiagonalBishop = S( 45,  0);
   constexpr Score MinorBehindPawn    = S( 18,  3);
+  constexpr Score OwnedSquareBonus   = S(  5,  5);
   constexpr Score PawnlessFlank      = S( 17, 95);
   constexpr Score RestrictedPiece    = S(  7,  7);
   constexpr Score RookOnPawn         = S( 10, 32);
@@ -161,7 +162,6 @@ namespace {
   constexpr Score ThreatByRank       = S( 13,  0);
   constexpr Score ThreatBySafePawn   = S(173, 94);
   constexpr Score TrappedRook        = S( 47,  4);
-  constexpr Score VulnerablePawn     = S(  5, 15);
   constexpr Score WeakQueen          = S( 49, 15);
   constexpr Score WeakUnopposedPawn  = S( 12, 23);
   constexpr Score Outpost            = S(  9,  3);
@@ -478,17 +478,8 @@ namespace {
   template<Tracing T> template<Color Us>
   Score Evaluation<T>::potential() const {
 
-    constexpr Color Them = ~Us;
-    constexpr Direction Up   = (Us == WHITE) ? NORTH : SOUTH;
-    constexpr Bitboard LightSquares = ~DarkSquares;
+    return OwnedSquareBonus * popcount(ownAll[Us]);
 
-    // find opponents immovable pawns
-    Bitboard b = (pos.pieces(Them, PAWN) & shift<Up>(ownAll[Us])) | blocked[Them];
-
-    // keep those which are loose
-    b &= ~ownAll[Them];
-
-    return VulnerablePawn * popcount(b);
   }
 
   // Evaluation::king() assigns bonuses and penalties to a king of a given color
