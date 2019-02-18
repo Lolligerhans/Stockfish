@@ -153,8 +153,8 @@ namespace {
   constexpr Score LongDiagonalBishop = S( 45,  0);
   constexpr Score MinorBehindPawn    = S( 18,  3);
   constexpr Score PawnlessFlank      = S( 17, 95);
-  constexpr Score PotentialN         = S( 15,  5);
-  constexpr Score PotentialB         = S( 15,  5);
+  constexpr Score PotentialN         = S(  5, 15);
+  constexpr Score PotentialB         = S(  5, 15);
   constexpr Score PotentialR         = S(  5,  5);
   constexpr Score PotentialQ         = S(  5,  5);
   constexpr Score RestrictedPiece    = S(  7,  7);
