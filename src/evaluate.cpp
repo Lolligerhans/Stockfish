@@ -468,7 +468,6 @@ namespace {
 
     constexpr Color Them = ~Us;
     constexpr Direction Up   = (Us == WHITE) ? NORTH : SOUTH;
-    constexpr Bitboard LightSquares = ~DarkSquares;
 
     // find opponents immovable pawns
     Bitboard b = (pos.pieces(Them, PAWN) & shift<Up>(ownAll[Us])) | blocked[Them];
