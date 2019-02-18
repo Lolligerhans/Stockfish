@@ -143,10 +143,6 @@ namespace {
   constexpr Score MinorBehindPawn    = S( 18,  3);
   constexpr Score Outpost            = S(  9,  3);
   constexpr Score PawnlessFlank      = S( 17, 95);
-  constexpr Score PotentialN         = S(  5, 15);
-  constexpr Score PotentialB         = S(  5, 15);
-  constexpr Score PotentialR         = S(  5,  5);
-  constexpr Score PotentialQ         = S(  5,  5);
   constexpr Score RestrictedPiece    = S(  7,  7);
   constexpr Score RookOnPawn         = S( 10, 32);
   constexpr Score SliderOnQueen      = S( 59, 18);
@@ -155,6 +151,7 @@ namespace {
   constexpr Score ThreatByRank       = S( 13,  0);
   constexpr Score ThreatBySafePawn   = S(173, 94);
   constexpr Score TrappedRook        = S( 47,  4);
+  constexpr Score VulnerablePawn     = S(  5, 15);
   constexpr Score WeakQueen          = S( 49, 15);
   constexpr Score WeakUnopposedPawn  = S( 12, 23);
 
@@ -479,59 +476,7 @@ namespace {
     // keep those which are loose
     b &= ~ownAll[Them];
 
-    int const cntN = pos.count<KNIGHT>(Us);
-    int const cntB = pos.count<BISHOP>(Us);
-    bool const darkB  = bool(DarkSquares  & attackedBy[Us][BISHOP]);
-    bool const lightB = bool(LightSquares & attackedBy[Us][BISHOP]);
-    Bitboard vulnerableN = 0,
-             vulnerableB = 0;
-
-    // TODO remove squares occupied by [own bloked pawn] from atkSquare
-    // TODO add pseudo-blocked as well to the above?
-    // TODO add bonus if pawndefenders of attack squares are breakable?
-    Score score = SCORE_ZERO;
-    while (b)
-    {
-        Square s = pop_lsb(&b);
-
-        if (cntN)
-        {
-            Bitboard atkSquares = attacks_bb<KNIGHT>(s, pos.pieces());
-            atkSquares &= ~pos.pieces(Us, PAWN);
-            vulnerableN |= atkSquares;
-        }
-
-        if (cntB)
-        {
-            bool relevantColor = (DarkSquares  & s && darkB)
-                               | (LightSquares & s && lightB);
-            if (relevantColor)
-            {
-                Bitboard atkSquares = attacks_bb<BISHOP>(s, pos.pieces() ^
-                        pos.pieces(QUEEN));
-                atkSquares &= ~pos.pieces(Us, PAWN);
-                vulnerableB |= atkSquares;
-            }
-        }
-
-        // rooks
-        //cnt = pos.count<ROOK>(Us);
-
-        // TODO add queen/rook as well?
-    }
-
-    // give bonus for every squares which can can used to attack opponents weak pawns
-    // TODO allow also squares not owned, but  occupied by us? (ownAll[Us] | pos.pieces(Us))
-    if (cntN) score += PotentialN * popcount(vulnerableN & ownAll[Us]);
-    if (cntB)
-    {
-        // mask pawns vulnerable against bishops if we don't have the correct bishop
-        Bitboard tmp = 0;
-        if (darkB)  tmp |= vulnerableB & DarkSquares;
-        if (lightB) tmp |= vulnerableB & LightSquares;
-        score += PotentialB * popcount(tmp & ownAll[Us]);
-    }
-    return score;
+    return VulnerablePawn * popcount(b);
   }
 
   // Evaluation::king() assigns bonuses and penalties to a king of a given color
