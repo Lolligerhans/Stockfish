@@ -487,9 +487,10 @@ namespace {
 
     // find opponents immovable pawns
     Bitboard b = (pos.pieces(Them, PAWN) & shift<Up>(ownAll[Us])) | blocked[Them];
+    // implement block-removers (see blockfish)
 
-    // keep those which are loose
-    b &= ~ownAll[Them];
+    // keep those which are not secured by pawns
+    b &= ~ownP[Them];
 
     int const cntN = pos.count<KNIGHT>(Us);
     int const cntB = pos.count<BISHOP>(Us);
