@@ -330,7 +330,8 @@ namespace {
             b &= LineBB[pos.square<KING>(Us)][s];
 
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
-        attackedBy2piece[Us] |= attackedBy[Us][ALL_PIECES] & b;
+        attackedBy2piece[Us] |= attackedByPiece[Us] & b;
+        attackedByPiece[Us] |= b;
         attackedBy[Us][Pt] |= b;
         attackedBy[Us][ALL_PIECES] |= b;
 
@@ -443,8 +444,6 @@ namespace {
     ownP [BLACK] = own2P[BLACK] | own1P[BLACK];
 
     // piece ownage
-    attackedByPiece[WHITE] = attackedBy[WHITE][ALL_PIECES] & ~attackedBy[WHITE][PAWN];
-    attackedByPiece[BLACK] = attackedBy[BLACK][ALL_PIECES] & ~attackedBy[BLACK][PAWN];
     Bitboard undecided = ~(ownP[WHITE] | ownP[BLACK]);
     own2 [WHITE] = undecided & attackedBy2piece[WHITE] & ~attackedByPiece[BLACK];
     own2 [BLACK] = undecided & attackedBy2piece[BLACK] & ~attackedByPiece[WHITE];
