@@ -512,7 +512,7 @@ namespace {
     stronglyProtected =  attackedBy[Them][PAWN]
                        | (attackedBy2[Them] & ~attackedBy2[Us]);
 
-    constexpr Score OwnedBonus = make_score(5, 5);
+    constexpr Score OwnedBonus = make_score(4, 5);
     score -= OwnedBonus * popcount(stronglyProtected |
                   (attackedBy[Them][ALL_PIECES] & ~attackedBy[Us][ALL_PIECES]));
 
