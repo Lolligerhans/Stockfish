@@ -155,6 +155,10 @@ namespace {
   constexpr Score OwnedSquareBonus   = S(  5,  5);
   constexpr Score PawnlessFlank      = S( 17, 95);
   constexpr Score RestrictedPiece    = S(  7,  7);
+  constexpr Score RestrictedN        = S(  3,  3);
+  constexpr Score RestrictedB        = S(  0,  0);
+  constexpr Score RestrictedR        = S( -1, -1);
+  constexpr Score RestrictedQ        = S( -2, -2);
   constexpr Score RookOnPawn         = S( 10, 32);
   constexpr Score SliderOnQueen      = S( 59, 18);
   constexpr Score ThreatByKing       = S( 24, 89);
@@ -182,7 +186,6 @@ namespace {
     template<Color Us> void initialize();
     template<Color Us, PieceType Pt> Score pieces();
     void ownage();
-    template<Color Us> Score potential() const;
     template<Color Us> Score king() const;
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
@@ -614,17 +617,6 @@ namespace {
     //   minor-own computation (?)
   }
 
-  // Evaluation::potential() assigns a bonus for owned squares from which we
-  // can attack opponents immovable loose pawns
-  template<Tracing T> template<Color Us>
-  Score Evaluation<T>::potential() const {
-
-    constexpr Score FreedomBonus = make_score(3,3);
-
-    return FreedomBonus * popcount(ownMove[Us]);
-
-  }
-
   // Evaluation::king() assigns bonuses and penalties to a king of a given color
   template<Tracing T> template<Color Us>
   Score Evaluation<T>::king() const {
@@ -794,10 +786,14 @@ namespace {
     }
 
     // Bonus for restricting their piece moves
-    restricted =   attackedBy[Them][ALL_PIECES]
-                & ~stronglyProtected
-                &  attackedBy[Us][ALL_PIECES];
-    score += RestrictedPiece * popcount(restricted);
+    restricted =   attackedBy[Them][KNIGHT] & ~ownMove[Them];
+    score += RestrictedN * popcount(restricted);
+    restricted =   attackedBy[Them][BISHOP] & ~ownMove[Them];
+    score += RestrictedB * popcount(restricted);
+    restricted =   attackedBy[Them][ROOK] & ~ownMove[Them];
+    score += RestrictedR * popcount(restricted);
+    restricted =   attackedBy[Them][QUEEN] & ~ownMove[Them];
+    score += RestrictedQ * popcount(restricted);
 
     // Bonus for enemy unopposed weak pawns
     if (pos.pieces(Us, ROOK, QUEEN))
@@ -1073,8 +1069,6 @@ namespace {
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
     this->ownage();
-
-    score += potential<WHITE>() - potential<BLACK>();
 
     score += mobility[WHITE] - mobility[BLACK];
 
