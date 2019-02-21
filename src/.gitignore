@@ -5,3 +5,4 @@ Session.vim
 .depend
 do
 stockfish
+*.swo

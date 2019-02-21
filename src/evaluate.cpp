@@ -451,13 +451,13 @@ namespace {
 
     // pawn ownage
     {
-        own2P[WHITE] = attackedBy2[WHITE][PAWN] & ~attackedBy[BLACK][PAWN];
-        own2P[BLACK] = attackedBy2[BLACK][PAWN] & ~attackedBy[WHITE][PAWN];
+        own2P[WHITE] = attackedBy2 [WHITE][PAWN] & ~attackedBy [BLACK][PAWN];
+        own2P[BLACK] = attackedBy2 [BLACK][PAWN] & ~attackedBy [WHITE][PAWN];
         own1P[WHITE] = (attackedBy2[WHITE][PAWN] & ~attackedBy2[BLACK][PAWN])
-                     | (attackedBy[WHITE][PAWN] & ~attackedBy[BLACK][PAWN]);
+                     | (attackedBy [WHITE][PAWN] & ~attackedBy [BLACK][PAWN]);
         own1P[WHITE] &= ~own2P[WHITE]; // attackedBy[][] does not filter for multiple pawn attakcs
         own1P[BLACK] = (attackedBy2[BLACK][PAWN] & ~attackedBy2[WHITE][PAWN])
-                     | (attackedBy[BLACK][PAWN] & ~attackedBy[WHITE][PAWN]);
+                     | (attackedBy [BLACK][PAWN] & ~attackedBy [WHITE][PAWN]);
         own1P[BLACK] &= ~own2P[BLACK];
         ownP [WHITE] = own2P[WHITE] | own1P[WHITE];
         ownP [BLACK] = own2P[BLACK] | own1P[BLACK];
@@ -468,22 +468,22 @@ namespace {
     // knight and bishop ownage
     Bitboard N, N1, N2, B, B1, B2, n, n1, n2, b, b1, b2;
     {
-        N2 = attackedBy2[WHITE][KNIGHT] & ~attackedBy [BLACK][KNIGHT];
+        N2 = attackedBy2 [WHITE][KNIGHT] & ~attackedBy [BLACK][KNIGHT];
         N1 = (attackedBy2[WHITE][KNIGHT] & ~attackedBy2[BLACK][KNIGHT])
            | (attackedBy [WHITE][KNIGHT] & ~attackedBy [BLACK][KNIGHT]);
         N = N1 | N2;
         N1 &= ~N2;
-        B2 = attackedBy2[WHITE][BISHOP] & ~attackedBy [BLACK][BISHOP];
+        B2 = attackedBy2 [WHITE][BISHOP] & ~attackedBy [BLACK][BISHOP];
         B1 = (attackedBy2[WHITE][BISHOP] & ~attackedBy2[BLACK][BISHOP])
            | (attackedBy [WHITE][BISHOP] & ~attackedBy [BLACK][BISHOP]);
         B = B1 | B2;
         B1 &= ~B2;
-        n2 = attackedBy2[BLACK][KNIGHT] & ~attackedBy [WHITE][KNIGHT];
+        n2 = attackedBy2 [BLACK][KNIGHT] & ~attackedBy [WHITE][KNIGHT];
         n1 = (attackedBy2[BLACK][KNIGHT] & ~attackedBy2[WHITE][KNIGHT])
            | (attackedBy [BLACK][KNIGHT] & ~attackedBy [WHITE][KNIGHT]);
         n = n1 | n2;
         n1 &= ~n2;
-        b2 = attackedBy2[BLACK][BISHOP] & ~attackedBy [WHITE][BISHOP];
+        b2 = attackedBy2 [BLACK][BISHOP] & ~attackedBy [WHITE][BISHOP];
         b1 = (attackedBy2[BLACK][BISHOP] & ~attackedBy2[WHITE][BISHOP])
            | (attackedBy [BLACK][BISHOP] & ~attackedBy [WHITE][BISHOP]);
         b = b1 | b2;
@@ -500,12 +500,12 @@ namespace {
                      ( (n2 & ~B)
                      | (b2 & ~N)
                      | (n1 & b1) );
-        own1M[WHITE] = undecided &
+        own1M[WHITE] = undecided & ~own2M[WHITE] &
                      ( (N2 & ~b2)
                      | (B2 & ~n2)
                      | (N1 & ~b)
                      | (B1 & ~n) );
-        own1M[BLACK] = undecided &
+        own1M[BLACK] = undecided & ~own2M[BLACK] &
                      ( (n2 & ~B2)
                      | (b2 & ~N2)
                      | (n1 & ~B)
@@ -546,7 +546,28 @@ namespace {
         ownQ[BLACK] = own2Q[BLACK] | own1Q[BLACK];
     }
 
-    // total ownage
+    // major piece ownage
+    Bitboard own2MAJ, own2maj, own1MAJ, own1maj, ownMAJ, ownmaj;
+    {
+        own2MAJ = (own2R[WHITE] & ~ownQ[BLACK])
+                | (ownR [WHITE] &  ownQ[WHITE])
+                | (own2Q[WHITE] & ~ownR[BLACK]);
+        own2maj = (own2R[BLACK] & ~ownQ[WHITE])
+                | (ownR [BLACK] &  ownQ[BLACK])
+                | (own2Q[BLACK] & ~ownR[WHITE]);
+        own1MAJ = ~own2MAJ
+                & ((own2R[WHITE] & ~own2Q[BLACK])
+                 | (own2Q[WHITE] & ~own2R[BLACK])
+                 | (ownR [WHITE] & ~ownQ [BLACK]));
+        own1maj = ~own2maj
+                & ((own2R[BLACK] & ~own2Q[WHITE])
+                 | (own2Q[BLACK] & ~own2R[WHITE])
+                 | (ownR [BLACK] & ~ownQ [WHITE]));
+        ownMAJ = own2MAJ | own1MAJ;
+        ownmaj = own2maj | own1maj;
+    }
+
+    // total ownage (for pawn breaks?)
     {
         ownAll[WHITE] = ownP[WHITE] | ownM[WHITE] | ownR[WHITE] | ownQ[WHITE];
         ownAll[BLACK] = ownP[BLACK] | ownM[BLACK] | ownR[BLACK] | ownQ[BLACK];
@@ -560,22 +581,31 @@ namespace {
     // ownage of that square by 1
     //Bitboard wFight = ~attackedBy[BLACK][PAWN];
     //Bitboard bFight = ~attackedBy[WHITE][PAWN];
-    Bitboard pieceOwnedW = ownM[WHITE] | ownR[WHITE] | ownQ[WHITE];
-    Bitboard pieceOwnedB = ownM[BLACK] | ownR[BLACK] | ownQ[BLACK];
-    Bitboard pieceAttackedW =
-        attackedBy[WHITE][KNIGHT] |
-        attackedBy[WHITE][BISHOP] |
-        attackedBy[WHITE][ROOK]   |
-        attackedBy[WHITE][QUEEN];
-    Bitboard pieceAttackedB =
-        attackedBy[BLACK][KNIGHT] |
-        attackedBy[BLACK][BISHOP] |
-        attackedBy[BLACK][ROOK]   |
-        attackedBy[BLACK][QUEEN];
-    ownMove[WHITE] = ~attackedBy[BLACK][PAWN] &
-        (pieceOwnedW | (~pieceOwnedB & pieceAttackedW & attackedBy[WHITE][PAWN]));
-    ownMove[BLACK] = ~attackedBy[WHITE][PAWN] &
-        (pieceOwnedB | (~pieceOwnedW & pieceAttackedB & attackedBy[BLACK][PAWN]));
+    //Bitboard pieceOwnedW = ownM[WHITE] | ownR[WHITE] | ownQ[WHITE];
+    //Bitboard pieceOwnedB = ownM[BLACK] | ownR[BLACK] | ownQ[BLACK];
+    //Bitboard pieceAttackedW =
+    //    attackedBy[WHITE][KNIGHT] |
+    //    attackedBy[WHITE][BISHOP] |
+    //    attackedBy[WHITE][ROOK]   |
+    //    attackedBy[WHITE][QUEEN];
+    //Bitboard pieceAttackedB =
+    //    attackedBy[BLACK][KNIGHT] |
+    //    attackedBy[BLACK][BISHOP] |
+    //    attackedBy[BLACK][ROOK]   |
+    //    attackedBy[BLACK][QUEEN];
+    //ownMove[WHITE] = ~attackedBy[BLACK][PAWN] &
+    //    (pieceOwnedW | (~pieceOwnedB & pieceAttackedW & attackedBy[WHITE][PAWN]));
+    //ownMove[BLACK] = ~attackedBy[WHITE][PAWN] &
+    //    (pieceOwnedB | (~pieceOwnedW & pieceAttackedB & attackedBy[BLACK][PAWN]));
+
+    // new more accurate move ownage
+    {
+        ownMove[WHITE] = ~attackedBy[BLACK][PAWN] &
+                         (own2M[WHITE] | (own1M[WHITE] & ownMAJ));
+
+        ownMove[BLACK] = ~attackedBy[WHITE][PAWN] &
+                         (own2M[BLACK] | (own1M[BLACK] & ownmaj));
+    }
 
     // TODO speedups:
     // - dont distinguish between 1- and 2-owned if not needed anywhere
@@ -585,11 +615,11 @@ namespace {
   }
 
   // Evaluation::potential() assigns a bonus for owned squares from which we
-  // cann attack opponents immovable loose pawns
+  // can attack opponents immovable loose pawns
   template<Tracing T> template<Color Us>
   Score Evaluation<T>::potential() const {
 
-    constexpr Score FreedomBonus = make_score(5,5);
+    constexpr Score FreedomBonus = make_score(3,3);
 
     return FreedomBonus * popcount(ownMove[Us]);
 
