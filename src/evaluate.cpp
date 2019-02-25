@@ -568,13 +568,11 @@ namespace {
         ownDef[BLACK] |= equal & ownmaj;
     }
 
-    constexpr Score AtkScore = make_score(3,1);
-    constexpr Score DefScore = make_score(1,3);
-    constexpr Bitboard whiteFront = ~(Rank1BB | Rank2BB | Rank3BB | Rank4BB);
-    constexpr Bitboard blackFront = ~(Rank6BB | Rank7BB | Rank8BB | Rank5BB);
+    constexpr Score AtkScore = make_score(3,3);
+    constexpr Score DefScore = make_score(2,2);
 
     Score score = SCORE_ZERO;
-    score += AtkScore * (popcount(ownMove[WHITE] & whiteFront) - popcount(ownMove[BLACK] & blackFront));
+    score += AtkScore * (popcount(ownMove[WHITE]) - popcount(ownMove[BLACK]));
     score += DefScore * (popcount(ownDef [WHITE]) - popcount(ownDef [BLACK]));
     return score;
 
