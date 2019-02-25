@@ -568,8 +568,8 @@ namespace {
         ownDef[BLACK] |= equal & ownmaj;
     }
 
-    constexpr Score AtkScore = make_score(3,3);
-    constexpr Score DefScore = make_score(2,2);
+    constexpr Score AtkScore = make_score(0,3);
+    constexpr Score DefScore = make_score(0,2);
 
     Score score = SCORE_ZERO;
     score += AtkScore * (popcount(ownMove[WHITE]) - popcount(ownMove[BLACK]));
