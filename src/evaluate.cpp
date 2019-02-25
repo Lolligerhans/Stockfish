@@ -185,7 +185,7 @@ namespace {
   private:
     template<Color Us> void initialize();
     template<Color Us, PieceType Pt> Score pieces();
-    Score ownage();
+    void ownage();
     template<Color Us> Score king() const;
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
@@ -294,7 +294,6 @@ namespace {
         attackedBy2[BLACK][ALL_PIECES] |= attackedBy[BLACK][ALL_PIECES] & b;
         attackedBy2[BLACK][ALL_PIECES] |= attackedBy2[BLACK][PAWN] = pawn_double_attacks_bb<BLACK>(pos.pieces(BLACK, PAWN));
         attackedBy [BLACK][PAWN] = b;
-
     }
 
     Bitboard qBlock2 = attackedBy2[Them][PAWN] & ~attackedBy[Us][PAWN];
@@ -453,7 +452,7 @@ namespace {
   // Evaluation::ownage() computes vulnerability bitboards for a given
   // color
   template<Tracing T>
-  Score Evaluation<T>::ownage() {
+  void Evaluation<T>::ownage() {
 
     // pawn ownage
     {
@@ -634,13 +633,13 @@ namespace {
         ownDef[BLACK] |= equal & ownmaj;
     }
 
-    constexpr Score AtkScore = make_score(0,3);
-    constexpr Score DefScore = make_score(0,2);
+    //constexpr Score AtkScore = make_score(0,3);
+    //constexpr Score DefScore = make_score(0,2);
 
-    Score score = SCORE_ZERO;
-    score += AtkScore * (popcount(ownMove[WHITE]) - popcount(ownMove[BLACK]));
-    score += DefScore * (popcount(ownDef [WHITE]) - popcount(ownDef [BLACK]));
-    return score;
+    //Score score = SCORE_ZERO;
+    //score += AtkScore * (popcount(ownMove[WHITE]) - popcount(ownMove[BLACK]));
+    //score += DefScore * (popcount(ownDef [WHITE]) - popcount(ownDef [BLACK]));
+    //return score;
 
     // TODO speedups:
     // - dont distinguish between 1- and 2-owned if not needed anywhere
@@ -671,7 +670,7 @@ namespace {
 
     // Analyse the safe enemy's checks which are possible on next move
     safe  = ~pos.pieces(Them);
-    safe &= ~attackedBy[Us][ALL_PIECES] | (weak & attackedBy2[Them][ALL_PIECES]);
+    safe &= ownMove[Them];
 
     b1 = attacks_bb<ROOK  >(ksq, pos.pieces() ^ pos.pieces(Us, QUEEN));
     b2 = attacks_bb<BISHOP>(ksq, pos.pieces() ^ pos.pieces(Us, QUEEN));
@@ -775,8 +774,7 @@ namespace {
     // Squares strongly protected by the enemy, either because they defend the
     // square with a pawn, or because they defend the square twice and we don't.
     stronglyProtected =  attackedBy[Them][PAWN]
-                       | (attackedBy2[Them][ALL_PIECES] & ~attackedBy2[Us][ALL_PIECES]);
-    // TODO replace with ownage
+                       | ownDef[Them];
 
     // Non-pawn enemies, strongly protected
     defended = nonPawnEnemies & stronglyProtected;
@@ -785,7 +783,7 @@ namespace {
     weak = pos.pieces(Them) & ~stronglyProtected & attackedBy[Us][ALL_PIECES];
 
     // Safe or protected squares
-    safe = ~attackedBy[Them][ALL_PIECES] | attackedBy[Us][ALL_PIECES];
+    safe = ownDef[Us];
 
     // Bonus according to the kind of attacking pieces
     if (defended | weak)
@@ -818,8 +816,7 @@ namespace {
     }
 
     restricted =   attackedBy[Them][ALL_PIECES]
-                & ~stronglyProtected
-                &  attackedBy[Us][ALL_PIECES];
+                &  ownDef[Us];
     score += RestrictedPiece * popcount(restricted);
 
     // Bonus for enemy unopposed weak pawns
@@ -1095,7 +1092,7 @@ namespace {
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
-    score += ownage();
+    ownage();
 
     score += mobility[WHITE] - mobility[BLACK];
 
