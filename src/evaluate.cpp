@@ -200,23 +200,6 @@ namespace {
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
     Bitboard blocked[COLOR_NB];
 
-    // own..[color] are bitboards attacked by a majority of pawns or pieces.
-    // Only {squares NOT included in previous ownage boards} are considered.
-    Bitboard own2P[COLOR_NB];
-    Bitboard own1P[COLOR_NB];
-    Bitboard ownP [COLOR_NB];
-    Bitboard own2M[COLOR_NB];
-    Bitboard own1M[COLOR_NB];
-    Bitboard ownM [COLOR_NB];
-    Bitboard own2R[COLOR_NB];
-    Bitboard own1R[COLOR_NB];
-    Bitboard ownR [COLOR_NB];
-    Bitboard own2Q[COLOR_NB];
-    Bitboard own1Q[COLOR_NB];
-    Bitboard ownQ [COLOR_NB];
-
-    Bitboard ownAll [COLOR_NB];
-
     // ownMove[color] contains the squares to which one of our pieces can move
     // without losing material by possible exchanges
     Bitboard ownMove[COLOR_NB];
@@ -453,6 +436,23 @@ namespace {
   // color
   template<Tracing T>
   void Evaluation<T>::ownage() {
+
+    // own..[color] are bitboards attacked by a majority of pawns or pieces.
+    // Only {squares NOT included in previous ownage boards} are considered.
+    Bitboard own2P[COLOR_NB];
+    Bitboard own1P[COLOR_NB];
+    Bitboard ownP [COLOR_NB];
+    Bitboard own2M[COLOR_NB];
+    Bitboard own1M[COLOR_NB];
+    Bitboard ownM [COLOR_NB];
+    Bitboard own2R[COLOR_NB];
+    Bitboard own1R[COLOR_NB];
+    Bitboard ownR [COLOR_NB];
+    Bitboard own2Q[COLOR_NB];
+    Bitboard own1Q[COLOR_NB];
+    Bitboard ownQ [COLOR_NB];
+
+    Bitboard ownAll [COLOR_NB];
 
     // pawn ownage
     {
