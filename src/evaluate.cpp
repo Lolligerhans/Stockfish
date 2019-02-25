@@ -216,11 +216,14 @@ namespace {
     Bitboard ownQ [COLOR_NB];
 
     Bitboard ownAll [COLOR_NB];
-    // ownage when removing our own pawn attakcs from the calculation (they can
-    // not jump in to trade for the least valuable opponents attacker (pawn))
-    // (implemented as {not attacked by opponents pawn} & {not piece owned by
-    // them} & {attacked by us})
+
+    // ownMove[color] contains the squares to which one of our pieces can move
+    // without losing material by possible exchanges
     Bitboard ownMove[COLOR_NB];
+
+    // ownDef[color] contains the squares which no opponent piece can move to
+    // without losing material by possible exchanges
+    Bitboard ownDef[COLOR_NB;
 
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
@@ -604,10 +607,29 @@ namespace {
     // new more accurate move ownage
     {
         ownMove[WHITE] = ~attackedBy[BLACK][PAWN] &
-                         (own2M[WHITE] | (own1M[WHITE] & ownMAJ));
+                        ( (own2M[WHITE] & ~own2maj)
+                         |(own2MAJ & ~ownM[BLACK])
+                         |((ownM[WHITE] | ownMAJ) & ~(ownM[BLACK] | ownmaj)));
 
         ownMove[BLACK] = ~attackedBy[WHITE][PAWN] &
-                         (own2M[BLACK] | (own1M[BLACK] & ownmaj));
+                        ( (own2M[BLACK] & ~own2MAJ)
+                         |(own2maj & ~ownM[WHITE])
+                         |((ownM[BLACK] | ownmaj) & ~(ownM[WHITE] | ownMAJ)));
+    }
+
+    // new more accurate move protection
+    {
+        ownDef[WHITE]  = ownP[WHITE];
+        Bitboard equal = ~ownP[BLACK];
+        ownDef[WHITE] |= equal & ownM[WHITE];
+        equal |= ~ownM[BLACK];
+        ownDef[WHITE] |= equal & ownMAJ;
+
+        ownDef[BLACK]  = ownP[BLACK];
+        Bitboard equal = ~ownP[WHITE];
+        ownDef[BLACK] |= equal & ownM[BLACK];
+        equal |= ~ownM[WHITE];
+        ownDef[BLACK] |= equal & ownmaj;
     }
 
     // TODO speedups:
