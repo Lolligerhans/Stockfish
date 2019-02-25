@@ -185,7 +185,7 @@ namespace {
   private:
     template<Color Us> void initialize();
     template<Color Us, PieceType Pt> Score pieces();
-    void ownage();
+    Score ownage();
     template<Color Us> Score king() const;
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
@@ -223,7 +223,7 @@ namespace {
 
     // ownDef[color] contains the squares which no opponent piece can move to
     // without losing material by possible exchanges
-    Bitboard ownDef[COLOR_NB;
+    Bitboard ownDef[COLOR_NB];
 
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
@@ -453,7 +453,7 @@ namespace {
   // Evaluation::ownage() computes vulnerability bitboards for a given
   // color
   template<Tracing T>
-  void Evaluation<T>::ownage() {
+  Score Evaluation<T>::ownage() {
 
     // pawn ownage
     {
@@ -619,18 +619,30 @@ namespace {
 
     // new more accurate move protection
     {
+        Bitboard equal;
+
         ownDef[WHITE]  = ownP[WHITE];
-        Bitboard equal = ~ownP[BLACK];
+        equal = ~ownP[BLACK];
         ownDef[WHITE] |= equal & ownM[WHITE];
         equal |= ~ownM[BLACK];
         ownDef[WHITE] |= equal & ownMAJ;
 
         ownDef[BLACK]  = ownP[BLACK];
-        Bitboard equal = ~ownP[WHITE];
+        equal = ~ownP[WHITE];
         ownDef[BLACK] |= equal & ownM[BLACK];
         equal |= ~ownM[WHITE];
         ownDef[BLACK] |= equal & ownmaj;
     }
+
+    // secure atk squares in midgame
+    constexpr Score AtkScore = make_score(5,3);
+    // occupy squares and defend in endgame
+    constexpr Score DefScore = make_score(3,5);
+
+    Score score = SCORE_ZERO;
+    score += AtkScore * (popcount(ownMove[WHITE]) - popcount(ownMove[BLACK]));
+    score += DefScore * (popcount(ownDef [WHITE]) - popcount(ownDef [BLACK]));
+    return score;
 
     // TODO speedups:
     // - dont distinguish between 1- and 2-owned if not needed anywhere
@@ -807,15 +819,10 @@ namespace {
         score += Hanging * popcount(weak & b);
     }
 
-    // Bonus for restricting their piece moves
-    restricted =   attackedBy[Them][KNIGHT] & ~ownMove[Them];
-    score += RestrictedN * popcount(restricted);
-    restricted =   attackedBy[Them][BISHOP] & ~ownMove[Them];
-    score += RestrictedB * popcount(restricted);
-    restricted =   attackedBy[Them][ROOK] & ~ownMove[Them];
-    score += RestrictedR * popcount(restricted);
-    restricted =   attackedBy[Them][QUEEN] & ~ownMove[Them];
-    score += RestrictedQ * popcount(restricted);
+    restricted =   attackedBy[Them][ALL_PIECES]
+                & ~stronglyProtected
+                &  attackedBy[Us][ALL_PIECES];
+    score += RestrictedPiece * popcount(restricted);
 
     // Bonus for enemy unopposed weak pawns
     if (pos.pieces(Us, ROOK, QUEEN))
@@ -1090,7 +1097,7 @@ namespace {
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
-    this->ownage();
+    score += ownage();
 
     score += mobility[WHITE] - mobility[BLACK];
 
