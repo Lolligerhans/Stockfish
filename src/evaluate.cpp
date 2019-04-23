@@ -135,6 +135,7 @@ namespace {
   // Assorted bonuses and penalties
   constexpr Score BishopPawns        = S(  3,  7);
   constexpr Score CorneredBishop     = S( 50, 50);
+  constexpr Score EncapsulatedBishop = S(0  ,100);
   constexpr Score FlankAttacks       = S(  8,  0);
   constexpr Score Hanging            = S( 69, 36);
   constexpr Score KingProtector      = S(  7,  8);
@@ -270,6 +271,8 @@ namespace {
     constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
+    constexpr Bitboard HighRanks    = (Us == WHITE ? ~(Rank1BB | Rank2BB | Rank3BB)
+                                                   : ~(Rank6BB | Rank7BB | Rank8BB));
     const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
@@ -298,7 +301,8 @@ namespace {
             kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
         }
 
-        int mob = popcount(b & mobilityArea[Us]);
+        Bitboard m = b & mobilityArea[Us];
+        int mob = popcount(m);
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
@@ -333,6 +337,9 @@ namespace {
                 // Bonus for bishop on a long diagonal which can "see" both center squares
                 if (more_than_one(attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & Center))
                     score += LongDiagonalBishop;
+
+                // Penalty for encapsulated bishops (has no mobility in higher ranks).
+                score -= EncapsulatedBishop * !bool(m & HighRanks);
             }
 
             // An important Chess960 pattern: A cornered bishop blocked by a friendly
