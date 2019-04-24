@@ -73,6 +73,17 @@ using namespace Trace;
 
 namespace {
 
+  //TODO good alternatives? are 4 calls few enough to just call it 4 times?
+  constexpr Bitboard QueenSide   = FileABB | FileBBB | FileCBB | FileDBB;
+  constexpr Bitboard CenterFiles = FileCBB | FileDBB | FileEBB | FileFBB;
+  constexpr Bitboard KingSide    = FileEBB | FileFBB | FileGBB | FileHBB;
+  constexpr Bitboard Center      = (FileDBB | FileEBB) & (Rank4BB | Rank5BB);
+  constexpr Bitboard KingFlank[FILE_NB] = {
+    QueenSide ^ FileDBB, QueenSide, QueenSide,
+    CenterFiles, CenterFiles,
+    KingSide, KingSide, KingSide ^ FileEBB
+  };
+
   // Threshold for lazy and space evaluation
   constexpr Value LazyThreshold  = Value(1500);
   constexpr Value SpaceThreshold = Value(12222);
@@ -134,6 +145,7 @@ namespace {
 
   // Assorted bonuses and penalties
   constexpr Score BishopPawns        = S(  3,  7);
+  constexpr Score BlowmobPenalty     = S( 15,  0);
   constexpr Score CorneredBishop     = S( 50, 50);
   constexpr Score FlankAttacks       = S(  8,  0);
   constexpr Score Hanging            = S( 69, 36);
@@ -181,6 +193,11 @@ namespace {
     Pawns::Entry* pe;
     Bitboard mobilityArea[COLOR_NB];
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
+    Bitboard blocked[COLOR_NB];
+    Bitboard kingFlank[COLOR_NB];
+    Bitboard blowmobHardBlock[COLOR_NB];
+    Bitboard blowmobSoftBlock[COLOR_NB];
+    int blowmobFactor;
 
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
@@ -190,6 +207,10 @@ namespace {
     // attackedBy2[color] are the squares attacked by at least 2 units of a given
     // color, including x-rays. But diagonal x-rays through pawns are not computed.
     Bitboard attackedBy2[COLOR_NB];
+
+    // attackedBy2p are the squares which are atacked by 2 pawns of the given
+    // color
+    Bitboard attackedBy2p[COLOR_NB];
 
     // kingRing[color] are the squares adjacent to the king, plus (only for a
     // king on its first rank) the squares two ranks in front. For instance,
@@ -227,21 +248,66 @@ namespace {
     constexpr Bitboard LowRanks = (Us == WHITE ? Rank2BB | Rank3BB: Rank7BB | Rank6BB);
 
     const Square ksq = pos.square<KING>(Us);
+    kingFlank[Us] = KingFlank[file_of(ksq)];
 
-    Bitboard dblAttackByPawn = pawn_double_attacks_bb<Us>(pos.pieces(Us, PAWN));
+//    // Initialize attackedBy[] for king and pawns
+//    attackedBy[Us][KING] = pos.attacks_from<KING>(ksq);
+//    attackedBy[Us][PAWN] = pe->pawn_attacks(Us);
+//    attackedBy[Us][ALL_PIECES] = attackedBy[Us][KING] | attackedBy[Us][PAWN];
+//    attackedBy1[Us]            = (attackedBy[Us][KING] & attackedBy[Us][PAWN])
+//                                 | dblAttackByPawn;
+    if (Us == WHITE)
+    {
+        kingFlank[Them] = KingFlank[file_of(pos.square<KING>(Them))];
+
+        const Square ksqB = pos.square<KING>(BLACK);
+
+        attackedBy[WHITE][KING] = pos.attacks_from<KING>(ksq);
+        attackedBy[WHITE][PAWN] = pe->pawn_attacks(WHITE);
+        attackedBy[WHITE][ALL_PIECES] = attackedBy[WHITE][KING] | attackedBy[WHITE][PAWN];
+        attackedBy2[WHITE]            = attackedBy[WHITE][KING] & attackedBy[WHITE][PAWN];
+        attackedBy2p[WHITE] = pawn_double_attacks_bb<WHITE>(pos.pieces(WHITE, PAWN));
+
+        attackedBy[BLACK][KING] = pos.attacks_from<KING>(ksqB);
+        attackedBy[BLACK][PAWN] = pe->pawn_attacks(BLACK);
+        attackedBy[BLACK][ALL_PIECES] = attackedBy[BLACK][KING] | attackedBy[BLACK][PAWN];
+        attackedBy2[BLACK]            = attackedBy[BLACK][KING] & attackedBy[BLACK][PAWN];
+        attackedBy2p[BLACK] = pawn_double_attacks_bb<BLACK>(pos.pieces(BLACK, PAWN));
+
+        // hard and soft blocks affecting our minor pieces will add points to this
+        blowmobFactor = 0;
+    }
+
+    Bitboard qBlock2 = attackedBy2p [Them]       & ~attackedBy  [Us][PAWN];
+    // NOTE qBlock1 also contains all qBlock2 pawns! This is resolved below.
+    Bitboard qBlock1 = (attackedBy2p[Them]       & ~attackedBy2p[Us])
+                     | (attackedBy  [Them][PAWN] & ~attackedBy  [Us][PAWN]);
+
+    Bitboard b = pos.pieces(Us, PAWN);
+    blocked[Us] = b & shift<Down>(pos.pieces());
+
+    // TODO add qBlock2 to actual blocked bitboard?
+    Bitboard stronglyBlocked = b & shift<Down>(qBlock2);
+    // consider our pawns quasi-blocked by degree 1 in blowmob softblocks
+    Bitboard weaklyBlocked   = b & shift<Down>(qBlock1);
+
+    // TODO need blockresolvers? they might often not prevent much penalty
+    // while attakcing pieces gives a bonus anyway. might be worth to check for
+    blowmobHardBlock[Us] = blocked[Us] | stronglyBlocked;
+
+    // Excluding hard blocks removes qBLock2 pawns as well as the pawns which
+    // are actually physically blocked (blocked by a protected piece then)
+    blowmobSoftBlock[Us] = weaklyBlocked & ~blowmobHardBlock[Us];
 
     // Find our pawns that are blocked or on the first two ranks
-    Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
+    b &= blocked[Us] | LowRanks; // TODO can be computed more efficiently?
+
+//    // Find our pawns that are blocked or on the first two ranks
+//    Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
 
     // Squares occupied by those pawns, by our king or queen or controlled by
     // enemy pawns are excluded from the mobility area.
     mobilityArea[Us] = ~(b | pos.pieces(Us, KING, QUEEN) | pe->pawn_attacks(Them));
-
-    // Initialize attackedBy[] for king and pawns
-    attackedBy[Us][KING] = pos.attacks_from<KING>(ksq);
-    attackedBy[Us][PAWN] = pe->pawn_attacks(Us);
-    attackedBy[Us][ALL_PIECES] = attackedBy[Us][KING] | attackedBy[Us][PAWN];
-    attackedBy2[Us] = dblAttackByPawn | (attackedBy[Us][KING] & attackedBy[Us][PAWN]);
 
     // Init our king safety tables
     kingRing[Us] = attackedBy[Us][KING];
@@ -258,7 +324,7 @@ namespace {
     kingAttacksCount[Them] = kingAttackersWeight[Them] = 0;
 
     // Remove from kingRing[] the squares defended by two pawns
-    kingRing[Us] &= ~dblAttackByPawn;
+    kingRing[Us] &= ~attackedBy2p[Us];
   }
 
 
@@ -325,10 +391,8 @@ namespace {
             {
                 // Penalty according to number of pawns on the same color square as the
                 // bishop, bigger when the center files are blocked with pawns.
-                Bitboard blocked = pos.pieces(Us, PAWN) & shift<Down>(pos.pieces());
-
                 score -= BishopPawns * pos.pawns_on_same_color_squares(Us, s)
-                                     * (1 + popcount(blocked & CenterFiles));
+                                     * (1 + popcount(blocked[Us] & CenterFiles));
 
                 // Bonus for bishop on a long diagonal which can "see" both center squares
                 if (more_than_one(attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & Center))
@@ -376,6 +440,62 @@ namespace {
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
         }
+
+        // BLOWMOB computation
+        //
+        // aspects to tweak (currently):
+        //  - severity area
+        //  - blockers (what squares block our pawns)
+        //  - blocks   (what sqaures are being blocked, naturally our pawns
+        //             which are behind a blocker)
+        //  - penalty computation (currently a point system distinguishing hard
+        //                        and soft blocks, cumulated and scaled)
+        //  - (note the quasi-blocks idea might also be a different, unrelated
+        //    try
+        //  - midgame/endgame penalty question? idea is designed to be a
+        //    midgame (heuristic) penalty, mostly for guiding search/pruning.
+        //    small endgame penalty seems reasonable encouraging the program fo
+        //    favor positions in which the opponent more often than not blocks
+        //    his pieces (noticable the bishop which cant change color) with
+        //    his own pawns (or positions in which you dont)
+        //  -> eg penalties of ~50% of mg penalty usually seemed not to be
+        //     particularly bad in super-fast testing, too (tested in part with
+        //     vastly different test construction but with same blocking idea)
+        //  - can consider 2nd order blocks: if a piece is blocked at
+        //    impact/factor 2, add to soft blocks. if 3 or more, add to hard
+        //    blocks. then repeat the proess until the result is stable. dunno
+        //    there's probably some mchain mathematics which can make this
+        //    efficient? :/ ehm
+        //
+        // note that popcount(attackedBy[Us][Pt] & blocked) is not the same
+        // becasue we lose the information of the pieces origin squares which
+        // we need to determine severity are. blocking a bishop backwards is,
+        // especially in middlegames where it is often on our own side, not
+        // remotely as bad as blocking the forwards-movement of a bishop
+        //
+
+        if (Pt == KNIGHT || Pt == BISHOP)
+        {
+            Bitboard barea = ForwardRanksBB[Us][rank_of(s)] & (SeverityMidblockBB[s] | kingFlank[Them]);
+            // use all-xray attakcs for blocks. doesnt really make sense to me
+            // to artificially restrict blocking to first encounter only (as
+            // done in mobility are computation)
+            Bitboard blowmobMoves = barea & PseudoAttacks[Pt][s];
+            Bitboard bh = blowmobMoves & blowmobHardBlock[Us];
+            // TODO find best preactice maybe?
+//          Bitboard bs = blowmobMoves &
+//              (blowmobSoftBlock[Us] | (Pt == KNIGHT ? pos.pieces(Us, KNIGHT, BISHOP) : 0));
+            Bitboard bs = blowmobMoves & blowmobSoftBlock[Us];
+
+            // since severity are excludes most of the squares anyway, we
+            // probably do not care for values > 2. saves popcount (i guess
+            // popcount would be slower? dunno)
+            // alternatively: soft +1 each, first hard +2, every further hard *2
+            //  -> might use bool(x) and more_than_one(x) instead of bitboards
+            int factor = popcount(bs) + 2*popcount(bh);
+            blowmobFactor += (Us == WHITE ? factor : -factor);
+        }
+
     }
     if (T)
         Trace::add(Pt, Us, score);
@@ -835,6 +955,8 @@ namespace {
             + space<  WHITE>() - space<  BLACK>();
 
     score += initiative(eg_value(score));
+
+    score -= BlowmobPenalty * blowmobFactor;
 
     // Interpolate between a middlegame and a (scaled by 'sf') endgame score
     ScaleFactor sf = scale_factor(eg_value(score));
