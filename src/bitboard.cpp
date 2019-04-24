@@ -32,7 +32,17 @@ Bitboard LineBB[SQUARE_NB][SQUARE_NB];
 Bitboard PseudoAttacks[PIECE_TYPE_NB][SQUARE_NB];
 Bitboard PawnAttacks[COLOR_NB][SQUARE_NB];
 Bitboard ForwardRanksBB[COLOR_NB][SQUARE_NB];
-Bitboard SeverityMidblockBB[SQUARE_NB];
+
+Bitboard SeverityMidblockBB[FILE_NB] = {
+  FileABB | FileBBB | FileCBB | FileDBB | FileEBB,
+            FileBBB | FileCBB | FileDBB | FileEBB,
+                      FileCBB | FileDBB | FileEBB,
+                                FileDBB | FileEBB,
+                                FileDBB | FileEBB,
+                                FileDBB | FileEBB | FileFBB,
+                                FileDBB | FileEBB | FileFBB | FileGBB,
+                                FileDBB | FileEBB | FileFBB | FileGBB | FileHBB
+};
 
 Bitboard KingFlank[FILE_NB] = {
   QueenSide ^ FileDBB, QueenSide, QueenSide,
@@ -88,20 +98,6 @@ void Bitboards::init() {
   for (Square s1 = SQ_A1; s1 <= SQ_H8; ++s1)
       for (Square s2 = SQ_A1; s2 <= SQ_H8; ++s2)
               SquareDistance[s1][s2] = std::max(distance<File>(s1, s2), distance<Rank>(s1, s2));
-
-  // severity bitboards
-  for (Square s = SQ_A1; s <= SQ_H8; ++s)
-  {
-      // inwards and same file
-      for( File f = FILE_A; f <= FILE_H; ++f)
-      {
-          if (file_of(s) <= FILE_D && file_of(s) <= f && f <= FILE_E)
-              SeverityMidblockBB[s] |= file_bb(f);
-          else
-          if (file_of(s) >= FILE_E && file_of(s) >= f && f >= FILE_D)
-              SeverityMidblockBB[s] |= file_bb(f);
-      }
-  }
 
   int steps[][5] = { {}, { 7, 9 }, { 6, 10, 15, 17 }, {}, {}, {}, { 1, 7, 8, 9 } };
 
