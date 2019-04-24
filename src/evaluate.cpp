@@ -476,7 +476,7 @@ namespace {
 
         if (Pt == KNIGHT || Pt == BISHOP)
         {
-            Bitboard barea = ForwardRanksBB[Us][rank_of(s)] & (SeverityMidblockBB[s] | kingFlank[Them]);
+            Bitboard barea = ForwardRanksBB[Us][rank_of(s)] & (SeverityMidblockBB[file_of(s)] | kingFlank[Them]);
             // use all-xray attakcs for blocks. doesnt really make sense to me
             // to artificially restrict blocking to first encounter only (as
             // done in mobility are computation)
