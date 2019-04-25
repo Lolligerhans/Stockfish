@@ -265,14 +265,16 @@ namespace {
         attackedBy[WHITE][KING] = pos.attacks_from<KING>(ksq);
         attackedBy[WHITE][PAWN] = pe->pawn_attacks(WHITE);
         attackedBy[WHITE][ALL_PIECES] = attackedBy[WHITE][KING] | attackedBy[WHITE][PAWN];
-        attackedBy2[WHITE]            = attackedBy[WHITE][KING] & attackedBy[WHITE][PAWN];
         attackedBy2p[WHITE] = pawn_double_attacks_bb<WHITE>(pos.pieces(WHITE, PAWN));
+        attackedBy2[WHITE] = attackedBy[WHITE][KING] & attackedBy[WHITE][PAWN]
+            | attackedBy2p[WHITE];
 
         attackedBy[BLACK][KING] = pos.attacks_from<KING>(ksqB);
         attackedBy[BLACK][PAWN] = pe->pawn_attacks(BLACK);
         attackedBy[BLACK][ALL_PIECES] = attackedBy[BLACK][KING] | attackedBy[BLACK][PAWN];
-        attackedBy2[BLACK]            = attackedBy[BLACK][KING] & attackedBy[BLACK][PAWN];
         attackedBy2p[BLACK] = pawn_double_attacks_bb<BLACK>(pos.pieces(BLACK, PAWN));
+        attackedBy2[BLACK] = attackedBy[BLACK][KING] & attackedBy[BLACK][PAWN]
+            | attackedBy2p[BLACK];
 
         // hard and soft blocks affecting our minor pieces will add points to this
         blowmobFactor = 0;
