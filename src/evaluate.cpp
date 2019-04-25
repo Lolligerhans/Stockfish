@@ -145,7 +145,7 @@ namespace {
 
   // Assorted bonuses and penalties
   constexpr Score BishopPawns        = S(  3,  7);
-  constexpr Score BlowmobPenalty     = S( 15,  0);
+  constexpr Score BlowmobPenalty     = S(  5, 15);
   constexpr Score CorneredBishop     = S( 50, 50);
   constexpr Score FlankAttacks       = S(  8,  0);
   constexpr Score Hanging            = S( 69, 36);
@@ -290,13 +290,18 @@ namespace {
     Bitboard stronglyBlocked = b & shift<Down>(qBlock2);
     // consider our pawns quasi-blocked by degree 1 in blowmob softblocks
     Bitboard weaklyBlocked   = b & shift<Down>(qBlock1);
+    Bitboard def = attackedBy[Them][PAWN];
+    stronglyBlocked |= def & pos.pieces(Them, PAWN);
+    // also contains connected pawns! This is resolved below.
+    weaklyBlocked |= def;
 
     // TODO need blockresolvers? they might often not prevent much penalty
     // while attakcing pieces gives a bonus anyway. might be worth to check for
     blowmobHardBlock[Us] = blocked[Us] | stronglyBlocked;
 
     // Excluding hard blocks removes qBLock2 pawns as well as the pawns which
-    // are actually physically blocked (blocked by a protected piece then)
+    // are actually physically blocked (blocked by a protected piece then) as
+    // well as pawn protected swuares which also contain a pawn
     blowmobSoftBlock[Us] = weaklyBlocked & ~blowmobHardBlock[Us];
 
     // Find our pawns that are blocked or on the first two ranks
