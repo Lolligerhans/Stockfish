@@ -73,16 +73,16 @@ using namespace Trace;
 
 namespace {
 
-  //TODO good alternatives? are 4 calls few enough to just call it 4 times?
-  constexpr Bitboard QueenSide   = FileABB | FileBBB | FileCBB | FileDBB;
-  constexpr Bitboard CenterFiles = FileCBB | FileDBB | FileEBB | FileFBB;
-  constexpr Bitboard KingSide    = FileEBB | FileFBB | FileGBB | FileHBB;
-  constexpr Bitboard Center      = (FileDBB | FileEBB) & (Rank4BB | Rank5BB);
-  constexpr Bitboard KingFlank[FILE_NB] = {
-    QueenSide ^ FileDBB, QueenSide, QueenSide,
-    CenterFiles, CenterFiles,
-    KingSide, KingSide, KingSide ^ FileEBB
-  };
+//  //TODO good alternatives? are 4 calls few enough to just call it 4 times?
+//  constexpr Bitboard QueenSide   = FileABB | FileBBB | FileCBB | FileDBB;
+//  constexpr Bitboard CenterFiles = FileCBB | FileDBB | FileEBB | FileFBB;
+//  constexpr Bitboard KingSide    = FileEBB | FileFBB | FileGBB | FileHBB;
+//  constexpr Bitboard Center      = (FileDBB | FileEBB) & (Rank4BB | Rank5BB);
+//  constexpr Bitboard KingFlank[FILE_NB] = {
+//    QueenSide ^ FileDBB, QueenSide, QueenSide,
+//    CenterFiles, CenterFiles,
+//    KingSide, KingSide, KingSide ^ FileEBB
+//  };
 
   // Threshold for lazy and space evaluation
   constexpr Value LazyThreshold  = Value(1500);
@@ -266,14 +266,14 @@ namespace {
         attackedBy[WHITE][PAWN] = pe->pawn_attacks(WHITE);
         attackedBy[WHITE][ALL_PIECES] = attackedBy[WHITE][KING] | attackedBy[WHITE][PAWN];
         attackedBy2p[WHITE] = pawn_double_attacks_bb<WHITE>(pos.pieces(WHITE, PAWN));
-        attackedBy2[WHITE] = attackedBy[WHITE][KING] & attackedBy[WHITE][PAWN]
+        attackedBy2[WHITE] = (attackedBy[WHITE][KING] & attackedBy[WHITE][PAWN])
             | attackedBy2p[WHITE];
 
         attackedBy[BLACK][KING] = pos.attacks_from<KING>(ksqB);
         attackedBy[BLACK][PAWN] = pe->pawn_attacks(BLACK);
         attackedBy[BLACK][ALL_PIECES] = attackedBy[BLACK][KING] | attackedBy[BLACK][PAWN];
         attackedBy2p[BLACK] = pawn_double_attacks_bb<BLACK>(pos.pieces(BLACK, PAWN));
-        attackedBy2[BLACK] = attackedBy[BLACK][KING] & attackedBy[BLACK][PAWN]
+        attackedBy2[BLACK] = (attackedBy[BLACK][KING] & attackedBy[BLACK][PAWN])
             | attackedBy2p[BLACK];
 
         // hard and soft blocks affecting our minor pieces will add points to this
