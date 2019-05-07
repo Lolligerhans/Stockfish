@@ -483,7 +483,7 @@ namespace {
 
         if (Pt == KNIGHT || Pt == BISHOP)
         {
-            Bitboard barea = ForwardRanksBB[Us][rank_of(s)] & (SeverityMidblockBB[file_of(s)] | kingFlank[Them]);
+            Bitboard barea = ForwardRanksBB[Us][rank_of(s)];
             // use all-xray attakcs for blocks. doesnt really make sense to me
             // to artificially restrict blocking to first encounter only (as
             // done in mobility are computation)
@@ -499,7 +499,7 @@ namespace {
             // popcount would be slower? dunno)
             // alternatively: soft +1 each, first hard +2, every further hard *2
             //  -> might use bool(x) and more_than_one(x) instead of bitboards
-            int factor = popcount(bs) + 2*popcount(bh);
+            int factor = popcount(bs) + 2 * popcount(bh);
             blowmobFactor += (Us == WHITE ? factor : -factor);
         }
 

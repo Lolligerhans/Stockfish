@@ -33,17 +33,6 @@ Bitboard PseudoAttacks[PIECE_TYPE_NB][SQUARE_NB];
 Bitboard PawnAttacks[COLOR_NB][SQUARE_NB];
 Bitboard ForwardRanksBB[COLOR_NB][SQUARE_NB];
 
-Bitboard SeverityMidblockBB[FILE_NB] = {
-  FileABB | FileBBB | FileCBB | FileDBB | FileEBB,
-            FileBBB | FileCBB | FileDBB | FileEBB,
-                      FileCBB | FileDBB | FileEBB,
-                                FileDBB | FileEBB,
-                                FileDBB | FileEBB,
-                                FileDBB | FileEBB | FileFBB,
-                                FileDBB | FileEBB | FileFBB | FileGBB,
-                                FileDBB | FileEBB | FileFBB | FileGBB | FileHBB
-};
-
 Bitboard KingFlank[FILE_NB] = {
   QueenSide ^ FileDBB, QueenSide, QueenSide,
   CenterFiles, CenterFiles,
