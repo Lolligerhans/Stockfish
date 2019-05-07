@@ -135,7 +135,7 @@ namespace {
   // Assorted bonuses and penalties
   constexpr Score BishopPawns        = S(  3,  7);
   constexpr Score CorneredBishop     = S( 50, 50);
-  constexpr Score EncapsulatedBishop = S( 10, 50);
+  constexpr Score EncapsulatedMinor  = S( 10, 50);
   constexpr Score FlankAttacks       = S(  8,  0);
   constexpr Score Hanging            = S( 69, 36);
   constexpr Score KingProtector      = S(  7,  8);
@@ -325,6 +325,9 @@ namespace {
             // Penalty if the piece is far from the king
             score -= KingProtector * distance(s, pos.square<KING>(Us));
 
+            // Penalty for encapsulated minor (has no mobility in higher ranks).
+            score -= EncapsulatedMinor * !bool(m & HighRanks);
+
             if (Pt == BISHOP)
             {
                 // Penalty according to number of pawns on the same color square as the
@@ -337,9 +340,6 @@ namespace {
                 // Bonus for bishop on a long diagonal which can "see" both center squares
                 if (more_than_one(attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & Center))
                     score += LongDiagonalBishop;
-
-                // Penalty for encapsulated bishops (has no mobility in higher ranks).
-                score -= EncapsulatedBishop * !bool(m & HighRanks);
             }
 
             // An important Chess960 pattern: A cornered bishop blocked by a friendly
