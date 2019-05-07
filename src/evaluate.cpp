@@ -297,14 +297,17 @@ namespace {
     // also contains connected pawns! This is resolved below.
     weaklyBlocked |= def;
 
-    // TODO need blockresolvers? they might often not prevent much penalty
-    // while attakcing pieces gives a bonus anyway. might be worth to check for
-    blowmobHardBlock[Us] = blocked[Us] | stronglyBlocked;
+    blowmobHardBlock[Us] = blocked[Us] | stronglyBlocked | weaklyBlocked;
+    blowmobSoftBlock[Us] = (qBlock2 | qBlock1) & ~blowmobHardBlock[Us];
 
-    // Excluding hard blocks removes qBLock2 pawns as well as the pawns which
-    // are actually physically blocked (blocked by a protected piece then) as
-    // well as pawn protected swuares which also contain a pawn
-    blowmobSoftBlock[Us] = weaklyBlocked & ~blowmobHardBlock[Us];
+//    // TODO need blockresolvers? they might often not prevent much penalty
+//    // while attakcing pieces gives a bonus anyway. might be worth to check for
+//    blowmobHardBlock[Us] = blocked[Us] | stronglyBlocked;
+//
+//    // Excluding hard blocks removes qBLock2 pawns as well as the pawns which
+//    // are actually physically blocked (blocked by a protected piece then) as
+//    // well as pawn protected swuares which also contain a pawn
+//    blowmobSoftBlock[Us] = weaklyBlocked & ~blowmobHardBlock[Us];
 
     // Find our pawns that are blocked or on the first two ranks
     b &= blocked[Us] | LowRanks; // TODO can be computed more efficiently?
