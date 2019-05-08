@@ -135,7 +135,7 @@ namespace {
   // Assorted bonuses and penalties
   constexpr Score BishopPawns        = S(  3,  7);
   constexpr Score CorneredBishop     = S( 50, 50);
-  constexpr Score EncapsulatedMinor  = S( 13, 30);
+  constexpr Score EncapsulatedMinor  = S(  5, 60);
   constexpr Score FlankAttacks       = S(  8,  0);
   constexpr Score Hanging            = S( 69, 36);
   constexpr Score KingProtector      = S(  7,  8);
@@ -271,8 +271,10 @@ namespace {
     constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
-    constexpr Bitboard HighRanks    = (Us == WHITE ? ~(Rank1BB | Rank2BB | Rank3BB)
-                                                   : ~(Rank6BB | Rank7BB | Rank8BB));
+    constexpr Bitboard DimRim = FileABB | FileHBB;
+    constexpr Bitboard ActiveSquares = (Us == WHITE
+                                    ? ~(Rank1BB | Rank2BB | Rank3BB | DimRim)
+                                    : ~(Rank6BB | Rank7BB | Rank8BB | DimRim));
     const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
@@ -325,8 +327,8 @@ namespace {
             // Penalty if the piece is far from the king
             score -= KingProtector * distance(s, pos.square<KING>(Us));
 
-            // Penalty for encapsulated minor (has no mobility in higher ranks).
-            score -= EncapsulatedMinor * !bool(m & HighRanks);
+            // Penalty for encapsulated minor.
+            score -= EncapsulatedMinor * !bool(m & ActiveSquares);
 
             if (Pt == BISHOP)
             {
