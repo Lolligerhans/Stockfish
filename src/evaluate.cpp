@@ -272,7 +272,7 @@ namespace {
                                                    : Rank5BB | Rank4BB | Rank3BB);
     const Square* pl = pos.squares<Pt>(Us);
 
-    Bitboard b, bb;
+    Bitboard b, bb, c;
     Score score = SCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
@@ -284,8 +284,21 @@ namespace {
           : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
                          : pos.attacks_from<Pt>(s);
 
+
         if (pos.blockers_for_king(Us) & s)
+        {
             b &= LineBB[pos.square<KING>(Us)][s];
+            c = b;
+        }
+        else
+        {
+            Bitboard piecesReduced = pos.pieces() &
+                ~(b & pos.pieces(Them) & mobilityArea[Us]);
+
+            c = Pt == BISHOP ? attacks_bb<BISHOP>(s, piecesReduced & ~pos.pieces(QUEEN))
+              : Pt ==   ROOK ? attacks_bb<  ROOK>(s, piecesReduced & ~(pos.pieces(QUEEN) | pos.pieces(Us, ROOK)))
+                             : b;
+        }
 
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
         attackedBy[Us][Pt] |= b;
@@ -299,8 +312,11 @@ namespace {
         }
 
         int mob = popcount(b & mobilityArea[Us]);
+        int moc = popcount(c & mobilityArea[Us]);
 
-        mobility[Us] += MobilityBonus[Pt - 2][mob];
+        mobility[Us] += (MobilityBonus[Pt - 2][mob] * 3 +
+                         MobilityBonus[Pt - 2][moc]
+                        ) / 4;
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
