@@ -292,8 +292,8 @@ namespace {
         }
         else
         {
-            Bitboard piecesReduced = pos.pieces() &
-                ~(b & pos.pieces(Them) & mobilityArea[Us]);
+            Bitboard piecesReduced = (pos.pieces(PAWN) & attackedBy[Them][PAWN])
+                                    | (pos.pieces(Us, PAWN) & shift<Down>(pos.pieces()));
 
             c = Pt == BISHOP ? attacks_bb<BISHOP>(s, piecesReduced & ~pos.pieces(QUEEN))
               : Pt ==   ROOK ? attacks_bb<  ROOK>(s, piecesReduced & ~(pos.pieces(QUEEN) | pos.pieces(Us, ROOK)))
@@ -314,9 +314,9 @@ namespace {
         int mob = popcount(b & mobilityArea[Us]);
         int moc = popcount(c & mobilityArea[Us]);
 
-        mobility[Us] += (MobilityBonus[Pt - 2][mob] * 3 +
-                         MobilityBonus[Pt - 2][moc]
-                        ) / 4;
+        mobility[Us] += (MobilityBonus[Pt - 2][mob] * 8/10 * 4 +
+                         MobilityBonus[Pt - 2][moc] * 8/10
+                        ) / 5;
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
