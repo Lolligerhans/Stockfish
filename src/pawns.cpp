@@ -99,9 +99,10 @@ namespace {
         phalanx    = neighbours & rank_bb(s);
         support    = neighbours & rank_bb(s - Up);
 
+        constexpr auto minbit = Us == WHITE ? lsb : msb;
         e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s) &
-            ~(  pawn_attack_span(Us, lsb( stoppers & file_bb(s)           ))
-              | forward_file_bb (Us, lsb( stoppers & adjacent_files_bb(f) ))
+            ~(  pawn_attack_span(Us, minbit( stoppers & file_bb(s)           ))
+              | forward_file_bb (Us, minbit( stoppers & adjacent_files_bb(f) ))
              );
 
         // A pawn is backward when it is behind all pawns of the same color
