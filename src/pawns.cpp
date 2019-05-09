@@ -73,7 +73,7 @@ namespace {
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
 
-    Bitboard b, neighbours, stoppers, doubled, support, phalanx;
+    Bitboard b, neighbours, stoppers, doubled, support, phalanx, opposition;
     Bitboard lever, leverPush;
     Square s;
     bool opposed, backward;
@@ -98,7 +98,8 @@ namespace {
         e->pawnAttacksSpan[Us] |= sp;
 
         // Flag the pawn
-        opposed    = theirPawns & forward_file_bb(Us, s);
+        opposition = theirPawns & forward_file_bb(Us, s);
+        opposed    = bool(opposition);
         stoppers   = theirPawns & passed_pawn_span(Us, s);
         lever      = theirPawns & PawnAttacks[Us][s];
         leverPush  = theirPawns & PawnAttacks[Us][s + Up];
@@ -108,7 +109,7 @@ namespace {
         support    = neighbours & rank_bb(s - Up);
 
         constexpr auto minbit = Us == WHITE ? lsb : msb;
-        Bitboard blocks = opposed | (e->pawnAttacks[Them] & forward_file_bb(Us, s));
+        Bitboard blocks = opposition | (e->pawnAttacks[Them] & forward_file_bb(Us, s));
         e->pawnAttacksSpanTemp[Us] |=
             blocks ? (blocks = pawn_attack_span(Us, minbit(blocks)),
                       sp & ~blocks)
