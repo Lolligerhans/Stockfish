@@ -110,9 +110,9 @@ namespace {
         constexpr auto minbit = Us == WHITE ? lsb : msb;
         Bitboard blocks = opposed | (e->pawnAttacks[Them] & forward_file_bb(Us, s));
         e->pawnAttacksSpanTemp[Us] |=
-            blocks ? (blocks = pawn_attack_span(Us, minbit(blocks)),
-                      sp & ~blocks)
-                   :  sp;
+            (blocks ? (blocks = pawn_attack_span(Us, minbit(blocks)),
+                       sp & ~blocks)
+                    :  sp);
 
         // A pawn is backward when it is behind all pawns of the same color
         // on the adjacent files and cannot be safely advanced.
