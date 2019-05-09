@@ -35,6 +35,7 @@ namespace {
   constexpr Score Backward = S( 9, 24);
   constexpr Score Doubled  = S(11, 56);
   constexpr Score Isolated = S( 5, 15);
+  constexpr Score Space    = S( 5,  5);
 
   // Connected pawn bonus
   constexpr int Connected[RANK_NB] = { 0, 13, 17, 24, 59, 96, 171 };
@@ -75,6 +76,7 @@ namespace {
 
     Bitboard b, neighbours, stoppers, doubled, support, phalanx, opposition;
     Bitboard lever, leverPush;
+    Bitboard pawnAttacksSpanSafe = 0;
     Square s;
     bool opposed, backward;
     Score score = SCORE_ZERO;
@@ -83,7 +85,7 @@ namespace {
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-    e->passedPawns[Us] = e->pawnAttacksSpan[Us] = e->pawnAttacksSpanTemp[Us] = e->weakUnopposed[Us] = 0;
+    e->passedPawns[Us] = e->pawnAttacksSpan[Us] = e->weakUnopposed[Us] = 0;
     e->kingSquares[Us]   = SQ_NONE;
 
     // Loop through all pawns of the current color and score each pawn
@@ -110,7 +112,7 @@ namespace {
 
         constexpr auto minbit = Us == WHITE ? lsb : msb;
         Bitboard blocks = opposition | (e->pawnAttacks[Them] & forward_file_bb(Us, s));
-        e->pawnAttacksSpanTemp[Us] |=
+        pawnAttacksSpanSafe |=
             (blocks ? (blocks = pawn_attack_span(Us, minbit(blocks)),
                        sp & ~blocks)
                     :  sp);
@@ -153,6 +155,8 @@ namespace {
         if (doubled && !support)
             score -= Doubled;
     }
+
+    score += Space * popcount(pawnAttacksSpanSafe);
 
     return score;
   }

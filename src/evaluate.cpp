@@ -137,7 +137,6 @@ namespace {
   constexpr Score CorneredBishop     = S( 50, 50);
   constexpr Score FlankAttacks       = S(  8,  0);
   constexpr Score Hanging            = S( 69, 36);
-  constexpr Score KickablePiece      = S( 30, 20);
   constexpr Score KingProtector      = S(  7,  8);
   constexpr Score KnightOnQueen      = S( 16, 12);
   constexpr Score LongDiagonalBishop = S( 45,  0);
@@ -572,8 +571,6 @@ namespace {
     // Bonus for safe pawn threats on the next move
     b = pawn_attacks_bb<Us>(b) & pos.pieces(Them);
     score += ThreatByPawnPush * popcount(b);
-
-    score += KickablePiece * popcount(pos.pieces(Them) & pe->pawn_attacks_span_temp(Us));
 
     // Our safe or protected pawns
     b = pos.pieces(Us, PAWN) & safe;
