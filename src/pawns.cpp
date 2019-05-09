@@ -73,6 +73,8 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
+    constexpr Bitboard UpperHalf = (Us == WHITE ? Rank5BB | Rank6BB | Rank7BB | Rank8BB
+                                                : Rank1BB | Rank2BB | Rank3BB | Rank4BB);
 
     Bitboard b, neighbours, stoppers, doubled, support, phalanx, opposition;
     Bitboard lever, leverPush;
@@ -123,7 +125,8 @@ namespace {
                   && (stoppers & (leverPush | (s + Up)));
 
         // Passed pawns will be properly scored in evaluation because we need
-        // full attack info to evaluate them. Include also not passed pawns
+        // full attack info to evaluate them. Include /auto
+        // also not passed pawns
         // which could become passed after one or two pawn pushes when are
         // not attacked more times than defended.
         if (   !(stoppers ^ lever ^ leverPush)
@@ -156,7 +159,7 @@ namespace {
             score -= Doubled;
     }
 
-    score += Space * popcount(pawnAttacksSpanSafe);
+    score += Space * popcount(pawnAttacksSpanSafe & UpperHalf);
 
     return score;
   }
