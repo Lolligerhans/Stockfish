@@ -614,12 +614,11 @@ namespace {
     };
 
     Bitboard bb, squaresToQueen, defendedSquares, unsafeSquares;
-    Score score = SCORE_ZERO, acc = SCORE_ZERO;
+    Score score = SCORE_ZERO;
 
-    Score bonus;
-    for(Bitboard b = pe->passed_pawns(Us); b; score += score + bonus)
+    Score bonus, m = SCORE_ZERO;
+    for(Bitboard b = pe->passed_pawns(Us); b; m = bonus)
     {
-        // NOTE not symmetric wrt colors
         Square s = pop_lsb(&b);
 
         assert(!(pos.pieces(Them, PAWN) & forward_file_bb(Us, s + Up)));
@@ -681,13 +680,11 @@ namespace {
 
         bonus += PassedFile[file_of(s)];
 
-        // TODO b -> pe->passers()
-//        b & adjacent_files_bb(file_of(s)) ?
-//            ? bonus = bonus * 3/4
-//            : bonus = bonus * 2/3;
+        // raise bonus for connected passers
+        b & adjacent_files_bb(file_of(s))
+            ? score += (bonus + m) / 4
+            : score += bonus;
     }
-
-    score += acc;
 
     if (T)
         Trace::add(PASSED, Us, score);
