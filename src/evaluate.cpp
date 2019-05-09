@@ -308,13 +308,15 @@ namespace {
             bb = OutpostRanks & ~pe->pawn_attacks_span(Them);
             if (bb & s)
                 score += Outpost * (Pt == KNIGHT ? 4 : 2)
-                                 * ((attackedBy[Us][PAWN] & s) ? 2 : 1);
+                                 * ((attackedBy[Us][PAWN] & s) ? 2 : 1)
+                                 / 2;
 
             else if (bb &= b & ~pos.pieces(Us))
                 score += Outpost * (Pt == KNIGHT ? 2 : 1)
-                                 * ((attackedBy[Us][PAWN] & bb) ? 2 : 1);
+                                 * ((attackedBy[Us][PAWN] & bb) ? 2 : 1)
+                                 / 2;
 
-            else if (bb = OutpostRanks & ~pe->pawn_attacks_span_temp(Them), bb & s)
+            if (bb = OutpostRanks & ~pe->pawn_attacks_span_temp(Them), bb & s)
                 score += Outpost * (Pt == KNIGHT ? 4 : 2)
                                  * ((attackedBy[Us][PAWN] & s) ? 2 : 1)
                                  / 2;
