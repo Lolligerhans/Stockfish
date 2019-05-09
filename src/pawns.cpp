@@ -62,6 +62,12 @@ namespace {
   #undef V
 
   template<Color Us>
+  inline
+  void init(const Position& pos, Pawns::Entry* e) {
+    e->pawnAttacks[Us] = pawn_attacks_bb<Us>(pos.pieces(Us, PAWN));
+  }
+
+  template<Color Us>
   Score evaluate(const Position& pos, Pawns::Entry* e) {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
@@ -77,9 +83,8 @@ namespace {
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-    e->passedPawns[Us] = e->pawnAttacksSpan[Us] = e->pawnAttacksSpanLax[Us] = e->weakUnopposed[Us] = 0;
+    e->passedPawns[Us] = e->pawnAttacksSpan[Us] = e->pawnAttacksSpanTemp[Us] = e->weakUnopposed[Us] = 0;
     e->kingSquares[Us]   = SQ_NONE;
-    e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -89,7 +94,8 @@ namespace {
         File f = file_of(s);
         Rank r = relative_rank(Us, s);
 
-        e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
+        Bitboard sp = pawn_attack_span(Us, s);
+        e->pawnAttacksSpan[Us] |= sp;
 
         // Flag the pawn
         opposed    = theirPawns & forward_file_bb(Us, s);
@@ -102,10 +108,11 @@ namespace {
         support    = neighbours & rank_bb(s - Up);
 
         constexpr auto minbit = Us == WHITE ? lsb : msb;
-        e->pawnAttacksSpanLax[Us] |= e->pawnAttacksSpan[Us] &
-            ~(  pawn_attack_span(Us, minbit( stoppers & file_bb(s)           ))
-              | forward_file_bb (Us, minbit( stoppers & adjacent_files_bb(f) ))
-             );
+        Bitboard blocks = opposed | (e->pawnAttacks[Them] & forward_file_bb(Us, s));
+        e->pawnAttacksSpanTemp[Us] |=
+            blocks ? (blocks = pawn_attack_span(Us, minbit(blocks)),
+                      sp & ~blocks)
+                   :  sp;
 
         // A pawn is backward when it is behind all pawns of the same color
         // on the adjacent files and cannot be safely advanced.
@@ -167,6 +174,8 @@ Entry* probe(const Position& pos) {
       return e;
 
   e->key = key;
+  init<WHITE>(pos, e);
+  init<BLACK>(pos, e);
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
 
