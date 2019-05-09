@@ -423,20 +423,16 @@ namespace {
 
         if (Pt == KNIGHT || Pt == BISHOP)
         {
-            Bitboard barea = ForwardRanksBB[Us][rank_of(s)];
+            Bitboard barea = forward_ranks_bb(Us, s);
             Bitboard blowmobMoves = barea & PseudoAttacks[Pt][s];
             Bitboard bh = blowmobMoves & blowmobHardBlock[Us];
 //          Bitboard bs = blowmobMoves &
 //              (blowmobSoftBlock[Us] | (Pt == KNIGHT ? pos.pieces(Us, KNIGHT, BISHOP) : 0));
             Bitboard bs = blowmobMoves & blowmobSoftBlock[Us];
 
-            // since severity are excludes most of the squares anyway, we
-            // probably do not care for values > 2. saves popcount (i guess
-            // popcount would be slower? dunno)
-            // alternatively: soft +1 each, first hard +2, every further hard *2
-            //  -> might use bool(x) and more_than_one(x) instead of bitboards
             int factor = popcount(bs) + 2 * popcount(bh);
-            blowmobFactor += (Us == WHITE ? factor : -factor);
+            Us == WHITE ? blowmobFactor += factor
+                        : blowmobFactor -= factor;
         }
 
     }
