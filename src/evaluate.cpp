@@ -613,20 +613,20 @@ namespace {
       return std::min(distance(pos.square<KING>(c), s), 5);
     };
 
-    Bitboard b, bb, squaresToQueen, defendedSquares, unsafeSquares;
-    Score score = SCORE_ZERO;
+    Bitboard bb, squaresToQueen, defendedSquares, unsafeSquares;
+    Score score = SCORE_ZERO, acc = SCORE_ZERO;
 
-    b = pe->passed_pawns(Us);
-
-    while (b)
+    Score bonus;
+    for(Bitboard b = pe->passed_pawns(Us); b; score += score + bonus)
     {
+        // NOTE not symmetric wrt colors
         Square s = pop_lsb(&b);
 
         assert(!(pos.pieces(Them, PAWN) & forward_file_bb(Us, s + Up)));
 
         int r = relative_rank(Us, s);
 
-        Score bonus = PassedRank[r];
+        bonus = PassedRank[r];
 
         if (r > RANK_3)
         {
@@ -679,8 +679,15 @@ namespace {
             || (pos.pieces(PAWN) & forward_file_bb(Us, s)))
             bonus = bonus / 2;
 
-        score += bonus + PassedFile[file_of(s)];
+        bonus += PassedFile[file_of(s)];
+
+        // TODO b -> pe->passers()
+//        b & adjacent_files_bb(file_of(s)) ?
+//            ? bonus = bonus * 3/4
+//            : bonus = bonus * 2/3;
     }
+
+    score += acc;
 
     if (T)
         Trace::add(PASSED, Us, score);
