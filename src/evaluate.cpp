@@ -314,6 +314,16 @@ namespace {
                 score += Outpost * (Pt == KNIGHT ? 2 : 1)
                                  * ((attackedBy[Us][PAWN] & bb) ? 2 : 1);
 
+            // Bonus if piece is on a relaxed outpost square or can reach one
+            Bitboard bblax = OutpostRanks & ~pe->pawn_attacks_span_lax(Them);
+            if (bblax & s)
+                score += Outpost * (Pt == KNIGHT ? 4 : 2)
+                                 * ((attackedBy[Us][PAWN] & s) ? 2 : 1) / 2;
+
+            else if (bblax &= b & ~pos.pieces(Us))
+                score += Outpost * (Pt == KNIGHT ? 2 : 1)
+                                 * ((attackedBy[Us][PAWN] & bblax) ? 2 : 1) / 2;
+
             // Knight and Bishop bonus for being right behind a pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
                 score += MinorBehindPawn;

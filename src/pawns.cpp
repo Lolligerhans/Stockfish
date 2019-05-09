@@ -77,7 +77,7 @@ namespace {
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-    e->passedPawns[Us] = e->pawnAttacksSpan[Us] = e->weakUnopposed[Us] = 0;
+    e->passedPawns[Us] = e->pawnAttacksSpan[Us] = e->pawnAttacksSpanLax[Us] = e->weakUnopposed[Us] = 0;
     e->kingSquares[Us]   = SQ_NONE;
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
 
@@ -88,6 +88,8 @@ namespace {
 
         File f = file_of(s);
         Rank r = relative_rank(Us, s);
+
+        e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
 
         // Flag the pawn
         opposed    = theirPawns & forward_file_bb(Us, s);
@@ -100,7 +102,7 @@ namespace {
         support    = neighbours & rank_bb(s - Up);
 
         constexpr auto minbit = Us == WHITE ? lsb : msb;
-        e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s) &
+        e->pawnAttacksSpanLax[Us] |= e->pawnAttacksSpan[Us] &
             ~(  pawn_attack_span(Us, minbit( stoppers & file_bb(s)           ))
               | forward_file_bb (Us, minbit( stoppers & adjacent_files_bb(f) ))
              );
