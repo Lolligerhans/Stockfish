@@ -137,6 +137,7 @@ namespace {
   constexpr Score CorneredBishop     = S( 50, 50);
   constexpr Score FlankAttacks       = S(  8,  0);
   constexpr Score Hanging            = S( 69, 36);
+  constexpr Score KickablePiece      = S( 30, 20);
   constexpr Score KingProtector      = S(  7,  8);
   constexpr Score KnightOnQueen      = S( 16, 12);
   constexpr Score LongDiagonalBishop = S( 45,  0);
@@ -308,23 +309,11 @@ namespace {
             bb = OutpostRanks & ~pe->pawn_attacks_span(Them);
             if (bb & s)
                 score += Outpost * (Pt == KNIGHT ? 4 : 2)
-                                 * ((attackedBy[Us][PAWN] & s) ? 2 : 1)
-                                 / 2;
+                                 * ((attackedBy[Us][PAWN] & s) ? 2 : 1);
 
             else if (bb &= b & ~pos.pieces(Us))
                 score += Outpost * (Pt == KNIGHT ? 2 : 1)
-                                 * ((attackedBy[Us][PAWN] & bb) ? 2 : 1)
-                                 / 2;
-
-            if (bb = OutpostRanks & ~pe->pawn_attacks_span_temp(Them), bb & s)
-                score += Outpost * (Pt == KNIGHT ? 4 : 2)
-                                 * ((attackedBy[Us][PAWN] & s) ? 2 : 1)
-                                 / 2;
-
-            else if (bb &= b & ~pos.pieces(Us))
-                score += Outpost * (Pt == KNIGHT ? 2 : 1)
-                                 * ((attackedBy[Us][PAWN] & bb) ? 2 : 1)
-                                 / 2;
+                                 * ((attackedBy[Us][PAWN] & bb) ? 2 : 1);
 
             // Knight and Bishop bonus for being right behind a pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
@@ -583,6 +572,8 @@ namespace {
     // Bonus for safe pawn threats on the next move
     b = pawn_attacks_bb<Us>(b) & pos.pieces(Them);
     score += ThreatByPawnPush * popcount(b);
+
+    score += KickablePiece * popcount(pos.pieces(Them) & pe->pawn_attacks_span_temp(Us));
 
     // Our safe or protected pawns
     b = pos.pieces(Us, PAWN) & safe;
