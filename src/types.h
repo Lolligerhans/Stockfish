@@ -264,6 +264,10 @@ constexpr Score make_score(int mg, int eg) {
   return Score((int)((unsigned int)eg << 16) + mg);
 }
 
+constexpr Score operator, (uint_fast16_t mg, uint_fast16_t eg) {
+  return make_score(mg, eg);
+}
+
 /// Extracting the signed lower and upper 16 bits is not so trivial because
 /// according to the standard a simple cast to short is implementation defined
 /// and so is a right shift of a signed integer.

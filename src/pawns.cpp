@@ -66,6 +66,7 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
+    constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
 
     Bitboard b, neighbours, stoppers, doubled, support, phalanx;
     Bitboard lever, leverPush;
@@ -139,6 +140,19 @@ namespace {
         if (doubled && !support)
             score -= Doubled;
     }
+    
+    Bitboard blocked = ourPawns & shift<Down>(theirPawns | pawn_double_attacks_bb<Them>(theirPawns));
+
+    Bitboard chain  = 0, c; // pawns part of a chain
+    Bitboard shadow = 0, s;
+    constexpr auto chain = [](auto c, auto d){return shift<NORTH+d>(c) | shift<SOUTH+d>(c);};
+    for (c = blocked & FileABB,  s = FileABB;
+         c;
+         c = chain(c, EAST),     s = shift<EASE>(s)
+    {
+        chain |= b;
+    }
+    while (blocked
 
     return score;
   }
@@ -174,8 +188,9 @@ Entry* probe(const Position& pos) {
 template<Color Us>
 Value Entry::evaluate_shelter(const Position& pos, Square ksq) {
 
-  constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
-  constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
+  constexpr auto Them = ~Us;
+  constexpr auto Up   = pawn_push(Us);
+  constexpr auto Down = -Up;
   constexpr Bitboard BlockSquares =  (Rank1BB | Rank2BB | Rank7BB | Rank8BB)
                                    & (FileABB | FileHBB);
 
