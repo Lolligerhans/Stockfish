@@ -120,7 +120,7 @@ namespace {
             && popcount(phalanx) >= popcount(leverPush))
             e->passedPawns[Us] |= s;
 
-        else if (stoppers == square_bb(s + Up) && r >= RANK_5)
+        else if (stoppers == square_bb(s + Up))
         {
             b = shift<Up>(support) & ~theirPawns;
             while (b)
