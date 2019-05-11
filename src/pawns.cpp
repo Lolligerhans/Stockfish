@@ -61,6 +61,11 @@ namespace {
   #undef S
   #undef V
 
+  void initialize(Pawns::Entry* e) {
+    e->passedPawns[WHITE] = 0;
+    e->passedPawns[BLACK] = 0;
+  }
+
   template<Color Us>
   Score evaluate(const Position& pos, Pawns::Entry* e) {
 
@@ -77,7 +82,7 @@ namespace {
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-    e->passedPawns[Us] = e->pawnAttacksSpan[Us] = e->weakUnopposed[Us] = 0;
+    e->pawnAttacksSpan[Us] = e->weakUnopposed[Us] = 0;
     e->kingSquares[Us]   = SQ_NONE;
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
 
@@ -119,8 +124,16 @@ namespace {
         {
             b = shift<Up>(support) & ~theirPawns;
             while (b)
-                if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)]))
+            {
+                // NOTE no longer using type Square as bitboard
+                Square sacSquare = pop_lsb(&b);
+                Bitboard theirPasser = SquareBB[sacSquare];
+                if (!more_than_one(theirPawns & PawnAttacks[Us][sacSquare]))
+                {
                     e->passedPawns[Us] |= s;
+                    e->passedPawns[Them] |= theirPasser;
+                }
+            }
         }
 
         // Score this pawn
@@ -161,6 +174,7 @@ Entry* probe(const Position& pos) {
       return e;
 
   e->key = key;
+  initialize(e);
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
 
