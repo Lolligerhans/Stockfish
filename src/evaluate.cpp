@@ -673,6 +673,14 @@ namespace {
 
                 bonus += make_score(k * w, k * w);
             }
+            // TODO if block square with piece is outpost square
+            // (or temporary outpost square) do not give a passed pawn bonus
+            // (piece leaving outpost square should be searchen, not be assumen
+            // - might as well sit there for whole game. Alternatively scale
+            // down bonus linearly with how good that piece's squares is (using
+            // psqt: if psqt bonus is max possible, leave passer at 100%, if
+            // psqt is only 30% of max, reduce passer bouns by 70%
+
         } // r > RANK_3
 
         // Scale down bonus for candidate passers which need more than one
