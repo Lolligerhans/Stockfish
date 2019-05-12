@@ -897,13 +897,20 @@ namespace {
 
                 bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN) & pos.attacks_from<ROOK>(s);
 
+                // TODO only consider R/Q if the color in question also owns
+                // the defense of that square?
                 if (!(pos.pieces(Us) & bb))
 //                    defendedSquares &= attackedBy[Us][ALL_PIECES];
-                    defendedSquares &= ownDef[Us]; // owning def = own straight pawn push
+//                    defendedSquares &= ownDef[Us]; // owning def = own straight pawn push
+                    // NOTE original computation: if pawn can advance, a queen
+                    // behin the pawn is considered to attack all the squares
+                    // in front of the pawn
+                    defendedSquares &= ~ownMove[Them];
 
                 if (!(pos.pieces(Them) & bb))
-                    unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
-                // TODO ownage doesnt work that well here
+//                    unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
+                // TODO ownage doesnt work that well here(?)
+                    unsafeSquare &= ~ownDef[Us];
 
                 // If there aren't any enemy attacks, assign a big bonus. Otherwise
                 // assign a smaller bonus if the block square isn't attacked.
@@ -912,6 +919,7 @@ namespace {
                 // If the path to the queen is fully defended, assign a big bonus.
                 // Otherwise assign a smaller bonus if the block square is defended.
                 if (defendedSquares == squaresToQueen)
+                    // TODO                          | !(unsafe & squaresToQueening)
                     k += 6;
 
                 else if (defendedSquares & blockSq)
@@ -919,6 +927,14 @@ namespace {
 
                 bonus += make_score(k * w, k * w);
             }
+            // TODO if block square with piece is outpost square
+            // (or temporary outpost square) do not give a passed pawn bonus
+            // (piece leaving outpost square should be searchen, not be assumen
+            // - might as well sit there for whole game. Alternatively scale
+            // down bonus linearly with how good that piece's squares is (using
+            // psqt: if psqt bonus is max possible, leave passer at 100%, if
+            // psqt is only 30% of max, reduce passer bouns by 70%
+
         } // r > RANK_3
 
         // Scale down bonus for candidate passers which need more than one
