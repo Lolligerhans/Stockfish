@@ -123,17 +123,19 @@ namespace {
         else if (stoppers == square_bb(s + Up) && r >= RANK_5)
         {
             b = shift<Up>(support) & ~theirPawns;
+            Bitboard counterPassers = 0;
             while (b)
             {
                 // NOTE no longer using type Square as bitboard
                 Square sacSquare = pop_lsb(&b);
-                Bitboard theirPasser = SquareBB[sacSquare];
+                Bitboard counterCandidate = SquareBB[sacSquare];
                 if (!more_than_one(theirPawns & PawnAttacks[Us][sacSquare]))
                 {
                     e->passedPawns[Us] |= s;
-                    e->passedPawns[Them] |= theirPasser;
+                    counterPassers |= counterCandidate;;
                 }
             }
+            e->passedPawns[Them] |= counterPassers * !more_than_one(counterPassers) ;
         }
 
         // Score this pawn
