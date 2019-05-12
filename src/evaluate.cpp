@@ -169,6 +169,7 @@ namespace {
   private:
     template<Color Us> void initialize();
     template<Color Us, PieceType Pt> Score pieces();
+    void ownage();
     template<Color Us> Score king() const;
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
@@ -189,7 +190,10 @@ namespace {
 
     // attackedBy2[color] are the squares attacked by at least 2 units of a given
     // color, including x-rays. But diagonal x-rays through pawns are not computed.
-    Bitboard attackedBy2[COLOR_NB];
+    Bitboard attackedBy2[COLOR_NB][PIECE_TYPE_NB];
+
+    Bitboard ownMove[COLOR_NB];
+    Bitboard ownDef[COLOR_NB];
 
     // kingRing[color] are the squares adjacent to the king, plus (only for a
     // king on its first rank) the squares two ranks in front. For instance,
@@ -241,7 +245,8 @@ namespace {
     attackedBy[Us][KING] = pos.attacks_from<KING>(ksq);
     attackedBy[Us][PAWN] = pe->pawn_attacks(Us);
     attackedBy[Us][ALL_PIECES] = attackedBy[Us][KING] | attackedBy[Us][PAWN];
-    attackedBy2[Us] = dblAttackByPawn | (attackedBy[Us][KING] & attackedBy[Us][PAWN]);
+    attackedBy2[Us][PAWN] = dblAttackByPawn;
+    attackedBy2[Us][ALL_PIECES] = dblAttackByPawn | (attackedBy[Us][KING] & attackedBy[Us][PAWN]);
 
     // Init our king safety tables
     kingRing[Us] = attackedBy[Us][KING];
@@ -287,9 +292,10 @@ namespace {
         if (pos.blockers_for_king(Us) & s)
             b &= LineBB[pos.square<KING>(Us)][s];
 
-        attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
-        attackedBy[Us][Pt] |= b;
-        attackedBy[Us][ALL_PIECES] |= b;
+        attackedBy2[Us][ALL_PIECES] |= attackedBy[Us][ALL_PIECES] & b;
+        attackedBy [Us][ALL_PIECES] |= b;
+        attackedBy2[Us][Pt]         |= attackedBy[Us][Pt] & b;
+        attackedBy [Us][Pt]         |= b;
 
         if (b & kingRing[Them])
         {
@@ -384,6 +390,241 @@ namespace {
   }
 
 
+  // Evaluation::ownage() computes vulnerability bitboards for a given
+  // color
+  template<Tracing T>
+  void Evaluation<T>::ownage() {
+
+    Bitboard own2P[COLOR_NB];
+    Bitboard own1P[COLOR_NB];
+    Bitboard ownP [COLOR_NB];
+    Bitboard own2M[COLOR_NB];
+    Bitboard own1M[COLOR_NB];
+    Bitboard ownM [COLOR_NB];
+    Bitboard own2R[COLOR_NB];
+    Bitboard own1R[COLOR_NB];
+    Bitboard ownR [COLOR_NB];
+    Bitboard own2Q[COLOR_NB];
+    Bitboard own1Q[COLOR_NB];
+    Bitboard ownQ [COLOR_NB];
+    Bitboard ownAll[COLOR_NB];
+
+    // pawn ownage
+    {
+        own2P[WHITE] = attackedBy2 [WHITE][PAWN] & ~attackedBy [BLACK][PAWN];
+        own2P[BLACK] = attackedBy2 [BLACK][PAWN] & ~attackedBy [WHITE][PAWN];
+        own1P[WHITE] = (attackedBy2[WHITE][PAWN] & ~attackedBy2[BLACK][PAWN])
+                     | (attackedBy [WHITE][PAWN] & ~attackedBy [BLACK][PAWN]);
+        own1P[WHITE] &= ~own2P[WHITE]; // attackedBy[][] does not filter for multiple pawn attakcs
+        own1P[BLACK] = (attackedBy2[BLACK][PAWN] & ~attackedBy2[WHITE][PAWN])
+                     | (attackedBy [BLACK][PAWN] & ~attackedBy [WHITE][PAWN]);
+        own1P[BLACK] &= ~own2P[BLACK];
+        ownP [WHITE] = own2P[WHITE] | own1P[WHITE];
+        ownP [BLACK] = own2P[BLACK] | own1P[BLACK];
+    }
+
+    Bitboard undecided = ~(ownP[WHITE] | ownP[BLACK]);
+
+    // knight and bishop ownage
+    Bitboard N, N1, N2, B, B1, B2, n, n1, n2, b, b1, b2;
+    {
+        N2 = attackedBy2 [WHITE][KNIGHT] & ~attackedBy [BLACK][KNIGHT];
+        N1 = (attackedBy2[WHITE][KNIGHT] & ~attackedBy2[BLACK][KNIGHT])
+           | (attackedBy [WHITE][KNIGHT] & ~attackedBy [BLACK][KNIGHT]);
+        N = N1 | N2;
+        N1 &= ~N2;
+        B2 = attackedBy2 [WHITE][BISHOP] & ~attackedBy [BLACK][BISHOP];
+        B1 = (attackedBy2[WHITE][BISHOP] & ~attackedBy2[BLACK][BISHOP])
+           | (attackedBy [WHITE][BISHOP] & ~attackedBy [BLACK][BISHOP]);
+        B = B1 | B2;
+        B1 &= ~B2;
+        n2 = attackedBy2 [BLACK][KNIGHT] & ~attackedBy [WHITE][KNIGHT];
+        n1 = (attackedBy2[BLACK][KNIGHT] & ~attackedBy2[WHITE][KNIGHT])
+           | (attackedBy [BLACK][KNIGHT] & ~attackedBy [WHITE][KNIGHT]);
+        n = n1 | n2;
+        n1 &= ~n2;
+        b2 = attackedBy2 [BLACK][BISHOP] & ~attackedBy [WHITE][BISHOP];
+        b1 = (attackedBy2[BLACK][BISHOP] & ~attackedBy2[WHITE][BISHOP])
+           | (attackedBy [BLACK][BISHOP] & ~attackedBy [WHITE][BISHOP]);
+        b = b1 | b2;
+        b1 &= ~b2;
+    }
+
+    // minor piece ownage
+    {
+        own2M[WHITE] = undecided &
+                     ( (N2 & ~b)
+                     | (B2 & ~n)
+                     | (N1 & B1) );
+        own2M[BLACK] = undecided &
+                     ( (n2 & ~B)
+                     | (b2 & ~N)
+                     | (n1 & b1) );
+        own1M[WHITE] = undecided & ~own2M[WHITE] &
+                     ( (N2 & ~b2)
+                     | (B2 & ~n2)
+                     | (N1 & ~b)
+                     | (B1 & ~n) );
+        own1M[BLACK] = undecided & ~own2M[BLACK] &
+                     ( (n2 & ~B2)
+                     | (b2 & ~N2)
+                     | (n1 & ~B)
+                     | (b1 & ~N) );
+        ownM[WHITE] = own2M[WHITE] | own1M[WHITE];
+        ownM[BLACK] = own2M[BLACK] | own1M[BLACK];
+    }
+
+    undecided &= ~(ownM[WHITE] | ownM[BLACK]);
+
+    // rook ownage
+    {
+        own2R[WHITE] = undecided & (attackedBy2[WHITE][ROOK] & ~attackedBy[BLACK][ROOK]);
+        own2R[BLACK] = undecided & (attackedBy2[BLACK][ROOK] & ~attackedBy[WHITE][ROOK]);
+        own1R[WHITE] = undecided & ((attackedBy2[WHITE][ROOK] & ~attackedBy2[BLACK][ROOK])
+            | (attackedBy[WHITE][ROOK] & ~attackedBy[BLACK][ROOK]));
+        own1R[BLACK] = undecided & ((attackedBy2[BLACK][ROOK] & ~attackedBy2[WHITE][ROOK])
+            | (attackedBy[BLACK][ROOK] & ~attackedBy[WHITE][ROOK]));
+        own1R[WHITE] &= ~own2R[WHITE];
+        own1R[BLACK] &= ~own2R[BLACK];
+        ownR[WHITE] = own2R[WHITE] | own1R[WHITE];
+        ownR[BLACK] = own2R[BLACK] | own1R[BLACK];
+    }
+
+    undecided &= ~(ownR[WHITE] | ownR[BLACK]);
+
+    // queen ownage
+    {
+        own2Q[WHITE] = undecided & (attackedBy2[WHITE][ROOK] & ~attackedBy[BLACK][ROOK]);
+        own2Q[BLACK] = undecided & (attackedBy2[BLACK][ROOK] & ~attackedBy[WHITE][ROOK]);
+        own1Q[WHITE] = undecided & ((attackedBy2[WHITE][ROOK] & ~attackedBy2[BLACK][ROOK])
+            | (attackedBy[WHITE][ROOK] & ~attackedBy[BLACK][ROOK]));
+        own1Q[BLACK] = undecided & ((attackedBy2[BLACK][ROOK] & ~attackedBy2[WHITE][ROOK])
+            | (attackedBy[BLACK][ROOK] & ~attackedBy[WHITE][ROOK]));
+        own1Q[WHITE] &= ~own2Q[WHITE];
+        own1Q[BLACK] &= ~own2Q[BLACK];
+        ownQ[WHITE] = own2Q[WHITE] | own1Q[WHITE];
+        ownQ[BLACK] = own2Q[BLACK] | own1Q[BLACK];
+    }
+
+    // major piece ownage
+    Bitboard own2MAJ, own2maj, own1MAJ, own1maj, ownMAJ, ownmaj;
+    {
+        own2MAJ = (own2R[WHITE] & ~ownQ[BLACK])
+                | (ownR [WHITE] &  ownQ[WHITE])
+                | (own2Q[WHITE] & ~ownR[BLACK]);
+        own2maj = (own2R[BLACK] & ~ownQ[WHITE])
+                | (ownR [BLACK] &  ownQ[BLACK])
+                | (own2Q[BLACK] & ~ownR[WHITE]);
+        own1MAJ = ~own2MAJ
+                & ((own2R[WHITE] & ~own2Q[BLACK])
+                 | (own2Q[WHITE] & ~own2R[BLACK])
+                 | (ownR [WHITE] & ~ownQ [BLACK]));
+        own1maj = ~own2maj
+                & ((own2R[BLACK] & ~own2Q[WHITE])
+                 | (own2Q[BLACK] & ~own2R[WHITE])
+                 | (ownR [BLACK] & ~ownQ [WHITE]));
+        ownMAJ = own2MAJ | own1MAJ;
+        ownmaj = own2maj | own1maj;
+    }
+
+    undecided &= ~(ownMAJ | ownmaj);
+
+    // king ownage
+    Bitboard ownK, ownk;
+    {
+        ownK = undecided & (attackedBy[WHITE][KING] & ~attackedBy[BLACK][KING]);
+        ownk = undecided & (attackedBy[BLACK][KING] & ~attackedBy[WHITE][KING]);
+    }
+
+    // total ownage (for pawn breaks?)
+    // TODO obsolete?
+    {
+        ownAll[WHITE] = ownP[WHITE] | ownM[WHITE] | ownR[WHITE] | ownQ[WHITE];
+        ownAll[BLACK] = ownP[BLACK] | ownM[BLACK] | ownR[BLACK] | ownQ[BLACK];
+    }
+
+    // TODO if we can here also add possible breaks to the bitboards we can
+    // account for them.
+    // we could do it this way: if we have a pawn in backwards_bb(square the
+    // pawn goes to to break adjacent pawn), and the opponent does not own any
+    // of the sqaures the pawn has to pass, then we reduce opponents strongest
+    // ownage of that square by 1
+    //Bitboard wFight = ~attackedBy[BLACK][PAWN];
+    //Bitboard bFight = ~attackedBy[WHITE][PAWN];
+    //Bitboard pieceOwnedW = ownM[WHITE] | ownR[WHITE] | ownQ[WHITE];
+    //Bitboard pieceOwnedB = ownM[BLACK] | ownR[BLACK] | ownQ[BLACK];
+    //Bitboard pieceAttackedW =
+    //    attackedBy[WHITE][KNIGHT] |
+    //    attackedBy[WHITE][BISHOP] |
+    //    attackedBy[WHITE][ROOK]   |
+    //    attackedBy[WHITE][QUEEN];
+    //Bitboard pieceAttackedB =
+    //    attackedBy[BLACK][KNIGHT] |
+    //    attackedBy[BLACK][BISHOP] |
+    //    attackedBy[BLACK][ROOK]   |
+    //    attackedBy[BLACK][QUEEN];
+    //ownMove[WHITE] = ~attackedBy[BLACK][PAWN] &
+    //    (pieceOwnedW | (~pieceOwnedB & pieceAttackedW & attackedBy[WHITE][PAWN]));
+    //ownMove[BLACK] = ~attackedBy[WHITE][PAWN] &
+    //    (pieceOwnedB | (~pieceOwnedW & pieceAttackedB & attackedBy[BLACK][PAWN]));
+
+    // new more accurate move ownage
+    //
+    // TODO = ~ownDef[Them] & attacked by us?
+    //
+    // NOTE is for owning piece moves, NOT pawn moves. owning pawn pushes is
+    // just owning the defense of the push square (pawn pushes); or the
+    // opponent not owning the defense of capture square (pawn captures)
+    //
+    // NOTE ownage for pawn pushes is f*d if a straight rook slider is behind
+    // pawn
+    {
+        ownMove[WHITE] = ~attackedBy[BLACK][PAWN] &
+                        ( (own2M[WHITE] & ~own2maj)
+                         |(own2MAJ & ~ownM[BLACK])
+                         |((ownM[WHITE] | ownMAJ) & ~(ownM[BLACK] | ownmaj))
+                         |ownK);
+
+        ownMove[BLACK] = ~attackedBy[WHITE][PAWN] &
+                        ( (own2M[BLACK] & ~own2MAJ)
+                         |(own2maj & ~ownM[WHITE])
+                         |((ownM[BLACK] | ownmaj) & ~(ownM[WHITE] | ownMAJ))
+                         |ownk);
+    }
+
+    // new more accurate move protection
+    {
+        Bitboard equal;
+
+        ownDef[WHITE]  = ownP[WHITE];
+        equal = ~ownP[BLACK];
+        ownDef[WHITE] |= equal & ownM[WHITE];
+        equal &= ~ownM[BLACK];
+        ownDef[WHITE] |= equal & ~ownMAJ;
+        equal &= ~ownmaj;
+        // in the end being equal is sufficient to defend
+        ownDef[WHITE] |= equal & ~ownk;
+
+        ownDef[BLACK]  = ownP[BLACK];
+        equal = ~ownP[WHITE];
+        ownDef[BLACK] |= equal & ownM[BLACK];
+        equal &= ~ownM[WHITE];
+        ownDef[BLACK] |= equal & ~ownmaj;
+        equal &= ~ownMAJ;
+        ownDef[BLACK] |= equal & ~ownK;
+    }
+
+    // TODO for ownMove: exclude squares with our pieces on them?
+    // TODO for ownDef: account for pieces on the square? e.g. if our knights attack each other they are still not safe from double rook attacks, although we own minor attacks
+    //  possible: if piece on the square, use ownMove bitboard (usefull since we dont want pieces haning by pawns anyway and ownMove excludes those squares). for pawns on defense squares might not care since all piece types' worth differs by at least 2 pawns
+
+    // TODO speedups:
+    // - dont distinguish between 1- and 2-owned if not needed anywhere
+    // - make own Moves just pieceOwned ignoring the help of friendly pawns
+    // - add bitboards attackedBy3 and attackedBy4 for minors to speedup
+    //   minor-own computation (?)
+  }
+
   // Evaluation::king() assigns bonuses and penalties to a king of a given color
   template<Tracing T> template<Color Us>
   Score Evaluation<T>::king() const {
@@ -401,13 +642,14 @@ namespace {
     Score score = pe->king_safety<Us>(pos);
 
     // Attacked squares defended at most once by our queen or king
-    weak =  attackedBy[Them][ALL_PIECES]
-          & ~attackedBy2[Us]
-          & (~attackedBy[Us][ALL_PIECES] | attackedBy[Us][KING] | attackedBy[Us][QUEEN]);
+    weak = ownDef[Them];
+//    weak =  attackedBy[Them][ALL_PIECES]
+//          & ~attackedBy2[Us]
+//          & (~attackedBy[Us][ALL_PIECES] | attackedBy[Us][KING] | attackedBy[Us][QUEEN]);
 
     // Analyse the safe enemy's checks which are possible on next move
     safe  = ~pos.pieces(Them);
-    safe &= ~attackedBy[Us][ALL_PIECES] | (weak & attackedBy2[Them]);
+    safe &= ownMove[Them];
 
     b1 = attacks_bb<ROOK  >(ksq, pos.pieces() ^ pos.pieces(Us, QUEEN));
     b2 = attacks_bb<BISHOP>(ksq, pos.pieces() ^ pos.pieces(Us, QUEEN));
@@ -425,8 +667,8 @@ namespace {
     queenChecks =  (b1 | b2)
                  & attackedBy[Them][QUEEN]
                  & safe
-                 & ~attackedBy[Us][QUEEN]
-                 & ~rookChecks;
+                 & ~(  attackedBy[Us][QUEEN]
+                     | rookChecks);
 
     if (queenChecks)
         kingDanger += QueenSafeCheck;
@@ -458,7 +700,7 @@ namespace {
     // Find the squares that opponent attacks in our king flank, and the squares
     // which are attacked twice in that flank.
     b1 = attackedBy[Them][ALL_PIECES] & KingFlank[file_of(ksq)] & Camp;
-    b2 = b1 & attackedBy2[Them];
+    b2 = b1 & attackedBy2[Them][ALL_PIECES];
 
     int kingFlankAttacks = popcount(b1) + popcount(b2);
 
@@ -509,17 +751,23 @@ namespace {
 
     // Squares strongly protected by the enemy, either because they defend the
     // square with a pawn, or because they defend the square twice and we don't.
-    stronglyProtected =  attackedBy[Them][PAWN]
-                       | (attackedBy2[Them] & ~attackedBy2[Us]);
+//    stronglyProtected =  attackedBy[Them][PAWN]
+//                       | (attackedBy2[Them] & ~attackedBy2[Us]);
+    // ownDef is more of a weakly-or-more-protected
+    // could try ownMove[Them] | ownDef[Them]
+    stronglyProtected =  attackedBy[Them][PAWN] | ownDef[Them];
 
     // Non-pawn enemies, strongly protected
     defended = nonPawnEnemies & stronglyProtected;
 
     // Enemies not strongly protected and under our attack
     weak = pos.pieces(Them) & ~stronglyProtected & attackedBy[Us][ALL_PIECES];
+    //                                           ^
+    // TODO is this maybe just ownMove[Us]?
 
     // Safe or protected squares
-    safe = ~attackedBy[Them][ALL_PIECES] | attackedBy[Us][ALL_PIECES];
+//    safe = ~attackedBy[Them][ALL_PIECES] | attackedBy[Us][ALL_PIECES];
+    safe = ~ownDef[Them];
 
     // Bonus according to the kind of attacking pieces
     if (defended | weak)
@@ -546,14 +794,16 @@ namespace {
             score += ThreatByKing;
 
         b =  ~attackedBy[Them][ALL_PIECES]
-           | (nonPawnEnemies & attackedBy2[Us]);
+           | (nonPawnEnemies & attackedBy2[Us][ALL_PIECES]);
         score += Hanging * popcount(weak & b);
     }
 
     // Bonus for restricting their piece moves
-    b =   attackedBy[Them][ALL_PIECES]
-       & ~stronglyProtected
-       &  attackedBy[Us][ALL_PIECES];
+//    b =   attackedBy[Them][ALL_PIECES]
+//       & ~stronglyProtected
+//       &  attackedBy[Us][ALL_PIECES];
+    // TODO good y/n?
+    b = attackedBy[Them][ALL_PIECES] & ownDef[Us];
 
     score += RestrictedPiece * popcount(b);
 
@@ -582,16 +832,19 @@ namespace {
     if (pos.count<QUEEN>(Them) == 1)
     {
         Square s = pos.square<QUEEN>(Them);
-        safe = mobilityArea[Us] & ~stronglyProtected;
+//        safe = mobilityArea[Us] & ~stronglyProtected;
+        safe = mobilityArea[Us] & ownMove[Us];
 
         b = attackedBy[Us][KNIGHT] & pos.attacks_from<KNIGHT>(s);
+        // ?? why second term?
 
         score += KnightOnQueen * popcount(b & safe);
 
         b =  (attackedBy[Us][BISHOP] & pos.attacks_from<BISHOP>(s))
            | (attackedBy[Us][ROOK  ] & pos.attacks_from<ROOK  >(s));
 
-        score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
+//        score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
+        score += SliderOnQueen * popcount(b & safe);
     }
 
     if (T)
@@ -651,11 +904,20 @@ namespace {
 
                 bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN) & pos.attacks_from<ROOK>(s);
 
+                // TODO only consider R/Q if the color in question also owns
+                // the defense of that square?
                 if (!(pos.pieces(Us) & bb))
-                    defendedSquares &= attackedBy[Us][ALL_PIECES];
+//                    defendedSquares &= attackedBy[Us][ALL_PIECES];
+//                    defendedSquares &= ownDef[Us]; // owning def = own straight pawn push
+                    // NOTE original computation: if pawn can advance, a queen
+                    // behin the pawn is considered to attack all the squares
+                    // in front of the pawn
+                    defendedSquares &= ~ownMove[Them];
 
                 if (!(pos.pieces(Them) & bb))
-                    unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
+//                    unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
+                // TODO ownage doesnt work that well here(?)
+                    unsafeSquares &= ~ownDef[Us];
 
                 // If there aren't any enemy attacks, assign a big bonus. Otherwise
                 // assign a smaller bonus if the block square isn't attacked.
@@ -664,6 +926,7 @@ namespace {
                 // If the path to the queen is fully defended, assign a big bonus.
                 // Otherwise assign a smaller bonus if the block square is defended.
                 if (defendedSquares == squaresToQueen)
+                    // TODO                          | !(unsafe & squaresToQueening)
                     k += 6;
 
                 else if (defendedSquares & blockSq)
@@ -671,6 +934,14 @@ namespace {
 
                 bonus += make_score(k * w, k * w);
             }
+            // TODO if block square with piece is outpost square
+            // (or temporary outpost square) do not give a passed pawn bonus
+            // (piece leaving outpost square should be searchen, not be assumen
+            // - might as well sit there for whole game. Alternatively scale
+            // down bonus linearly with how good that piece's squares is (using
+            // psqt: if psqt bonus is max possible, leave passer at 100%, if
+            // psqt is only 30% of max, reduce passer bouns by 70%
+
         } // r > RANK_3
 
         // Scale down bonus for candidate passers which need more than one
@@ -710,8 +981,8 @@ namespace {
 
     // Find the available squares for our pieces inside the area defined by SpaceMask
     Bitboard safe =   SpaceMask
-                   & ~pos.pieces(Us, PAWN)
-                   & ~attackedBy[Them][PAWN];
+                   & ~(  pos.pieces(Us, PAWN)
+                       | ~ownDef[Them]);
 
     // Find all squares which are at most three squares behind some friendly pawn
     Bitboard behind = pos.pieces(Us, PAWN);
@@ -830,6 +1101,8 @@ namespace {
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
     score += mobility[WHITE] - mobility[BLACK];
+
+    ownage();
 
     score +=  king<   WHITE>() - king<   BLACK>()
             + threats<WHITE>() - threats<BLACK>()
