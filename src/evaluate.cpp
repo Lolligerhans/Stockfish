@@ -245,7 +245,8 @@ namespace {
     attackedBy[Us][KING] = pos.attacks_from<KING>(ksq);
     attackedBy[Us][PAWN] = pe->pawn_attacks(Us);
     attackedBy[Us][ALL_PIECES] = attackedBy[Us][KING] | attackedBy[Us][PAWN];
-    attackedBy2[Us] = dblAttackByPawn | (attackedBy[Us][KING] & attackedBy[Us][PAWN]);
+    attackedBy2[Us][PAWN] = dblAttackByPawn;
+    attackedBy2[Us][ALL_PIECES] = dblAttackByPawn | (attackedBy[Us][KING] & attackedBy[Us][PAWN]);
 
     // Init our king safety tables
     kingRing[Us] = attackedBy[Us][KING];
@@ -291,9 +292,10 @@ namespace {
         if (pos.blockers_for_king(Us) & s)
             b &= LineBB[pos.square<KING>(Us)][s];
 
-        attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
-        attackedBy[Us][Pt] |= b;
-        attackedBy[Us][ALL_PIECES] |= b;
+        attackedBy2[Us][ALL_PIECES] |= attackedBy[Us][ALL_PIECES] & b;
+        attackedBy [Us][ALL_PIECES] |= b;
+        attackedBy2[Us][Pt]         |= attackedBy[Us][Pt] & b;
+        attackedBy [Us][Pt]         |= b;
 
         if (b & kingRing[Them])
         {
@@ -391,7 +393,7 @@ namespace {
   // Evaluation::ownage() computes vulnerability bitboards for a given
   // color
   template<Tracing T>
-  Score Evaluation<T>::ownage() {
+  void Evaluation<T>::ownage() {
 
     Bitboard own2P[COLOR_NB];
     Bitboard own1P[COLOR_NB];
@@ -525,13 +527,13 @@ namespace {
         ownmaj = own2maj | own1maj;
     }
 
-    undecided &= ~(ownMAH | ownmaj);
+    undecided &= ~(ownMAJ | ownmaj);
 
     // king ownage
-    Bitboard ownK, ownK;
+    Bitboard ownK, ownk;
     {
         ownK = undecided & (attackedBy[WHITE][KING] & ~attackedBy[BLACK][KING]);
-        ownK = undecided & (attackedBy[BLACK][KING] & ~attackedBy[WHITE][KING]);
+        ownk = undecided & (attackedBy[BLACK][KING] & ~attackedBy[WHITE][KING]);
     }
 
     // total ownage (for pawn breaks?)
@@ -694,7 +696,7 @@ namespace {
     // Find the squares that opponent attacks in our king flank, and the squares
     // which are attacked twice in that flank.
     b1 = attackedBy[Them][ALL_PIECES] & KingFlank[file_of(ksq)] & Camp;
-    b2 = b1 & attackedBy2[Them];
+    b2 = b1 & attackedBy2[Them][ALL_PIECES];
 
     int kingFlankAttacks = popcount(b1) + popcount(b2);
 
@@ -788,7 +790,7 @@ namespace {
             score += ThreatByKing;
 
         b =  ~attackedBy[Them][ALL_PIECES]
-           | (nonPawnEnemies & attackedBy2[Us]);
+           | (nonPawnEnemies & attackedBy2[Us][ALL_PIECES]);
         score += Hanging * popcount(weak & b);
     }
 
@@ -796,7 +798,8 @@ namespace {
 //    b =   attackedBy[Them][ALL_PIECES]
 //       & ~stronglyProtected
 //       &  attackedBy[Us][ALL_PIECES];
-    b = attackedBy[Them]
+    // TODO good y/n?
+    b = attackedBy[Them][ALL_PIECES] & ownDef[Us];
 
     score += RestrictedPiece * popcount(b);
 
@@ -910,7 +913,7 @@ namespace {
                 if (!(pos.pieces(Them) & bb))
 //                    unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
                 // TODO ownage doesnt work that well here(?)
-                    unsafeSquare &= ~ownDef[Us];
+                    unsafeSquares &= ~ownDef[Us];
 
                 // If there aren't any enemy attacks, assign a big bonus. Otherwise
                 // assign a smaller bonus if the block square isn't attacked.
@@ -1095,7 +1098,7 @@ namespace {
 
     score += mobility[WHITE] - mobility[BLACK];
 
-    score += ownage();
+    ownage();
 
     score +=  king<   WHITE>() - king<   BLACK>()
             + threats<WHITE>() - threats<BLACK>()
