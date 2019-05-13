@@ -613,7 +613,7 @@ namespace {
       return std::min(distance(pos.square<KING>(c), s), 5);
     };
 
-    Bitboard b, bb, squaresToQueen, defendedSquares, unsafeSquares;
+    Bitboard b, bb;
     Score score = SCORE_ZERO;
 
     b = pe->passed_pawns(Us);
@@ -641,46 +641,50 @@ namespace {
             if (r != RANK_7)
                 bonus -= make_score(0, king_proximity(Us, blockSq + Up) * w);
 
-            // If the pawn is free to advance, then increase the bonus
+            // Bonus for unblocked passers, dependant on attacks on the squares
+            // in front of the pawn:
+            //  Opponents attacks:
+            //   - the blockSquare is not attacked by Them (L bonus) or
+            //   - no square until queening is attacked by Them (XL bonus)
+            //  Our attacks:
+            //   - the blockSquare is attacked by Us (S bonus) or
+            //   - the all squares until queening are attacked by us (M bonus)
+            //
+            // (Queens and rooks behind the pawn are considered to attack all
+            // squares in front of the pawn for this bonus).
             if (pos.empty(blockSq))
             {
-                // If there is a rook or queen attacking/defending the pawn from behind,
-                // consider all the squaresToQueen. Otherwise consider only the squares
-                // in the pawn's path attacked or occupied by the enemy.
-                defendedSquares = unsafeSquares = squaresToQueen = forward_file_bb(Us, s);
+                // squares in front of the pawn
+                Bitboard squaresToQueening = forward_file_bb(Us, s);
 
-                bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN) & pos.attacks_from<ROOK>(s);
+                // first rook or queen behind the pawn
+                bb = forward_file_bb(Them, s) &
+                    pos.pieces(ROOK, QUEEN) & pos.attacks_from<ROOK>(s);
 
-                // TODO only consider R/Q if the color in question also owns
-                // the defense of that square?
-                if (!(pos.pieces(Us) & bb))
+                // ignore rook/queen if attacked!
+
+                // our rook/queen behind pawn
+                Bitboard defendedSquares = squaresToQueening;
+                Bitboard sliderBehind = pos.pieces(Us) & bb;
+                if (!(sliderBehind & ~attackedBy[Them][ALL_PIECES]))
                     defendedSquares &= attackedBy[Us][ALL_PIECES];
 
-                if (!(pos.pieces(Them) & bb))
+                // their rook/queen behind pawn
+                Bitboard unsafeSquares = squaresToQueening;
+                sliderBehind = pos.pieces(Them) & bb;
+                if (!(sliderBehind & ~attackedBy[Us][ALL_PIECES]))
                     unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
 
-                // If there aren't any enemy attacks, assign a big bonus. Otherwise
-                // assign a smaller bonus if the block square isn't attacked.
-                int k = !unsafeSquares ? 20 : !(unsafeSquares & blockSq) ? 9 : 0;
+                // bonus for missing their attakcs
+                int k = ! unsafeSquares            ? 20 :
+                        !(unsafeSquares & blockSq) ? 9  : 0;
 
-                // If the path to the queen is fully defended, assign a big bonus.
-                // Otherwise assign a smaller bonus if the block square is defended.
-                if (defendedSquares == squaresToQueen)
-                    k += 6;
-
-                else if (defendedSquares & blockSq)
-                    k += 4;
+                // bonus for our attacks
+                k += defendedSquares == squaresToQueening ? 6 :
+                     defendedSquares &  blockSq           ? 4 : 0;
 
                 bonus += make_score(k * w, k * w);
             }
-            // TODO if block square with piece is outpost square
-            // (or temporary outpost square) do not give a passed pawn bonus
-            // (piece leaving outpost square should be searchen, not be assumen
-            // - might as well sit there for whole game. Alternatively scale
-            // down bonus linearly with how good that piece's squares is (using
-            // psqt: if psqt bonus is max possible, leave passer at 100%, if
-            // psqt is only 30% of max, reduce passer bouns by 70%
-
         } // r > RANK_3
 
         // Scale down bonus for candidate passers which need more than one
