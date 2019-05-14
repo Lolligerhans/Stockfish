@@ -651,7 +651,7 @@ namespace {
 
                 bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN) & pos.attacks_from<ROOK>(s);
 
-                // TODO only consider R/Q if the color in question also owns
+                // FAIL only consider R/Q if the color in question also owns
                 // the defense of that square?
                 if (!(pos.pieces(Us) & bb))
                     defendedSquares &= attackedBy[Us][ALL_PIECES];
@@ -673,7 +673,7 @@ namespace {
 
                 bonus += make_score(k * w, k * w);
             }
-            // TODO if block square with piece is outpost square
+            // IDEA if block square with piece is outpost square
             // (or temporary outpost square) do not give a passed pawn bonus
             // (piece leaving outpost square should be searchen, not be assumen
             // - might as well sit there for whole game. Alternatively scale
