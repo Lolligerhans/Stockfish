@@ -32,9 +32,14 @@ namespace {
   #define S(mg, eg) make_score(mg, eg)
 
   // Pawn penalties
-  constexpr Score Backward = S( 9, 24);
-  constexpr Score Doubled  = S(11, 56);
-  constexpr Score Isolated = S( 5, 15);
+  Score Backward = S( 9, 24);
+  TUNE(Backward);
+  Score Doubled  = S(11, 56);
+  TUNE(Doubled);
+  Score Isolated = S( 5, 15);
+  TUNE(Isolated);
+  Score edgemaj = S ( 10, 10 );
+  TUNE(SetRange(-10, 30), edgemaj);
 
   // Connected pawn bonus
   constexpr int Connected[RANK_NB] = { 0, 13, 17, 24, 59, 96, 171 };
@@ -129,7 +134,7 @@ namespace {
         if (!more_than_one(opposer) && (b = neighbours))
             while (b)
                 if (opposer == (theirPawns & passed_pawn_span(Us, pop_lsb(&b))))
-                    score += make_score(10, 0);
+                    score += edgemaj;
 
         // Score this pawn
         if (support | phalanx)
