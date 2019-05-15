@@ -135,7 +135,8 @@ namespace {
   // Assorted bonuses and penalties
   constexpr Score BishopPawns        = S(  3,  7);
   constexpr Score CorneredBishop     = S( 50, 50);
-  constexpr Score EncapsulatedMinor  = S(  5, 25);
+  Score EncapsulatedMinor  = S(  5, 25);
+  TUNE(EncapsulatedMinor);
   constexpr Score FlankAttacks       = S(  8,  0);
   constexpr Score Hanging            = S( 69, 36);
   constexpr Score KingProtector      = S(  7,  8);
