@@ -120,22 +120,20 @@ namespace {
             && popcount(phalanx) >= popcount(leverPush))
             e->passedPawns[Us] |= s;
 
-        else if (stoppers == square_bb(s + Up))
+        else if (stoppers == square_bb(s + Up) && r >= RANK_5)
         {
             b = shift<Up>(support) & ~theirPawns;
-            Bitboard counterPassers = 0;
             while (b)
             {
                 // NOTE no longer using type Square as bitboard
                 Square sacSquare = pop_lsb(&b);
-                Bitboard counterCandidate = SquareBB[sacSquare];
+                Bitboard theirPasser = SquareBB[sacSquare];
                 if (!more_than_one(theirPawns & PawnAttacks[Us][sacSquare]))
                 {
                     e->passedPawns[Us] |= s;
-                    counterPassers |= counterCandidate;;
+                    e->passedPawns[Them] |= theirPasser;
                 }
             }
-            e->passedPawns[Them] |= counterPassers * !more_than_one(counterPassers) ;
         }
 
         // Score this pawn
