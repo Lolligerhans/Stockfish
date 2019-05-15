@@ -93,8 +93,8 @@ namespace {
         e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
 
         // Flag the pawn
-        opposed = (
-        opposer    = theirPawns & forward_file_bb(Us, s));
+        opposer    = theirPawns & forward_file_bb(Us, s);
+        opposed    = bool(opposer);
         stoppers   = theirPawns & passed_pawn_span(Us, s);
         lever      = theirPawns & PawnAttacks[Us][s];
         leverPush  = theirPawns & PawnAttacks[Us][s + Up];
