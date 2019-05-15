@@ -68,6 +68,7 @@ namespace {
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
 
     Bitboard b, neighbours, stoppers, doubled, support, phalanx;
+    Bitboard opposer;
     Bitboard lever, leverPush;
     Square s;
     bool opposed, backward;
@@ -92,7 +93,8 @@ namespace {
         e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
 
         // Flag the pawn
-        opposed    = theirPawns & forward_file_bb(Us, s);
+        opposed = (
+        opposer    = theirPawns & forward_file_bb(Us, s));
         stoppers   = theirPawns & passed_pawn_span(Us, s);
         lever      = theirPawns & PawnAttacks[Us][s];
         leverPush  = theirPawns & PawnAttacks[Us][s + Up];
@@ -124,9 +126,9 @@ namespace {
         }
 
         // Look for an edge majority (board edges or pawn island edges)
-        if (!more_than_one(opposed) && (b = neighbours))
+        if (!more_than_one(opposer) && (b = neighbours))
             while (b)
-                if (opposed == (theirPawns & passed_pawn_span(Us, pop_lsb(&b))))
+                if (opposer == (theirPawns & passed_pawn_span(Us, pop_lsb(&b))))
                     score += make_score(10, 0);
 
         // Score this pawn
