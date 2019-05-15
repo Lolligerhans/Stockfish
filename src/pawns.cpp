@@ -128,8 +128,12 @@ namespace {
         // Look for an edge majority (board edges or pawn island edges)
         if (!more_than_one(opposer) && (b = neighbours))
             while (b)
-                if (opposer == (theirPawns & passed_pawn_span(Us, pop_lsb(&b))))
-                    score += make_score(10, 0);
+            {
+                Square edgePawn = pop_lsb(&b);
+                if (opposer == (theirPawns & passed_pawn_span(Us, edgePawn)))
+                    score += make_score(relative_rank(Us, s) +
+                            relative_rank(Us, edgePawn), 0);
+            }
 
         // Score this pawn
         if (support | phalanx)
