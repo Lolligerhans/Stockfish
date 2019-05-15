@@ -671,6 +671,14 @@ namespace {
 
                 bonus += make_score(k * w, k * w);
             }
+            // Scale down bonus for counter-passers. Counter-passers which
+            // protect a piece if not becoming a passer do not get their bonus
+            // reduced. They will become a protected passer if the pieces moves.
+            // TODO pos.pieces(Us) & s == 0 --> allow opponents pieces to be
+            // attacked :) -- this guarantees passer for them but not for us
+            // tho(!)
+            else if( pos.empty(s) )
+                bonus = bonus / 2;
         } // r > RANK_3
 
         // Scale down bonus for candidate passers which need more than one
