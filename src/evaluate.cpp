@@ -677,7 +677,7 @@ namespace {
             // TODO pos.pieces(Us) & s == 0 --> allow opponents pieces to be
             // attacked :) -- this guarantees passer for them but not for us
             // tho(!)
-            else if( !(pos.pieces(Us) & s) )
+            else if( !(pos.pieces(Them) & s) )
                 bonus = bonus / 2;
         } // r > RANK_3
 
