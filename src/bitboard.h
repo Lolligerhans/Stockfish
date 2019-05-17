@@ -206,7 +206,10 @@ inline Bitboard forward_ranks_bb(Color c, Square s) {
   return c == WHITE ? ~Rank1BB << 8 * (rank_of(s) - RANK_1)
                     : ~Rank8BB >> 8 * (RANK_8 - rank_of(s));
 }
-
+inline Bitboard forward_ranks_bb(Color c, Rank r) {
+  return c == WHITE ? ~Rank1BB << 8 * (r - RANK_1)
+                    : ~Rank8BB >> 8 * (RANK_8 - r);
+}
 
 /// forward_file_bb() returns a bitboard representing all the squares along the
 /// line in front of the given one, from the point of view of the given color.

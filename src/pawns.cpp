@@ -58,6 +58,79 @@ namespace {
     { V(-10), V(-14), V( 90), V(15), V( 2), V( -7), V(-16) }
   };
 
+  class PawnDex
+  {
+      using index_t = uint_fast16_t;
+      Bitboard pawnConfig;
+    public:
+      explicit PawnDex(Bitboard pc) : pawnConfig(pc) {}
+      operator index_t() const
+      {
+          return (pawnConfig & 0x00000005)
+               | (pawnConfig & 0x00000500) <<  8
+               | (pawnConfig & 0x00070000) << 16
+               | (pawnConfig & 0x07000000) << 24;
+      };
+  };
+
+  // Input: pawndex(cropshift(pawns))
+  // +-------+
+  // | 7 8 9 | 4 to 9: consider their pawns only
+  // | 4 5 6 |
+  // | 2 x 3 | x: our pawn in question
+  // | 0 . 1 | 0-3: consider our pawns only
+  // +-------+
+  // Index forms by shifting every numbered square to the bit determined by its
+  // number.  Option: Hashtable with trivial FAST hash over the bare input.
+  // E.g. could try just using mod 1024.
+  //
+  // Output:
+  //
+
+  // Score: baseline constant score
+  // meta: binary foramt for additional information. e.g., when parsing pawn
+  // top to bottom, could contain information that next pawn is serving greater
+  // good by protecting the current pawn (pawn below doesnt know about this
+  // otherwise)
+  // for now, lets leave this 0
+  // can be stuff like: "stops isolani" in combination with "can advance on turn"
+  // +---------+
+  // | . . . . |
+  // | . o . . | can advance 2nd pawn from left
+  // | . x . o |
+  // | . . x x |
+  // +---------+
+  // point is, rarely will a pawn be like 5 swquares behind its nieghbor yet
+  // relevant to actual position, especially if we apply a push_into algorithm
+  // beforehand
+  //
+  // TODO ignore symmetric pawn structuresa?
+  // TODO can possible return much better lockdown bitboards, since every pawn
+  // pretty much knows if it is locked down (probably SOME pawntak needed)
+  using lut_elem_t = union { uint_fast64_t raw=0ul; struct { Score s; uint32_t meta; } elem; };
+  std::array<lut_elem_t, 1024>
+      PawnLUT{};
+
+  // Cropshift:crop 4x3 rectange, then use bitshitft w/o the worrying
+  // cropshift <bitboard mask, int x, int>
+  inline Bitboard
+  cropshift(Bitboard b, Rank const& r, File const& f)
+  {
+      //   A
+      // +-------+
+      // | x x x |
+      // | x x x |
+      // | x . x |
+      // | x . x | 1
+      // +-------+
+      static constexpr Bitboard cropMask = 0x0505070700000000;
+      Bitboard cropped = b & cropMask;
+      int_fast8_t sll = 8*(r-RANK_2) + (f-FILE_B);
+      return sll > 0 ? cropped <<  sll
+                     : cropped >> -sll;
+  }
+
+
   #undef S
   #undef V
 
@@ -65,14 +138,13 @@ namespace {
   Score evaluate(const Position& pos, Pawns::Entry* e) {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
-    constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
+//    constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
 
-    Bitboard b, neighbours, stoppers, doubled, support, phalanx;
-    Bitboard lever, leverPush;
-    Square s;
-    bool opposed, backward;
+//    Bitboard b, neighbours, stoppers, doubled, support, phalanx;
+//    Bitboard lever, leverPush;
+//    bool opposed, backward;
     Score score = SCORE_ZERO;
-    const Square* pl = pos.squares<PAWN>(Us);
+//    const Square* pl = pos.squares<PAWN>(Us);
 
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
@@ -81,65 +153,16 @@ namespace {
     e->kingSquares[Us]   = SQ_NONE;
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
 
-    // Loop through all pawns of the current color and score each pawn
-    while ((s = *pl++) != SQ_NONE)
+    // score every pawn by pawntable
+    for( Bitboard p = ourPawns; p; )
     {
-        assert(pos.piece_on(s) == make_piece(Us, PAWN));
-
-        File f = file_of(s);
-        Rank r = relative_rank(Us, s);
-
-        e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
-
-        // Flag the pawn
-        opposed    = theirPawns & forward_file_bb(Us, s);
-        stoppers   = theirPawns & passed_pawn_span(Us, s);
-        lever      = theirPawns & PawnAttacks[Us][s];
-        leverPush  = theirPawns & PawnAttacks[Us][s + Up];
-        doubled    = ourPawns   & (s - Up);
-        neighbours = ourPawns   & adjacent_files_bb(f);
-        phalanx    = neighbours & rank_bb(s);
-        support    = neighbours & rank_bb(s - Up);
-
-        // A pawn is backward when it is behind all pawns of the same color
-        // on the adjacent files and cannot be safely advanced.
-        backward =  !(ourPawns & pawn_attack_span(Them, s + Up))
-                  && (stoppers & (leverPush | (s + Up)));
-
-        // Passed pawns will be properly scored in evaluation because we need
-        // full attack info to evaluate them. Include also not passed pawns
-        // which could become passed after one or two pawn pushes when are
-        // not attacked more times than defended.
-        if (   !(stoppers ^ lever ^ leverPush)
-            && (support || !more_than_one(lever))
-            && popcount(phalanx) >= popcount(leverPush))
-            e->passedPawns[Us] |= s;
-
-        else if (stoppers == square_bb(s + Up) && r >= RANK_5)
-        {
-            b = shift<Up>(support) & ~theirPawns;
-            while (b)
-                if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)]))
-                    e->passedPawns[Us] |= s;
-        }
-
-        // Score this pawn
-        if (support | phalanx)
-        {
-            int v =  Connected[r] * (phalanx ? 3 : 2) / (opposed ? 2 : 1)
-                   + 17 * popcount(support);
-
-            score += make_score(v, v * (r - 2) / 4);
-        }
-        else if (!neighbours)
-            score -= Isolated, e->weakUnopposed[Us] += !opposed;
-
-        else if (backward)
-            score -= Backward, e->weakUnopposed[Us] += !opposed;
-
-        if (doubled && !support)
-            score -= Doubled;
+        Square s = pop_lsb(&p);
+        Rank r = rank_of(s); File f = file_of(s);
+        Bitboard combo =  (theirPawns & forward_ranks_bb(Us, r))
+                        | (ourPawns   & forward_ranks_bb(Them, Rank(r+1)));
+        score += PawnLUT[PawnDex(cropshift(combo, r, f))].elem.s;
     }
+
 
     return score;
   }
