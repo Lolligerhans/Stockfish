@@ -25,6 +25,8 @@
 #include "position.h"
 #include "types.h"
 
+extern Score TuneArray[64];
+
 namespace Pawns {
 
 /// Pawns::Entry contains various information about a pawn structure. A lookup

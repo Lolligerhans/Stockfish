@@ -26,6 +26,9 @@
 #include "position.h"
 #include "thread.h"
 
+Score TuneArray[64] = {SCORE_ZERO};
+TUNE(SetRange(-100,100), TuneArray);
+
 namespace {
 
   #define V Value
@@ -139,6 +142,9 @@ namespace {
 
         if (doubled && !support)
             score -= Doubled;
+
+        // lets pretend we want a pawn sqt
+        score += TuneArray[int(s)];
     }
 
     return score;
