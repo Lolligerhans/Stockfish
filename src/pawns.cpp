@@ -99,7 +99,7 @@ namespace {
     // +-------+
     // | . x . | x  their pawn
     // | o o o | o  glue squares
-    // | o o o |
+    // | . . . |
     // +-------+
     // When stepping into glue, our pawns sourround themselves in glue by
     // splashing (prevents algorithm from breaking pawn structures like pawns
@@ -115,7 +115,6 @@ namespace {
     array<Bitboard, 6> history{};
 
     Bitboard glueSquares = shift<Down>(theirPawns) | e->pawnAttacks[Them];
-    glueSquares |= shift<Down>(glueSquares);
 
     if( !theirPawns ) movedPawns = ourPawns; else // TODO worth it? will mostly be endgames with 1 or 2 pawns vs no pawns
     for( auto m = pair<Bitboard,uint_fast8_t>{ourPawns & ~glueSquares, Down};
@@ -170,8 +169,8 @@ namespace {
 //    {
         assert(pos.piece_on(s) == make_piece(Us, PAWN));
 
-//        auto const rankDiff = i; // rank offset from advancing
-        auto const sqDiff   = Direction(8*i); // square offset from advancing
+        auto const rankDiff = i; // rank offset from advancing
+        Direction const sqDiff = Up*i; // square offset original -> advanced
 
         File f = file_of(s);
         Rank r = relative_rank(Us, s);
@@ -239,7 +238,7 @@ namespace {
             //  - use corrected ranks (also tune!)
             //  - use different bonuses depending on how distant the future is,
             //    e.g., divide bonus by (1+i) (also tune this!!)
-            int v =  Connected[r] * (phalanx ? 3 : 2) / (opposed ? 2 : 1)
+            int v =  Connected[r-rankDiff] * (phalanx ? 3 : 2) / (opposed ? 2 : 1)
                    + 17 * popcount(support);
 
             score += make_score(v, v * (r - 2) / 4);
