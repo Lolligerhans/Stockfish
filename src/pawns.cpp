@@ -19,6 +19,7 @@
 */
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <utility>
 
@@ -31,6 +32,7 @@ namespace {
 
   using std::pair;
   using std::get;
+  using std::array;
 
   #define V Value
   #define S(mg, eg) make_score(mg, eg)
@@ -97,7 +99,7 @@ namespace {
     // +-------+
     // | . x . | x  their pawn
     // | o o o | o  glue squares
-    // | . . . |
+    // | o o o |
     // +-------+
     // When stepping into glue, our pawns sourround themselves in glue by
     // splashing (prevents algorithm from breaking pawn structures like pawns
@@ -110,43 +112,56 @@ namespace {
     // Splashing applies to pawns glued by splashing, too
 
     Bitboard movedPawns = 0;
+    array<Bitboard, 6> history{};
+
     Bitboard glueSquares = shift<Down>(theirPawns) | e->pawnAttacks[Them];
+    glueSquares |= shift<Down>(glueSquares);
 
     if( !theirPawns ) movedPawns = ourPawns; else // TODO worth it? will mostly be endgames with 1 or 2 pawns vs no pawns
-    for( auto m = pair<Bitboard,Direction>{ourPawns & ~glueSquares, Down};
-         get<0>(m); // we need c++17 lol
-         get<1>(m) += Down)
+    for( auto m = pair<Bitboard,uint_fast8_t>{ourPawns & ~glueSquares, Down};
+         get<0>(m);
+         get<1>(m)++)
     {
-        auto& moving =     get<0>(m);
-        auto& distOrigin = get<1>(m);
+        auto& moving    = get<0>(m);
+        auto& iteration = get<1>(m);
 
         // remove glued pawns
         Bitboard splashes = glueSquares;
-        for( Bitboard hit; (hit = moving & splashes); movedPawns |= hit, moving ^= hit)
+        for( Bitboard hit; (hit = moving & splashes); moving ^= hit)
         //for(auto[splashes,hit] = {glueSquares, moving & splashes}; hit = moving & splashes; movedPawns |= hit, moving ^= hit )
         {
             // compute splash squares
-            splashes = pawn_attacks_bb<Us>(hit);
+            splashes  = pawn_attacks_bb<Us>(hit);
             splashes |= shift<Down>(splashes) | hit;
             splashes |= shift<Down>(splashes);
             splashes &= SplashArea;
 
             // glue splash squares
             glueSquares |= splashes;
+
+            // save # of advances (for passers)
+//            for( auto& a : {history[iteration], movedPawns})
+//                a |= hit;
+            history[iteration] |= hit;
         }
+
+        // save glued pawns to final position for static
+        movedPawns |= history[iteration];
 
         // advance moving pawns
         moving = shift<Up>(moving);
 
-        // passeded pawns: leave at original square
+        // revert advance of passers
         if( Bitboard p = moving & TopRank ) // Go Directly to Static
-            movedPawns |= p << distOrigin,  // DO NOT MOVE OVER RANK 8
+            history[0] |= p << 8*iteration, // DO NOT MOVE OVER RANK 8
             moving     ^= p;                // DO NOT COLLECT $200
     }
 
-    for( Square s; movedPawns; )
+    // apply static to advanced pawns
+    for( uint_fast8_t i = 0; i != history.size(); ++i)
+    for( Square s; history[i]; )
     {
-        s = pop_lsb(&movedPawns);
+        s = pop_lsb(&history[i]);
 //    }
 //
 //
@@ -155,46 +170,75 @@ namespace {
 //    {
         assert(pos.piece_on(s) == make_piece(Us, PAWN));
 
+//        auto const rankDiff = i; // rank offset from advancing
+        auto const sqDiff   = Direction(8*i); // square offset from advancing
+
         File f = file_of(s);
         Rank r = relative_rank(Us, s);
 
-        e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
+        // NOTE  use original square for attack span
+        // TODO should do separately over ourPawns BB?
+        e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s-sqDiff);
 
         // Flag the pawn
         opposed    = theirPawns & forward_file_bb(Us, s);
         stoppers   = theirPawns & passed_pawn_span(Us, s);
         lever      = theirPawns & PawnAttacks[Us][s];
         leverPush  = theirPawns & PawnAttacks[Us][s + Up];
-        doubled    = ourPawns   & (s - Up);
-        neighbours = ourPawns   & adjacent_files_bb(f);
+        doubled    = movedPawns & (s - Up);
+        neighbours = movedPawns & adjacent_files_bb(f);
         phalanx    = neighbours & rank_bb(s);
         support    = neighbours & rank_bb(s - Up);
 
         // A pawn is backward when it is behind all pawns of the same color
         // on the adjacent files and cannot be safely advanced.
-        backward =  !(ourPawns & pawn_attack_span(Them, s + Up))
+        // NOTE  One could also consider using the original pawn configuration
+        //       for backwards detection. That way, pawns would not be
+        //       considered backwards by static until they actually can not
+        //       move anymore.
+        backward =  !(movedPawns & pawn_attack_span(Them, s + Up))
                   && (stoppers & (leverPush | (s + Up)));
 
         // Passed pawns will be properly scored in evaluation because we need
         // full attack info to evaluate them. Include also not passed pawns
         // which could become passed after one or two pawn pushes when are
         // not attacked more times than defended.
+        // NOTE  We detect passers in pushed state, but corresponding starting
+        //       square is added to passedPawns[Us].
         if (   !(stoppers ^ lever ^ leverPush)
             && (support || !more_than_one(lever))
             && popcount(phalanx) >= popcount(leverPush))
-            e->passedPawns[Us] |= s;
+            e->passedPawns[Us] |= s-sqDiff;
 
+        // NOTE  This will also rate pawns below 5th rank as passed ig the
+        //       opposing stopper is at 6th or 7th.
+        // TODO testing required with r-rankDiff instead of r.
         else if (stoppers == square_bb(s + Up) && r >= RANK_5)
         {
             b = shift<Up>(support) & ~theirPawns;
             while (b)
                 if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)]))
-                    e->passedPawns[Us] |= s;
+                    e->passedPawns[Us] |= s-sqDiff;
         }
 
         // Score this pawn
+
+        // NOTE  Also scores with moved rank.
+        // TODO  Also test using old rank.
+        // TODO  Definitely tuning needed. Testing with old values is probably
+        //       pointless in both cases.
         if (support | phalanx)
         {
+            // TODO Connected[r] differs significntly in higher ranks. engine
+            // will push pawn on rank 2 for no reason just so static on moved
+            // opponents pawns will evaluate connected pawns on earlier square,
+            // giving massive bonus for nothing
+            //
+            // TODO solutions: try
+            //  - tuning values
+            //  - use corrected ranks (also tune!)
+            //  - use different bonuses depending on how distant the future is,
+            //    e.g., divide bonus by (1+i) (also tune this!!)
             int v =  Connected[r] * (phalanx ? 3 : 2) / (opposed ? 2 : 1)
                    + 17 * popcount(support);
 
