@@ -214,7 +214,7 @@ namespace {
         // NOTE  This will also rate pawns below 5th rank as passed ig the
         //       opposing stopper is at 6th or 7th.
         // TODO testing required with r-rankDiff instead of r.
-        else if (stoppers == square_bb(s + Up) && r >= RANK_5)
+        else if (stoppers == square_bb(s + Up) && r-rankDiff >= RANK_5)
         {
             b = shift<Up>(support) & ~theirPawns;
             while (b)
@@ -243,7 +243,7 @@ namespace {
             int v =  Connected[r-rankDiff] * (phalanx ? 3 : 2) / (opposed ? 2 : 1)
                    + 17 * popcount(support);
 
-            score += make_score(v, v * (r - 2) / 4);
+            score += make_score(v, v * (r-rankDiff - 2) / 4);
         }
         else if (!neighbours)
             score -= Isolated, e->weakUnopposed[Us] += !opposed;
