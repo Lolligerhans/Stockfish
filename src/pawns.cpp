@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <utility>
 
 #include "bitboard.h"
 #include "pawns.h"
@@ -27,6 +28,9 @@
 #include "thread.h"
 
 namespace {
+
+  using std::pair;
+  using std::get;
 
   #define V Value
   #define S(mg, eg) make_score(mg, eg)
@@ -64,26 +68,91 @@ namespace {
   template<Color Us>
   Score evaluate(const Position& pos, Pawns::Entry* e) {
 
-    constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
+    constexpr Color     Them = ~Us;
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
+    constexpr Direction Down = -Up;
+    constexpr Bitboard  TopRank = (Us == WHITE ? Rank8BB : Rank1BB);
+    constexpr Bitboard  SplashArea = TopRank | shift<Down>(TopRank);
 
     Bitboard b, neighbours, stoppers, doubled, support, phalanx;
     Bitboard lever, leverPush;
-    Square s;
+//    Square s;
     bool opposed, backward;
     Score score = SCORE_ZERO;
-    const Square* pl = pos.squares<PAWN>(Us);
+//    const Square* pl = pos.squares<PAWN>(Us);
 
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-    e->passedPawns[Us] = e->pawnAttacksSpan[Us] = e->weakUnopposed[Us] = 0;
-    e->kingSquares[Us]   = SQ_NONE;
-    e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
+    e->passedPawns    [Us] =
+    e->pawnAttacksSpan[Us] =
+    e->weakUnopposed  [Us] = 0;
+    e->kingSquares    [Us] = SQ_NONE;
+    if( Us == WHITE )
+        e->pawnAttacks[Us]   = pawn_attacks_bb<  Us>(  ourPawns),
+        e->pawnAttacks[Them] = pawn_attacks_bb<Them>(theirPawns);
 
-    // Loop through all pawns of the current color and score each pawn
-    while ((s = *pl++) != SQ_NONE)
+    // squares which will trap our pawns
+    // their pawns:
+    // +-------+
+    // | . x . | x  their pawn
+    // | o o o | o  glue squares
+    // | . . . |
+    // +-------+
+    // When stepping into glue, our pawns sourround themselves in glue by
+    // splashing (prevents algorithm from breaking pawn structures like pawns
+    // defending each other):
+    // +-------+
+    // | o . o | x  our glued(!) pawn
+    // | o x o | o  glue squares (splashing)
+    // | o o o |
+    // +-------+
+    // Splashing applies to pawns glued by splashing, too
+
+    Bitboard movedPawns = 0;
+    Bitboard glueSquares = shift<Down>(theirPawns) | e->pawnAttacks[Them];
+
+    if( !theirPawns ) movedPawns = ourPawns; else // TODO worth it? will mostly be endgames with 1 or 2 pawns vs no pawns
+    for( auto m = pair<Bitboard,Direction>{ourPawns & ~glueSquares, Down};
+         get<0>(m); // we need c++17 lol
+         get<1>(m) += Down)
     {
+        auto& moving =     get<0>(m);
+        auto& distOrigin = get<1>(m);
+
+        // remove glued pawns
+        Bitboard splashes = glueSquares;
+        for( Bitboard hit; (hit = moving & splashes); movedPawns |= hit, moving ^= hit)
+        //for(auto[splashes,hit] = {glueSquares, moving & splashes}; hit = moving & splashes; movedPawns |= hit, moving ^= hit )
+        {
+            // compute splash squares
+            splashes = pawn_attacks_bb<Us>(hit);
+            splashes |= shift<Down>(splashes) | hit;
+            splashes |= shift<Down>(splashes);
+            splashes &= SplashArea;
+
+            // glue splash squares
+            glueSquares |= splashes;
+        }
+
+        // advance moving pawns
+        moving = shift<Up>(moving);
+
+        // passeded pawns: leave at original square
+        if( Bitboard p = moving & TopRank ) // Go Directly to Static
+            movedPawns |= p << distOrigin,  // DO NOT MOVE OVER RANK 8
+            moving     ^= p;                // DO NOT COLLECT $200
+    }
+
+    for( Square s; movedPawns; )
+    {
+        s = pop_lsb(&movedPawns);
+//    }
+//
+//
+//    // Loop through all pawns of the current color and score each pawn
+//    while ((s = *pl++) != SQ_NONE)
+//    {
         assert(pos.piece_on(s) == make_piece(Us, PAWN));
 
         File f = file_of(s);
