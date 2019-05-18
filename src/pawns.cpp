@@ -125,6 +125,7 @@ namespace {
         auto& iteration = get<1>(m);
 
         // remove glued pawns
+        int chained = 0;
         Bitboard splashes = glueSquares;
         for( Bitboard hit; (hit = moving & splashes); moving ^= hit)
         //for(auto[splashes,hit] = {glueSquares, moving & splashes}; hit = moving & splashes; movedPawns |= hit, moving ^= hit )
@@ -135,8 +136,8 @@ namespace {
             splashes |= shift<Down>(splashes);
             splashes &= SplashArea;
 
-            // glue splash squares
-            glueSquares |= splashes;
+            // glue splash squares (only first 2 pawns)
+            if (++chained < 3) glueSquares |= splashes;
 
             // save # of advances (for passers)
 //            for( auto& a : {history[iteration], movedPawns})
