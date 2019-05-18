@@ -117,7 +117,7 @@ namespace {
     Bitboard glueSquares = shift<Down>(theirPawns) | e->pawnAttacks[Them];
 
     if( !theirPawns ) movedPawns = ourPawns; else // TODO worth it? will mostly be endgames with 1 or 2 pawns vs no pawns
-    for( auto m = pair<Bitboard,uint_fast8_t>{ourPawns & ~glueSquares, Down};
+    for( auto m = pair<Bitboard,uint_fast8_t>{ourPawns & ~glueSquares, 0};
          get<0>(m);
          get<1>(m)++)
     {
@@ -151,9 +151,11 @@ namespace {
         moving = shift<Up>(moving);
 
         // revert advance of passers
-        if( Bitboard p = moving & TopRank ) // Go Directly to Static
-            history[0] |= p << 8*iteration, // DO NOT MOVE OVER RANK 8
-            moving     ^= p;                // DO NOT COLLECT $200
+        if( Bitboard p = moving & TopRank )          /* Community Pawn */
+            history[0] |= (Us == WHITE               // GO TO STATIC
+                ? (p << 8*iteration)                 // Go Directly to Static
+                : (p >> 8*iteration)),               // DO NOT PASS RANK 8
+            moving ^= p;                             // DO NOT COLLECT $200
     }
 
     // apply static to advanced pawns
