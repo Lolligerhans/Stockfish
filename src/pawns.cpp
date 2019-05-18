@@ -74,7 +74,7 @@ namespace {
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
     constexpr Direction Down = -Up;
     constexpr Bitboard  TopRank = (Us == WHITE ? Rank8BB : Rank1BB);
-    constexpr Bitboard  SplashArea = TopRank | shift<Down>(TopRank);
+    constexpr Bitboard  SplashArea = ~(TopRank | shift<Down>(TopRank));
 
     Bitboard b, neighbours, stoppers, doubled, support, phalanx;
     Bitboard lever, leverPush;
