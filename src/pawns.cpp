@@ -79,7 +79,7 @@ namespace {
 
     e->pawnAttacksSpan[Us] = e->weakUnopposed[Us] = 0;
     e->kingSquares[Us]   = SQ_NONE;
-    e->pawnAttacks[Us] = pawn_attacks_bb<Us>(ourPawns);
+    e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
     if (Us == WHITE)
     {
         e->passedPawns[  Us] = 0;
@@ -122,17 +122,34 @@ namespace {
 
         else if (stoppers == square_bb(s + Up))
         {
+//            bool them2 = more_than_one(theirPawns & PawnAttacks[  Us][sacSquare]),
+//                 us    = ourPawns & PawnAttacks[Them][sacSquare];
+//                 us2   = more_than_one(ourPawns & PawnAttacks[Them][sacSquare]);
+//
+//          // them 2    us     us2   passer    sacrifice_needed
+//          // 0         1      0     1         0 
+//          // 0         1      1     1         0
+//          // 1         1      1     1         0
+//          // 0         0      0     1         1
+//          // 1         1      0     1         1
+//          // 1         0      0     0         -
             if (r >= RANK_5 )
             {
                 b = shift<Up>(support) & ~theirPawns;
                 while (b)
                 {
                     Square sacSquare = pop_lsb(&b);
-                    if (  !more_than_one(theirPawns & PawnAttacks[  Us][sacSquare])
-                        ||                 ourPawns & PawnAttacks[Them][sacSquare])
+                    if (!more_than_one(theirPawns & PawnAttacks[  Us][sacSquare]))
                     {
                         e->passedPawns[Us] |= s;
-                        e->passedPawns[Them] |= sacSquare;
+                        if (!(ourPawns & PawnAttacks[Them][sacSquare]))
+                            e->passedPawns[Them] |= sacSquare;
+                    }
+                    else if (ourPawns & PawnAttacks[Them][sacSquare])
+                    {
+                        e->passedPawns[Us] |= s;
+                        if(!(more_than_one(ourPawns & PawnAttacks[Them][sacSquare])))
+                            e->passedPawns[Them] |= sacSquare;
                     }
                 }
             }
@@ -142,12 +159,15 @@ namespace {
                 while (b)
                 {
                     Square sacSquare = pop_lsb(&b);
-                    if ((  !more_than_one(theirPawns & PawnAttacks[  Us][sacSquare]) &&
-                                            ourPawns & PawnAttacks[Them][sacSquare])
-                         || more_than_one(  ourPawns & PawnAttacks[Them][sacSquare]))
+                    if (!more_than_one(theirPawns & PawnAttacks[Us][sacSquare]))
                     {
-                        e->passedPawns[Us] |= s;
-                        e->passedPawns[Them] |= sacSquare;
+                        if (ourPawns & PawnAttacks[Them][sacSquare])
+                            e->passedPawns[Us] |= s;
+                    }
+                    else
+                    {
+                        if (more_than_one(ourPawns & PawnAttacks[Them][sacSquare]))
+                            e->passedPawns[Us] |= s;
                     }
                 }
             }
