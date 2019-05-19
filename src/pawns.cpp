@@ -121,8 +121,9 @@ namespace {
             while (b)
             {
                 Square sacSquare = pop_lsb(&b);
-                if (  !more_than_one(theirPawns & PawnAttacks[  Us][sacSquare])
-                    || more_than_one(  ourPawns & PawnAttacks[Them][sacSquare]))
+                if (  (!more_than_one(theirPawns & PawnAttacks[  Us][sacSquare]) &&
+                                        ourPawns & PawnAttacks[Them][sacSquare])
+                    ||  more_than_one(  ourPawns & PawnAttacks[Them][sacSquare]))
                     e->passedPawns[Us] |= s;
             }
         }
