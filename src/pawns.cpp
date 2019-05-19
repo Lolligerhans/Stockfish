@@ -23,6 +23,8 @@
 #include <cassert>
 #include <utility>
 
+#include <iostream>
+
 #include "bitboard.h"
 #include "pawns.h"
 #include "position.h"
@@ -114,7 +116,9 @@ namespace {
     Bitboard movedPawns = 0;
     array<Bitboard, 6> history{};
 
-    Bitboard glueSquares = shift<Down>(theirPawns) | e->pawnAttacks[Them];
+    Bitboard const weakGlue = e->pawnAttacks[Them];
+    Bitboard const strongGlue = shift<Down>(theirPawns);
+    Bitboard glueSquares = strongGlue | weakGlue;
 
     if( !theirPawns ) movedPawns = ourPawns; else // TODO worth it? will mostly be endgames with 1 or 2 pawns vs no pawns
     for( auto m = pair<Bitboard,uint_fast8_t>{ourPawns & ~glueSquares, 0};
@@ -127,22 +131,23 @@ namespace {
         // remove glued pawns
         int chained = 0;
         Bitboard splashes = glueSquares;
-        for( Bitboard hit; (hit = moving & splashes); moving ^= hit)
-        //for(auto[splashes,hit] = {glueSquares, moving & splashes}; hit = moving & splashes; movedPawns |= hit, moving ^= hit )
+        for( Bitboard hit; (hit = moving & splashes);
+             history[iteration] |= hit, glueSquares |= splashes,
+             moving ^= hit)
         {
+            // handle splash chain length restriction
+            ++chained;
+            if (chained  > 3) break;
+            splashes = 0;
+            if (chained == 1)
+                splashes = hit & ~strongGlue,
+                hit ^= splashes;
+
             // compute splash squares
-            splashes  = pawn_attacks_bb<Us>(hit);
+            splashes |= pawn_attacks_bb<Us>(hit);
             splashes |= shift<Down>(splashes) | hit;
             splashes |= shift<Down>(splashes);
             splashes &= SplashArea;
-
-            // glue splash squares (only first 2 pawns)
-            if (++chained < 3) glueSquares |= splashes;
-
-            // save # of advances (for passers)
-//            for( auto& a : {history[iteration], movedPawns})
-//                a |= hit;
-            history[iteration] |= hit;
         }
 
         // save glued pawns to final position for static
