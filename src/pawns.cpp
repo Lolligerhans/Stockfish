@@ -217,9 +217,7 @@ namespace {
             && popcount(phalanx) >= popcount(leverPush))
             e->passedPawns[Us] |= s-sqDiff;
 
-        // NOTE  This will also rate pawns below 5th rank as passed ig the
-        //       opposing stopper is at 6th or 7th.
-        // TODO testing required with r-rankDiff instead of r.
+        // TODO testing required
         else if (stoppers == square_bb(s + Up) && r-rankDiff >= RANK_5)
         {
             b = shift<Up>(support) & ~theirPawns;
@@ -246,10 +244,11 @@ namespace {
             //  - use corrected ranks (also tune!)
             //  - use different bonuses depending on how distant the future is,
             //    e.g., divide bonus by (1+i) (also tune this!!)
-            int v =  Connected[r-rankDiff] * (phalanx ? 3 : 2) / (opposed ? 2 : 1)
+            int v =  Connected[r] * (phalanx ? 3 : 2) / (opposed ? 2 : 1)
                    + 17 * popcount(support);
 
-            score += make_score(v, v * (r-rankDiff - 2) / 4);
+            Score group = make_score(v, v * (r-rankDiff - 2) / 4);
+            score += group / (1+rankDiff);
         }
         else if (!neighbours)
             score -= Isolated, e->weakUnopposed[Us] += !opposed;
