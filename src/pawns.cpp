@@ -79,7 +79,11 @@ namespace {
 
     e->passedPawns[Us] = e->pawnAttacksSpan[Us] = e->weakUnopposed[Us] = 0;
     e->kingSquares[Us]   = SQ_NONE;
-    e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
+    if (Us == WHITE)
+    {
+        e->pawnAttacks[  Us] = pawn_attacks_bb<  Us>(  ourPawns);
+        e->pawnAttacks[Them] = pawn_attacks_bb<Them>(theirPawns);
+    }
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -119,8 +123,12 @@ namespace {
         {
             b = shift<Up>(support) & ~theirPawns;
             while (b)
-                if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)]))
+            {
+                Square sacSquare = pop_lsb(&b);
+                if (  !more_than_one(theirPawns & PawnAttacks[  Us][sacSquare])
+                    ||                 ourPawns & PawnAttacks[Them][sacSquare])
                     e->passedPawns[Us] |= s;
+            }
         }
 
         // Score this pawn
