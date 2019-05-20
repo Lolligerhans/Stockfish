@@ -66,6 +66,7 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
+    constexpr Direction Down = -Up;
 
     Bitboard b, neighbours, stoppers, doubled, support, phalanx;
     Bitboard lever, leverPush;
@@ -119,7 +120,8 @@ namespace {
         {
             b = shift<Up>(support) & ~theirPawns;
             while (b)
-                if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)]))
+                if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)]) ||
+                    ourPawns & (s+Down))
                     e->passedPawns[Us] |= s;
         }
 
