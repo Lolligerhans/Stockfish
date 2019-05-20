@@ -121,12 +121,16 @@ namespace {
               (!(stoppers ^ leverPush) && popcount(phalanx) >= popcount(leverPush)))
             e->passedPawns[Us] |= s;
 
-        else if (stoppers == square_bb(s + Up) && r >= RANK_5)
+        else if (r >= RANK_5 && stoppers == square_bb(s + Up))
         {
             b = shift<Up>(support) & ~theirPawns;
             while (b)
-                if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)]))
+            {
+                Square sacSquare = pop_lsb(&b);
+                if (  !more_than_one(theirPawns & PawnAttacks[  Us][sacSquare])
+                    ||                 ourPawns & PawnAttacks[Them][sacSquare])
                     e->passedPawns[Us] |= s;
+            }
         }
 
         // Score this pawn
