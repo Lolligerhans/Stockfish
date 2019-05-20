@@ -119,8 +119,12 @@ namespace {
         {
             b = shift<Up>(support) & ~theirPawns;
             while (b)
-                if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)]))
+            {
+                Square sacSquare = pop_lsb(&b);
+                if (  !more_than_one(theirPawns & PawnAttacks[  Us][sacSquare])
+                    || more_than_one(  ourPawns & PawnAttacks[Them][sacSquare]))
                     e->passedPawns[Us] |= s;
+            }
         }
 
         // Score this pawn
