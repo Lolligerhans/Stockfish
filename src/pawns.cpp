@@ -144,7 +144,8 @@ namespace {
             score -= Doubled;
 
         // lets pretend we want a pawn sqt
-        score += TuneArray[Us == WHITE ? int(s) : -int(s)];
+        if (Us == WHITE) score += TuneArray[rank_of(s) * 8 + file_of(s)];
+        if (Us == BLACK) score += TuneArray[64 - rank_of(s) * 8 + file_of(s)];
     }
 
     return score;
