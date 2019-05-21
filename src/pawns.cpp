@@ -117,10 +117,14 @@ namespace {
 
         else if (stoppers == square_bb(s + Up) && r >= RANK_5)
         {
-            b = shift<Up>(support) & ~theirPawns;
+            b = (shift<Up>(support) & ~theirPawns) | phalanx;
             while (b)
-                if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)]))
+            {
+                Square sacSquare = pop_lsb(&b);
+                if (  !more_than_one(theirPawns & PawnAttacks[  Us][sacSquare])
+                    ||                 ourPawns & PawnAttacks[Them][sacSquare])
                     e->passedPawns[Us] |= s;
+            }
         }
 
         // Score this pawn
