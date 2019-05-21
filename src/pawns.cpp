@@ -77,9 +77,14 @@ namespace {
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-    e->passedPawns[Us] = e->pawnAttacksSpan[Us] = e->weakUnopposed[Us] = 0;
+    e->pawnAttacksSpan[Us] = e->weakUnopposed[Us] = 0;
     e->kingSquares[Us]   = SQ_NONE;
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
+    if (Us == WHITE)
+    {
+        e->passedPawns[  Us] = 0;
+        e->passedPawns[Them] = 0;
+    }
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -119,8 +124,19 @@ namespace {
         {
             b = shift<Up>(support) & ~theirPawns;
             while (b)
-                if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)]))
+            {
+                Square sacSquare = pop_lsb(&b);
+
+                bool t2 = more_than_one(theirPawns & PawnAttacks[  Us][sacSquare]);
+                bool us =                 ourPawns & PawnAttacks[Them][sacSquare];
+
+                if (!t2 || us)
+                {
                     e->passedPawns[Us] |= s;
+                    if (t2 || !us)
+                        e->passedPawns[Them] |= sacSquare;
+                }
+            }
         }
 
         // Score this pawn
