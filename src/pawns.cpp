@@ -66,6 +66,7 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
+    constexpr Direction Down = -Up;
 
     Bitboard b, neighbours, stoppers, doubled, support, phalanx;
     Bitboard lever, leverPush;
@@ -86,8 +87,8 @@ namespace {
     {
         assert(pos.piece_on(s) == make_piece(Us, PAWN));
 
-        File f = file_of(s);
-        Rank r = relative_rank(Us, s);
+        File const f = file_of(s);
+        Rank const r = relative_rank(Us, s);
 
         e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
 
@@ -117,27 +118,20 @@ namespace {
 
         else if (stoppers == square_bb(s + Up))
         {
-            if (r >= 5)
+            b = shift<Up>(support) & ~theirPawns;
+            while (b)
             {
-                b = shift<Up>(support) & ~theirPawns;
-                while (b)
+                Square sacSquare = pop_lsb(&b);
+                if (r >= 5)
                 {
-                    Square sacSquare = pop_lsb(&b);
                     if (!more_than_one(theirPawns & PawnAttacks[Us][sacSquare]))
                         e->passedPawns[Us] |= s;
                 }
-            }
-            else
-            {
-                b = shift<Up>(support) & ~theirPawns;
-                while (b)
-                {
-                    Square sacSquare = pop_lsb(&b);
+                else
                     if ((  !more_than_one(theirPawns & PawnAttacks[  Us][sacSquare]) &&
-                                            ourPawns & PawnAttacks[Them][sacSquare])
+                                         (  ourPawns & (s+Down)))
                          || more_than_one(  ourPawns & PawnAttacks[Them][sacSquare]))
                         e->passedPawns[Us] |= s;
-                }
             }
         }
 
