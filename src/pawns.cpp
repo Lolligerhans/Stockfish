@@ -128,12 +128,14 @@ namespace {
                 Square sacSquare = pop_lsb(&b);
 
                 bool t2 = more_than_one(theirPawns & PawnAttacks[  Us][sacSquare]);
-                bool us =                 ourPawns & PawnAttacks[Them][sacSquare];
+                Bitboard ourDef = ourPawns & PawnAttacks[Them][sacSquare];
+                bool us = bool(ourDef);
+                bool us2 = more_than_one(ourDef);
 
                 if (!t2 || us)
                 {
                     e->passedPawns[Us] |= s;
-                    if (t2 || !us)
+                    if (!us || (t2 && !us2))
                         e->passedPawns[Them] |= sacSquare;
                 }
             }
