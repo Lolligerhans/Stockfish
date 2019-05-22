@@ -33,12 +33,17 @@ namespace Pawns {
 
 struct Entry {
 
+  static constexpr Bitboard PawnRanks = ~(Rank1BB | Rank8BB);
+
   Score pawn_score(Color c) const { return scores[c]; }
   Bitboard pawn_attacks(Color c) const { return pawnAttacks[c]; }
-  Bitboard passed_pawns(Color c) const { return passedPawns[c]; }
+//  Bitboard passed_pawns(Color c) const { return passedPawns[c]; }
+  Bitboard passed_pawns(Color c) const { return squash[c].raw & PawnRanks; }
   Bitboard pawn_attacks_span(Color c) const { return pawnAttacksSpan[c]; }
-  int weak_unopposed(Color c) const { return weakUnopposed[c]; }
-  int passed_count() const { return popcount(passedPawns[WHITE] | passedPawns[BLACK]); }
+  int weak_unopposed(Color c) const { return squash[c].details.weakUnopposed; }
+
+//  int passed_count() const { return popcount(passedPawns[WHITE] | passedPawns[BLACK]); }
+  uint8_t passed_count() const { return squash[WHITE].details.passedPawnCount; }
 
   template<Color Us>
   Score king_safety(const Position& pos) {
@@ -52,16 +57,29 @@ struct Entry {
   template<Color Us>
   void evaluate_shelter(const Position& pos, Square ksq, Score& shelter);
 
+  template<Color Us>
+  void evaluate(const Position& pos) &;
+
+private:
+  template<Color c>
+  Bitboard& passed_pawns() & { return squash[c].raw; }
+
+public:
   Key key;
+private:
   Score scores[COLOR_NB];
-  Bitboard passedPawns[COLOR_NB];
+  union { Bitboard raw;
+          struct {uint8_t passedPawnCount;
+                  uint8_t passedPawns[6];
+                  uint8_t weakUnopposed; } details;
+        } squash[COLOR_NB];
   Bitboard pawnAttacks[COLOR_NB];
   Bitboard pawnAttacksSpan[COLOR_NB];
   Square kingSquares[COLOR_NB];
   Score kingSafety[COLOR_NB];
-  int weakUnopposed[COLOR_NB];
+//  int weakUnopposed[COLOR_NB];
   int castlingRights[COLOR_NB];
-  int pawnsOnSquares[COLOR_NB][COLOR_NB]; // [color][light/dark squares]
+//  int pawnsOnSquares[COLOR_NB][COLOR_NB]; // [color][light/dark squares]
 };
 
 typedef HashTable<Entry, 16384> Table;

@@ -61,8 +61,17 @@ namespace {
   #undef S
   #undef V
 
+}
+
+namespace Pawns
+{
+
   template<Color Us>
-  Score evaluate(const Position& pos, Pawns::Entry* e) {
+  void  Entry::evaluate(const Position& pos) & {
+
+    assert(sizeof(Entry::squash[0]) == sizeof(Bitboard));
+
+    auto const& e = this;
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
@@ -77,7 +86,7 @@ namespace {
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-    e->passedPawns[Us] = e->pawnAttacksSpan[Us] = e->weakUnopposed[Us] = 0;
+    e->passed_pawns<Us>() = e->pawnAttacksSpan[Us] = 0;
     e->kingSquares[Us]   = SQ_NONE;
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
 
@@ -113,14 +122,14 @@ namespace {
         if (   !(stoppers ^ lever ^ leverPush)
             && (support || !more_than_one(lever))
             && popcount(phalanx) >= popcount(leverPush))
-            e->passedPawns[Us] |= s;
+            e->passed_pawns<Us>() |= s;
 
         else if (stoppers == square_bb(s + Up) && r >= RANK_5)
         {
             b = shift<Up>(support) & ~theirPawns;
             while (b)
                 if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)]))
-                    e->passedPawns[Us] |= s;
+                    e->passed_pawns<Us>() |= s;
         }
 
         // Score this pawn
@@ -132,21 +141,20 @@ namespace {
             score += make_score(v, v * (r - 2) / 4);
         }
         else if (!neighbours)
-            score -= Isolated, e->weakUnopposed[Us] += !opposed;
+            score -= Isolated, e->squash[Us].details.weakUnopposed += !opposed;
 
         else if (backward)
-            score -= Backward, e->weakUnopposed[Us] += !opposed;
+            score -= Backward, e->squash[Us].details.weakUnopposed += !opposed;
 
         if (doubled && !support)
             score -= Doubled;
     }
 
-    return score;
+    e->squash[WHITE].details.passedPawnCount += popcount(passed_pawns(Us));
+
+    this->scores[Us] = score;
   }
 
-} // namespace
-
-namespace Pawns {
 
 /// Pawns::probe() looks up the current position's pawns configuration in
 /// the pawns hash table. It returns a pointer to the Entry if the position
@@ -162,8 +170,8 @@ Entry* probe(const Position& pos) {
       return e;
 
   e->key = key;
-  e->scores[WHITE] = evaluate<WHITE>(pos, e);
-  e->scores[BLACK] = evaluate<BLACK>(pos, e);
+  e->evaluate<WHITE>(pos);
+  e->evaluate<BLACK>(pos);
 
   return e;
 }
