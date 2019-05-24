@@ -74,7 +74,6 @@ private:
 public:
   Key key;
 private:
-  Score scores[COLOR_NB];
   union { Bitboard raw;
           struct { uint8_t passedPawnCount;
                    uint8_t passedPawns[6];
@@ -82,19 +81,18 @@ private:
         } squash[COLOR_NB];
   union { Bitboard raw;
           struct { uint16_t wMG;
-                   uint8_t pawnAttacks[4];
+                   uint16_t pawnAttacks[2];
                    uint16_t bMG; } details;
         } squash2[COLOR_NB];
   union { Bitboard raw;
           struct { uint16_t wEG;
-                   uint8_t pawnAttacksSpan[4];
+                   uint16_t pawnAttacksSpan[2];
                    uint16_t bEG; } details;
         } squash3[COLOR_NB];
   Square kingSquares[COLOR_NB];
   Score kingSafety[COLOR_NB];
-//  int weakUnopposed[COLOR_NB];
   int castlingRights[COLOR_NB];
-//  int pawnsOnSquares[COLOR_NB][COLOR_NB]; // [color][light/dark squares]
+  int pawnsOnSquares[COLOR_NB][COLOR_NB]; // [color][light/dark squares]
 };
 
 typedef HashTable<Entry, 16384> Table;

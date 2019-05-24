@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <iostream>
 
 #include "bitboard.h"
 #include "pawns.h"
@@ -70,6 +71,8 @@ namespace Pawns
   Score Entry::evaluate(const Position& pos) & {
 
     assert(sizeof(Entry::squash[0]) == sizeof(Bitboard));
+    assert(sizeof(Entry::squash[1]) == sizeof(Bitboard));
+    assert(sizeof(Entry::squash[2]) == sizeof(Bitboard));
 
     auto const& e = this;
 
@@ -152,14 +155,15 @@ namespace Pawns
     }
 
     // get passer count from _masked_ passer squash
-    e->squash[WHITE].details.passedPawnCount += popcount(passed_pawns<Us>());
+    e->squash[WHITE].details.passedPawnCount += (uint8_t) popcount(passed_pawns<Us>());
 
+    // save score in entry
     if (Us == WHITE)
-        e->squash2[WHITE].details.wMG = mg_value(score),
-        e->squash3[WHITE].details.wEG = eg_value(score);
+        e->squash2[Us].details.wMG = mg_value(score),
+        e->squash3[Us].details.wEG = eg_value(score);
     else
-        e->squash2[BLACK].details.bMG = mg_value(score),
-        e->squash3[BLACK].details.bEG = eg_value(score);
+        e->squash2[Us].details.bMG = mg_value(score),
+        e->squash3[Us].details.bEG = eg_value(score);
 
     return score;
   }
