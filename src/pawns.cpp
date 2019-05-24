@@ -67,7 +67,7 @@ namespace Pawns
 {
 
   template<Color Us>
-  void  Entry::evaluate(const Position& pos) & {
+  Score Entry::evaluate(const Position& pos) & {
 
     assert(sizeof(Entry::squash[0]) == sizeof(Bitboard));
 
@@ -86,9 +86,10 @@ namespace Pawns
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-    e->passed_pawns<Us>() = e->pawnAttacksSpan[Us] = 0;
+    e->passed_pawns_raw<Us>() = 0;
+    e->pawn_attacks_span_raw<Us>() = 0;
     e->kingSquares[Us]   = SQ_NONE;
-    e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
+    e->pawn_attacks_raw<Us>() = pawn_attacks_bb<Us>(ourPawns);
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -98,7 +99,7 @@ namespace Pawns
         File f = file_of(s);
         Rank r = relative_rank(Us, s);
 
-        e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
+        e->pawn_attacks_span_raw<Us>() |= pawn_attack_span(Us, s);
 
         // Flag the pawn
         opposed    = theirPawns & forward_file_bb(Us, s);
@@ -122,14 +123,14 @@ namespace Pawns
         if (   !(stoppers ^ lever ^ leverPush)
             && (support || !more_than_one(lever))
             && popcount(phalanx) >= popcount(leverPush))
-            e->passed_pawns<Us>() |= s;
+            e->passed_pawns_raw<Us>() |= s;
 
         else if (stoppers == square_bb(s + Up) && r >= RANK_5)
         {
             b = shift<Up>(support) & ~theirPawns;
             while (b)
                 if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)]))
-                    e->passed_pawns<Us>() |= s;
+                    e->passed_pawns_raw<Us>() |= s;
         }
 
         // Score this pawn
@@ -150,9 +151,17 @@ namespace Pawns
             score -= Doubled;
     }
 
-    e->squash[WHITE].details.passedPawnCount += popcount(passed_pawns(Us));
+    // get passer count from _masked_ passer squash
+    e->squash[WHITE].details.passedPawnCount += popcount(passed_pawns<Us>());
 
-    this->scores[Us] = score;
+    if (Us == WHITE)
+        e->squash2[WHITE].details.wMG = mg_value(score),
+        e->squash3[WHITE].details.wEG = eg_value(score);
+    else
+        e->squash2[BLACK].details.bMG = mg_value(score),
+        e->squash3[BLACK].details.bEG = eg_value(score);
+
+    return score;
   }
 
 
@@ -161,19 +170,21 @@ namespace Pawns
 /// is found. Otherwise a new Entry is computed and stored there, so we don't
 /// have to recompute all when the same pawns configuration occurs again.
 
-Entry* probe(const Position& pos) {
+Score probe(const Position& pos, Entry** ep) {
+
+  assert(ep);
 
   Key key = pos.pawn_key();
   Entry* e = pos.this_thread()->pawnsTable[key];
+  *ep = e;
 
   if (e->key == key)
-      return e;
+      return e->pawn_score<WHITE>()
+            -e->pawn_score<BLACK>();
 
   e->key = key;
-  e->evaluate<WHITE>(pos);
-  e->evaluate<BLACK>(pos);
-
-  return e;
+  return e->evaluate<WHITE>(pos)
+        -e->evaluate<BLACK>(pos);
 }
 
 
