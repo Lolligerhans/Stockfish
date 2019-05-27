@@ -223,6 +223,8 @@ namespace {
     }
 
     // score our pawns by pawntable
+    score = SCORE_ZERO;
+    e->passedPawns[Us] = Bitboard(0ul);
     for( Bitboard p = ourPawns; p; )
     {   Square sq = pop_lsb(&p);
 
