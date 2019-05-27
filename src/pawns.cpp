@@ -67,9 +67,9 @@ namespace {
       operator index_t() const
       {
           return (pawnConfig & 0x00000005)
-               | (pawnConfig & 0x00000500) <<  8
-               | (pawnConfig & 0x00070000) << 16
-               | (pawnConfig & 0x07000000) << 24;
+               | (pawnConfig & 0x00000500) >>  8
+               | (pawnConfig & 0x00070000) >> 16
+               | (pawnConfig & 0x07000000) >> 24;
       };
   };
 
@@ -119,18 +119,18 @@ namespace {
   inline Bitboard
   cropshift(Bitboard b, Rank const& r, File const& f)
   {
-      //   A
+      //   A B
       // +-------+
       // | x x x |    (07)
       // | x x x |    (07)
-      // | x . x |    (05)
+      // | x . x | 2  (05)
       // | x . x | 1  (05) LSB
       // +-------+
 
       static constexpr Bitboard cropMask = 0x07070505;
-      int_fast8_t sll = 8*(r-RANK_2) + (f-FILE_B);
-      Bitboard shifted = (sll > 0 ? b <<  sll
-                                  : b >> -sll);
+      int_fast8_t srl = 8*(r-RANK_2) + (f-FILE_B);
+      Bitboard shifted = (srl > 0 ? b >>  srl
+                                  : b << -srl);
       return shifted & cropMask;
   }
 
