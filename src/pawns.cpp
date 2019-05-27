@@ -107,10 +107,14 @@ namespace {
   // TODO ignore symmetric pawn structuresa?
   // TODO can possible return much better lockdown bitboards, since every pawn
   // pretty much knows if it is locked down (probably SOME pawntak needed)
+  /*
   using lut_elem_t = union { uint_fast64_t raw=0ul; struct { Score s; uint32_t meta; } elem; };
-//  std::array<lut_elem_t, 1024>
-//      PawnLUT{};
-  lut_elem_t PawnLUT[1024] = {};
+  std::array<lut_elem_t, 1024>
+      PawnLUT{};
+      */
+  using lut_elem_t = Score;
+  lut_elem_t PawnLUT[1024] = {SCORE_ZERO};
+  TUNE(SetRange(-100, 100), PawnLUT);
 
   // Cropshift:crop 4x3 rectange, then use bitshitft w/o the worrying
   // cropshift <bitboard mask, int x, int>
@@ -232,7 +236,7 @@ namespace {
                         | (ourPawns   & forward_ranks_bb(Them, r2));
 
         // pawn LUT
-        score += PawnLUT[PawnDex(cropshift(combo, r, f))].elem.s;
+        score += PawnLUT[PawnDex(cropshift(combo, r, f))];
     }
 
 
