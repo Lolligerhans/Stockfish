@@ -108,26 +108,30 @@ namespace {
   // TODO can possible return much better lockdown bitboards, since every pawn
   // pretty much knows if it is locked down (probably SOME pawntak needed)
   using lut_elem_t = union { uint_fast64_t raw=0ul; struct { Score s; uint32_t meta; } elem; };
-  std::array<lut_elem_t, 1024>
-      PawnLUT{};
+//  std::array<lut_elem_t, 1024>
+//      PawnLUT{};
+  lut_elem_t PawnLUT[1024] = {0};
 
   // Cropshift:crop 4x3 rectange, then use bitshitft w/o the worrying
   // cropshift <bitboard mask, int x, int>
+  //
+  // set b to match corresponding ours/their pawns before use
   inline Bitboard
   cropshift(Bitboard b, Rank const& r, File const& f)
   {
       //   A
       // +-------+
-      // | x x x |
-      // | x x x |
-      // | x . x |
-      // | x . x | 1
+      // | x x x |    (07)
+      // | x x x |    (07)
+      // | x . x |    (05)
+      // | x . x | 1  (05) LSB
       // +-------+
-      static constexpr Bitboard cropMask = 0x0505070700000000;
-      Bitboard cropped = b & cropMask;
+
+      static constexpr Bitboard cropMask = 0x07070505;
       int_fast8_t sll = 8*(r-RANK_2) + (f-FILE_B);
-      return sll > 0 ? cropped <<  sll
-                     : cropped >> -sll;
+      Bitboard shifted = (sll > 0 ? b <<  sll
+                                  : b >> -sll);
+      return shifted & cropMask;
   }
 
 
@@ -155,11 +159,15 @@ namespace {
 
     // score every pawn by pawntable
     for( Bitboard p = ourPawns; p; )
-    {
-        Square s = pop_lsb(&p);
+    {   Square s = pop_lsb(&p);
+
         Rank r = rank_of(s); File f = file_of(s);
+        assert(r > 0 && r < 7);
+        Rank r2 = (Us == WHITE ? r+1 : r-1);
+
         Bitboard combo =  (theirPawns & forward_ranks_bb(Us, r))
-                        | (ourPawns   & forward_ranks_bb(Them, Rank(r+1)));
+                        | (ourPawns   & forward_ranks_bb(Them, r2));
+
         score += PawnLUT[PawnDex(cropshift(combo, r, f))].elem.s;
     }
 
