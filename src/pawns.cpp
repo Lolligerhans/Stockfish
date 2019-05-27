@@ -66,10 +66,12 @@ namespace {
       explicit PawnDex(Bitboard pc) : pawnConfig(pc) {}
       operator index_t() const
       {
-          return (pawnConfig & 0x00000005)
-               | (pawnConfig & 0x00000500) >>  8
-               | (pawnConfig & 0x00070000) >> 16
-               | (pawnConfig & 0x07000000) >> 24;
+          return (pawnConfig & 0x00000001)
+               | (pawnConfig & 0x00000004) >>  1
+               | (pawnConfig & 0x00000100) >>  6
+               | (pawnConfig & 0x00000400) >>  7 // TODO optimize
+               | (pawnConfig & 0x00070000) >> 12
+               | (pawnConfig & 0x07000000) >> 17;
       };
   };
 
