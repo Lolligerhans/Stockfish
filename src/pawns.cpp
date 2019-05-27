@@ -110,7 +110,7 @@ namespace {
   using lut_elem_t = union { uint_fast64_t raw=0ul; struct { Score s; uint32_t meta; } elem; };
 //  std::array<lut_elem_t, 1024>
 //      PawnLUT{};
-  lut_elem_t PawnLUT[1024] = {0};
+  lut_elem_t PawnLUT[1024] = {};
 
   // Cropshift:crop 4x3 rectange, then use bitshitft w/o the worrying
   // cropshift <bitboard mask, int x, int>
@@ -220,14 +220,14 @@ namespace {
 
     // score our pawns by pawntable
     for( Bitboard p = ourPawns; p; )
-    {   Square s = pop_lsb(&p);
+    {   Square sq = pop_lsb(&p);
 
         // current pawn
-        Rank r = rank_of(s); File f = file_of(s);
+        Rank r = rank_of(sq); File f = file_of(sq);
 
         // window around pawn containing our and their pawns where approprioate
         assert(r > 0 && r < 7);
-        Rank r2 = (Us == WHITE ? r+1 : r-1);
+        Rank r2 = (Us == WHITE ? Rank(r+1) : Rank(r-1));
         Bitboard combo =  (theirPawns & forward_ranks_bb(Us, r))
                         | (ourPawns   & forward_ranks_bb(Them, r2));
 
