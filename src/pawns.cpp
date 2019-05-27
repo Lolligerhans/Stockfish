@@ -142,13 +142,14 @@ namespace {
   Score evaluate(const Position& pos, Pawns::Entry* e) {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
-//    constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
+    constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
 
-//    Bitboard b, neighbours, stoppers, doubled, support, phalanx;
-//    Bitboard lever, leverPush;
-//    bool opposed, backward;
+    Bitboard b, neighbours, stoppers, doubled, support, phalanx;
+    Bitboard lever, leverPush;
+    Square s;
+    bool opposed, backward;
     Score score = SCORE_ZERO;
-//    const Square* pl = pos.squares<PAWN>(Us);
+    const Square* pl = pos.squares<PAWN>(Us);
 
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
@@ -157,17 +158,80 @@ namespace {
     e->kingSquares[Us]   = SQ_NONE;
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
 
-    // score every pawn by pawntable
+    // Loop through all pawns of the current color and score each pawn
+    while ((s = *pl++) != SQ_NONE)
+    {
+        assert(pos.piece_on(s) == make_piece(Us, PAWN));
+
+        File f = file_of(s);
+        Rank r = relative_rank(Us, s);
+
+        e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
+
+        // Flag the pawn
+        opposed    = theirPawns & forward_file_bb(Us, s);
+        stoppers   = theirPawns & passed_pawn_span(Us, s);
+        lever      = theirPawns & PawnAttacks[Us][s];
+        leverPush  = theirPawns & PawnAttacks[Us][s + Up];
+        doubled    = ourPawns   & (s - Up);
+        neighbours = ourPawns   & adjacent_files_bb(f);
+        phalanx    = neighbours & rank_bb(s);
+        support    = neighbours & rank_bb(s - Up);
+
+        // A pawn is backward when it is behind all pawns of the same color
+        // on the adjacent files and cannot be safely advanced.
+        backward =  !(ourPawns & pawn_attack_span(Them, s + Up))
+                  && (stoppers & (leverPush | (s + Up)));
+
+        // Passed pawns will be properly scored in evaluation because we need
+        // full attack info to evaluate them. Include also not passed pawns
+        // which could become passed after one or two pawn pushes when are
+        // not attacked more times than defended.
+        if (   !(stoppers ^ lever ^ leverPush)
+            && (support || !more_than_one(lever))
+            && popcount(phalanx) >= popcount(leverPush))
+            e->passedPawns[Us] |= s;
+
+        else if (stoppers == square_bb(s + Up) && r >= RANK_5)
+        {
+            b = shift<Up>(support) & ~theirPawns;
+            while (b)
+                if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)]))
+                    e->passedPawns[Us] |= s;
+        }
+
+        // Score this pawn
+        if (support | phalanx)
+        {
+            int v =  Connected[r] * (phalanx ? 3 : 2) / (opposed ? 2 : 1)
+                   + 17 * popcount(support);
+
+            score += make_score(v, v * (r - 2) / 4);
+        }
+        else if (!neighbours)
+            score -= Isolated, e->weakUnopposed[Us] += !opposed;
+
+        else if (backward)
+            score -= Backward, e->weakUnopposed[Us] += !opposed;
+
+        if (doubled && !support)
+            score -= Doubled;
+    }
+
+    // score our pawns by pawntable
     for( Bitboard p = ourPawns; p; )
     {   Square s = pop_lsb(&p);
 
+        // current pawn
         Rank r = rank_of(s); File f = file_of(s);
+
+        // window around pawn containing our and their pawns where approprioate
         assert(r > 0 && r < 7);
         Rank r2 = (Us == WHITE ? r+1 : r-1);
-
         Bitboard combo =  (theirPawns & forward_ranks_bb(Us, r))
                         | (ourPawns   & forward_ranks_bb(Them, r2));
 
+        // pawn LUT
         score += PawnLUT[PawnDex(cropshift(combo, r, f))].elem.s;
     }
 
