@@ -129,8 +129,8 @@ namespace {
       PawnLUT{};
       */
   using lut_elem_t = Score;
-  lut_elem_t PawnLUT[PawnDex::indexRange()] = {SCORE_ZERO};
-  TUNE(SetRange(-100, 100), PawnLUT);
+  lut_elem_t L[PawnDex::indexRange()] = {SCORE_ZERO};
+  TUNE(SetRange(-100, 100), L);
 
   // Cropshift:crop 4x3 rectange, then use bitshitft w/o the worrying
   // cropshift <bitboard mask, int x, int>
@@ -283,7 +283,7 @@ namespace {
         PawnDex::index_t i = PawnDex::index<Us>(cs, r, moreOfUs, moreOfThem);
 
         // challenge pawn LUT
-        score += PawnLUT[i];
+        score += L[i];
     }
 
 
