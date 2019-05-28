@@ -34,8 +34,7 @@ namespace {
   // Pawn penalties
   constexpr Score Backward = S( 9, 24);
   constexpr Score Doubled  = S(11, 56);
-  constexpr Score Isolated = S( 5, 15);
-  Score EdgeMajority = S(12, 4);
+  Score EdgeMajority = S(8, 8);
 
 TUNE(EdgeMajority);
 
@@ -128,10 +127,8 @@ TUNE(EdgeMajority);
         }
 
         // Look for an edge majority (board edges or pawn island edges)
-        if (!more_than_one(stoppers) && (b = neighbours))
-            while (b)
-                if (stoppers == (theirPawns & passed_pawn_span(Us, pop_lsb(&b))))
-                    score += EdgeMajority;
+        if (!more_than_one(stoppers) && !(adjacent_files_bb(f) & theirPawns) && neighbours)
+            score += EdgeMajority;
 
         // Score this pawn
         if (support | phalanx)
@@ -142,7 +139,7 @@ TUNE(EdgeMajority);
             score += make_score(v, v * (r - 2) / 4);
         }
         else if (!neighbours)
-            score -= Isolated, e->weakUnopposed[Us] += !opposed;
+            e->weakUnopposed[Us] += !opposed;
 
         else if (backward)
             score -= Backward, e->weakUnopposed[Us] += !opposed;
