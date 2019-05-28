@@ -133,6 +133,11 @@ namespace {
             }
         }
 
+        // Edge Majority
+        if (((theirPawns & pawn_attack_span(Us, s)) == stoppers) &&
+             (popcount(stoppers) == 1) && (phalanx | support))
+           score += make_score (10,0);
+
         // Score this pawn
         if (support | phalanx)
         {
