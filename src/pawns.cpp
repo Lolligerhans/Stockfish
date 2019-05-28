@@ -134,7 +134,7 @@ namespace {
         }
 
         // passer look-ahead
-        if ((r >= RANK_4) && ((theirPawns & pawn_attack_span(Us, s)) == stoppers) &&
+        if ((r >= RANK_5) && ((theirPawns & pawn_attack_span(Us, s)) == stoppers) &&
             (popcount(stoppers) == 1) && (more_than_one(ourPawns & pawn_attack_span(Them, s+Up))))
             e->passedPawns[Us] |= s;
 
