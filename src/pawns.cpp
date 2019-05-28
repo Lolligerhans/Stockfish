@@ -60,19 +60,33 @@ namespace {
 
   class PawnDex
   {
-      using index_t = uint_fast16_t;
-      Bitboard pawnConfig;
+    public:  using index_t = uint_fast16_t;
+    private: using rank_t  = uint_fast8_t;
+
     public:
-      explicit PawnDex(Bitboard pc) : pawnConfig(pc) {}
-      operator index_t() const
+      template<Color Us>
+      static index_t
+      index(Bitboard pawnConfig, Rank r, bool moreOfUs, bool moreOfThem)
       {
-          return (pawnConfig & 0x00000001)
+          rank_t rank = std::max(relative_rank(Us, r) - 4, 0);
+          return
+               // first 10 bits: pawns
+                 (pawnConfig & 0x00000001)
                | (pawnConfig & 0x00000004) >>  1
                | (pawnConfig & 0x00000100) >>  6
                | (pawnConfig & 0x00000400) >>  7 // TODO optimize
                | (pawnConfig & 0x00070000) >> 12
-               | (pawnConfig & 0x07000000) >> 17;
-      };
+               | (pawnConfig & 0x07000000) >> 17
+
+               // 2 bits: rank
+               | (rank & 0x3) << 10
+
+               // 2 bits: more pawns us/them
+               | (moreOfUs) << 12
+               | (moreOfThem) << 13;
+      }
+
+      constexpr static uint_fast16_t indexRange() { return 1 << 14; }
   };
 
   // Input: pawndex(cropshift(pawns))
@@ -115,13 +129,14 @@ namespace {
       PawnLUT{};
       */
   using lut_elem_t = Score;
-  lut_elem_t PawnLUT[1024] = {SCORE_ZERO};
+  lut_elem_t PawnLUT[PawnDex::indexRange()] = {SCORE_ZERO};
   TUNE(SetRange(-100, 100), PawnLUT);
 
   // Cropshift:crop 4x3 rectange, then use bitshitft w/o the worrying
   // cropshift <bitboard mask, int x, int>
   //
   // set b to match corresponding ours/their pawns before use
+  template<Color Us>
   inline Bitboard
   cropshift(Bitboard b, Rank const& r, File const& f)
   {
@@ -134,9 +149,20 @@ namespace {
       // +-------+
 
       static constexpr Bitboard cropMask = 0x07070505;
-      int_fast8_t srl = 8*(r-RANK_2) + (f-FILE_B);
+
+      // shift b in place
+      int_fast8_t srl;
+      if (Us == WHITE) srl = 8*(r-RANK_2) + (f-FILE_B);
+      else             srl = 8*(r-RANK_3) + (f-FILE_B);
       Bitboard shifted = (srl > 0 ? b >>  srl
                                   : b << -srl);
+
+      // turn upside down for BLACK
+      if (Us == BLACK)
+      {
+          shifted = (shifted & 0xFF00FF) << 8 | (shifted & 0xFF00FF00) >> 8;
+          shifted = (shifted & 0xFFFF) << 8 | (shifted & 0xFFFF0000) >> 8;
+      }
       return shifted & cropMask;
   }
 
@@ -149,6 +175,7 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
+    constexpr Direction Down = -Up;
 
     Bitboard b, neighbours, stoppers, doubled, support, phalanx;
     Bitboard lever, leverPush;
@@ -236,11 +263,27 @@ namespace {
         // window around pawn containing our and their pawns where approprioate
         assert(r > 0 && r < 7);
         Rank r2 = (Us == WHITE ? Rank(r+1) : Rank(r-1));
-        Bitboard combo =  (theirPawns & forward_ranks_bb(Us, r))
-                        | (ourPawns   & forward_ranks_bb(Them, r2));
+        Rank r3 = (Us == WHITE ? Rank(r-1) : Rank(r+1));
 
-        // pawn LUT
-        score += PawnLUT[PawnDex(cropshift(combo, r, f))];
+        // combine our pawn behind and their pawns in front to a combo BB
+        Bitboard closeBB = file_bb(f) | adjacent_files_bb(f);
+        Bitboard upspanBB   = closeBB & forward_ranks_bb(Us, r);
+        Bitboard downspanBB = closeBB & forward_ranks_bb(Them, r2);
+        Bitboard combo =  (theirPawns & upspanBB)
+                        | (ourPawns   & downspanBB);
+
+        // move combo BB to SOUTH_WEST corner of the board (flip horizontally
+        // for black)
+        auto cs = cropshift<Us>(combo, r, f);
+
+        // concatenate bits for 10 pawns, relative rank and information about
+        // pawn excluded in cropping to form LUT index
+        bool moreOfThem = (relative_rank(Us, r) <= RANK_4) && (combo & forward_ranks_bb(Us, Rank(r+2)));
+        bool moreOfUs = combo & (forward_ranks_bb(Them, r3) | (s+Down));
+        PawnDex::index_t i = PawnDex::index<Us>(cs, r, moreOfUs, moreOfThem);
+
+        // challenge pawn LUT
+        score += PawnLUT[i];
     }
 
 
