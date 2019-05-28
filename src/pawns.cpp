@@ -123,10 +123,10 @@ namespace {
                     e->passedPawns[Us] |= s;
         }
 
-        // Edge Majority
-        if (((theirPawns & pawn_attack_span(Us, s)) == stoppers) &&
-             (popcount(stoppers) == 1) && (phalanx | support) && (r >= RANK_4))
-           score += make_score ( 6, 6);
+        // passer look-ahead
+        if ((r >= RANK_4) && ((theirPawns & pawn_attack_span(Us, s)) == stoppers) &&
+            (popcount(stoppers) == 1) && (more_than_one(ourPawns & pawn_attack_span(Them, s+Up))))
+            e->passedPawns[Us] |= s;
 
         // Score this pawn
         if (support | phalanx)
