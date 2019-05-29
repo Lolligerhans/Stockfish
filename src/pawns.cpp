@@ -67,9 +67,8 @@ namespace {
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
 
-    Bitboard neighbours, stoppers, doubled, support, phalanx;
-//    Bitboard lever;
-    Bitboard leverPush;
+    Bitboard b, neighbours, stoppers, doubled, support, phalanx;
+    Bitboard lever, leverPush;
     Square s;
     bool opposed, backward;
     Score score = SCORE_ZERO;
@@ -95,7 +94,7 @@ namespace {
         // Flag the pawn
         opposed    = theirPawns & forward_file_bb(Us, s);
         stoppers   = theirPawns & passed_pawn_span(Us, s);
-//        lever      = theirPawns & PawnAttacks[Us][s];
+        lever      = theirPawns & PawnAttacks[Us][s];
         leverPush  = theirPawns & PawnAttacks[Us][s + Up];
         doubled    = ourPawns   & (s - Up);
         neighbours = ourPawns   & adjacent_files_bb(f);
@@ -112,11 +111,25 @@ namespace {
         // which could become passed after one or two pawn pushes when are
         // not attacked more times than defended.
         Bitboard const backup = (ourPawns & passed_pawn_span(Them, s+Up)) ^ s;
-        bool const  hasPushup =  ourPawns & pawn_attack_span(Them, s+Up);
+        bool const hasPushup  =  ourPawns & pawn_attack_span(Them, s+Up);
+        bool const hasForeman =  ourPawns & passed_pawn_span(Us, s+Up);
         uint_fast8_t const backupCnt  = popcount(backup);
         uint_fast8_t const stopperCnt = popcount(stoppers);
-        if ( hasPushup and (backupCnt+(r >= RANK_5) > stopperCnt+opposed))
+        if ( !hasForeman && hasPushup && (backupCnt+(r >= RANK_5) > stopperCnt+opposed))
+            e->passedPawns<:Us:> |= s; // we wont talk about that one
+
+        if (   !(stoppers ^ lever ^ leverPush)
+            && (support || !more_than_one(lever))
+            && popcount(phalanx) >= popcount(leverPush))
             e->passedPawns[Us] |= s;
+
+        else if (stoppers == square_bb(s + Up) && r >= RANK_5)
+        {
+            b = shift<Up>(support) & ~theirPawns;
+            while (b)
+                if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)]))
+                    e->passedPawns[Us] |= s;
+        }
 
         // Score this pawn
         if (support | phalanx)
