@@ -67,7 +67,7 @@ namespace {
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
 
-    Bitboard b, neighbours, stoppers, doubled, support, phalanx;
+    Bitboard neighbours, stoppers, doubled, support, phalanx;
 //    Bitboard lever;
     Bitboard leverPush;
     Square s;
@@ -111,21 +111,12 @@ namespace {
         // full attack info to evaluate them. Include also not passed pawns
         // which could become passed after one or two pawn pushes when are
         // not attacked more times than defended.
-        Bitboard backup = (ourPawns & passed_pawn_span(Them, s+Up)) ^ s;
-        bool  hasPushup = ourPawns & pawn_attack_span(Them, s+Up);
-        if ((not opposed or hasPushup) and
-            (popcount(backup) >= popcount(stoppers)))
-        {
+        Bitboard const backup = (ourPawns & passed_pawn_span(Them, s+Up)) ^ s;
+        bool const  hasPushup =  ourPawns & pawn_attack_span(Them, s+Up);
+        uint_fast8_t const backupCnt  = popcount(backup);
+        uint_fast8_t const stopperCnt = popcount(stoppers);
+        if ( hasPushup and (backupCnt+(r >= RANK_5) > stopperCnt+opposed))
             e->passedPawns[Us] |= s;
-        }
-
-        else if (stoppers == square_bb(s + Up) && r >= RANK_5)
-        {
-            b = shift<Up>(support) & ~theirPawns;
-            while (b)
-                if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)]))
-                    e->passedPawns[Us] |= s;
-        }
 
         // Score this pawn
         if (support | phalanx)
