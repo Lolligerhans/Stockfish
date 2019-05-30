@@ -306,10 +306,12 @@ namespace {
         {
             // Bonus if piece is on an outpost square or can reach one
             bb = OutpostRanks & ~pe->pawn_attacks_span(Them);
-            Bitboard SquareColor = DarkSquares & s ? DarkSquares : ~DarkSquares;
+            Bitboard const SquareColor = DarkSquares & s ? DarkSquares : ~DarkSquares;
+            signed const reduction = bool(pos.pieces(Them, KNIGHT)) + bool((pos.pieces(Them, BISHOP) & SquareColor));
+
             if (bb & s)
-                score += Outpost * (Pt == KNIGHT ? 4 : 2 + !(pos.pieces(Them, KNIGHT) | (pos.pieces(Them, BISHOP) & SquareColor)))
-                                 * ((attackedBy[Us][PAWN] & s) ? 2 : 1);
+                score += Outpost * ((Pt == KNIGHT ? 5 : 3 ) - reduction)
+                        * ((attackedBy[Us][PAWN] & s) ? 2 : 1);
 
             else if (bb &= b & ~pos.pieces(Us))
                 score += Outpost * (Pt == KNIGHT ? 2 : 1)
