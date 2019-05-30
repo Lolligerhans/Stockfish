@@ -455,5 +455,3 @@ constexpr bool is_ok(Move m) {
 }
 
 #endif // #ifndef TYPES_H_INCLUDED
-
-#include "tune.h" // Global visibility to tuning setup
