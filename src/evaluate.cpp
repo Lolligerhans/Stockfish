@@ -134,7 +134,8 @@ namespace {
 
   // Assorted bonuses and penalties
   constexpr Score BishopPawns        = S(  3,  7);
-  constexpr Score BlowmobPenalty     = S( 10, 20);
+  Score BlowmobPenalty     = S( 20, 20);
+  TUNE(BlowmobPenalty);
   constexpr Score CorneredBishop     = S( 50, 50);
   constexpr Score FlankAttacks       = S(  8,  0);
   constexpr Score Hanging            = S( 69, 36);
@@ -262,25 +263,20 @@ namespace {
         blowmobFactor = 0;
     }
 
-    Bitboard qBlock2 = attackedBy2p [Them]       & ~attackedBy  [Us][PAWN];
-    // NOTE qBlock1 also contains all qBlock2 pawns! This is resolved below.
-    Bitboard qBlock1 = (attackedBy2p[Them]       & ~attackedBy2p[Us])
+    Bitboard const qBlock2 = attackedBy2p [Them]       & ~attackedBy  [Us][PAWN];
+    Bitboard const qBlock1 = (attackedBy2p[Them]       & ~attackedBy2p[Us])
                      | (attackedBy  [Them][PAWN] & ~attackedBy  [Us][PAWN]);
 
     Bitboard b = pos.pieces(Us, PAWN);
     blocked[Us] = b & shift<Down>(pos.pieces());
 
     // TODO add qBlock2 to blocked[]?
-    Bitboard stronglyBlocked = b & shift<Down>(qBlock2);
+    Bitboard const stronglyBlocked = b & shift<Down>(qBlock2);
     // consider our pawns quasi-blocked by degree 1 in blowmob softblocks
-    Bitboard weaklyBlocked   = b & shift<Down>(qBlock1);
-    Bitboard def = attackedBy[Them][PAWN];
-    stronglyBlocked |= def & pos.pieces(Them, PAWN);
-    // also contains connected pawns! This is resolved below.
-    weaklyBlocked |= def;
+    Bitboard const weaklyBlocked   = b & shift<Down>(qBlock1);
 
-    blowmobHardBlock[Us] = blocked[Us] | stronglyBlocked | weaklyBlocked;
-    blowmobSoftBlock[Us] = (qBlock2 | qBlock1) & ~blowmobHardBlock[Us];
+    blowmobHardBlock[Us] = blocked[Us] | stronglyBlocked;
+    blowmobSoftBlock[Us] = weaklyBlocked &~ blowmobHardBlock[Us];
 
     // Find our pawns that are blocked or on the first two ranks
     b &= blocked[Us] | LowRanks;
@@ -423,14 +419,12 @@ namespace {
 
         if (Pt == KNIGHT || Pt == BISHOP)
         {
-            Bitboard barea = forward_ranks_bb(Us, s);
-            Bitboard blowmobMoves = barea & PseudoAttacks[Pt][s];
-            Bitboard bh = blowmobMoves & blowmobHardBlock[Us];
-//          Bitboard bs = blowmobMoves &
-//              (blowmobSoftBlock[Us] | (Pt == KNIGHT ? pos.pieces(Us, KNIGHT, BISHOP) : 0));
-            Bitboard bs = blowmobMoves & blowmobSoftBlock[Us];
+            Bitboard const barea = forward_ranks_bb(Us, s);
+            Bitboard const blowmobMoves = barea & PseudoAttacks[Pt][s];
+            Bitboard const bh = blowmobMoves & blowmobHardBlock[Us];
+            Bitboard const bs = blowmobMoves & blowmobSoftBlock[Us];
 
-            int factor = popcount(bs) + 2 * popcount(bh);
+            int const factor = popcount(bs) + 2 * popcount(bh);
             Us == WHITE ? blowmobFactor += factor
                         : blowmobFactor -= factor;
         }
