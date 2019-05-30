@@ -183,7 +183,6 @@ namespace {
     Bitboard mobilityArea[COLOR_NB];
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
     Bitboard blocked[COLOR_NB];
-    Bitboard kingFlank[COLOR_NB];
     Bitboard blowmobHardBlock[COLOR_NB];
     Bitboard blowmobSoftBlock[COLOR_NB];
     int blowmobFactor;
@@ -237,12 +236,9 @@ namespace {
     constexpr Bitboard LowRanks = (Us == WHITE ? Rank2BB | Rank3BB: Rank7BB | Rank6BB);
 
     const Square ksq = pos.square<KING>(Us);
-    kingFlank[Us] = KingFlank[file_of(ksq)];
 
     if (Us == WHITE)
     {
-        kingFlank[Them] = KingFlank[file_of(pos.square<KING>(Them))];
-
         const Square ksqB = pos.square<KING>(BLACK);
 
         attackedBy[WHITE][KING] = pos.attacks_from<KING>(ksq);
