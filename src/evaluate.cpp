@@ -641,8 +641,19 @@ namespace {
             if (r != RANK_7)
                 bonus -= make_score(0, king_proximity(Us, blockSq + Up) * w);
 
+            bool noBlock;
+            bb = PawnAttacks[Us][s] & pos.pieces(Them);
+            if (bb)
+            {
+                s = lsb(bb); // pick any of the 2, dont care which one
+                blockSq = (r < RANK_7 ? s + Up : s);
+                noBlock = true;
+            }
+            else
+                noBlock = pos.empty(blockSq);
+
             // If the pawn is free to advance, then increase the bonus
-            if (pos.empty(blockSq))
+            if (noBlock)
             {
                 // If there is a rook or queen attacking/defending the pawn from behind,
                 // consider all the squaresToQueen. Otherwise consider only the squares
