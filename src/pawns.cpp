@@ -182,7 +182,7 @@ Entry& Entry::compute_fixed(const Position& pos) &
     Bitboard newSpan = this->pawnAttacksSpan[Them]; // global variable to build new, reduced span each iteration
     Bitboard shutSquares = 0ul; // global variable collecting shut squares
 
-    Bitboard touchable = ourPawns; // global variable to track all pawns which might become untouchable in the next iteration
+    Bitboard touchable = ourPawns | pawn_double_attacks_bb<Us>(ourPawns); // global variable to track all pawns which might become untouchable in the next iteration
 
     do
     {
