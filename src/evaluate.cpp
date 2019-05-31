@@ -594,6 +594,9 @@ namespace {
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
     }
 
+    const Bitboard noPawns = pos.pieces(Us) ^ pos.pieces(Us, PAWN);
+    score += make_score(5,10) * popcount(noPawns);
+
     if (T)
         Trace::add(THREAT, Us, score);
 
