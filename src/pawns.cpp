@@ -165,9 +165,85 @@ Entry* probe(const Position& pos) {
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
 
+  e->compute_fixed<WHITE>(pos);
+  e->compute_fixed<BLACK>(pos);
+
   return e;
 }
 
+template<Color Us>
+Entry& Entry::compute_fixed(const Position& pos) &
+{
+    constexpr Color Them = ~Us;
+    const Bitboard ourPawns = pos.pieces(Us, PAWN);
+    const Bitboard theirPawns = pos.pieces(Them, PAWN);
+
+    Bitboard lastSpan = ~0ul; // span from last iteration
+    Bitboard newSpan = this->pawnAttacksSpan[Them]; // global variable to build new, reduced span each iteration
+    Bitboard shutSquares = 0ul; // global variable collecting shut squares
+
+    Bitboard touchable = ourPawns; // global variable to track all pawns which might become untouchable in the next iteration
+
+    do
+    {
+        // find NEW untouchable pawns (from last iteration)
+        // TODO maybe add squares outside of theri pawnattack span but attacked by our pawn
+        Bitboard untouchable = touchable & (lastSpan ^ newSpan);   // TODO maybe add our douly attacked squares here to our pawns
+
+        // remove untouchables from touchable bb
+        touchable ^= untouchable;
+
+        // save their last pawn attack span
+        lastSpan = newSpan;
+        newSpan = 0ul;
+
+        // handle newly found ("freigelegte") untouchable pawns
+        if( untouchable ) while( untouchable )
+        {
+            const Square u = pop_lsb(&untouchable);
+
+            // untouchables shut down any squares in front of them
+            const Bitboard uSpan = pawn_attack_span(Them, u);
+            const Bitboard shutting = forward_file_bb(Us, u);
+            shutSquares |= shutting;
+
+            // compute atk span for their shut down pawns
+            Bitboard shutDown = shutting & theirPawns;
+            if (shutDown) while (shutDown)
+            {
+                const Square s = pop_lsb(&shutDown);
+
+                // atk span is stopped once reaching our untouchable pawn
+                // TODO if a pawn is shut down by multiple of our pawns, we
+                // should pick the formost of our pawns to cu the atk span
+                newSpan |= pawn_attack_span(Them, s) ^ uSpan;
+            }
+        }
+        else
+        {
+            // no new untouchables found -> no new pawns shut down -> span
+            // stays the same
+            break;
+        }
+
+        // all non-shut down pawns count fully
+        // TODO other possibilitie: count until first of our pawns stopping it
+        // TODO computational tweak: have complete list/array of their pawns
+        // flagged fluent/not fluent and the respective atk span. then compute
+        // total span as OR of the flagged spans
+        Bitboard fluentPawns = theirPawns & ~shutSquares;
+        if (fluentPawns) while (fluentPawns)
+        {
+            const Square f = pop_lsb(&fluentPawns);
+            newSpan |= pawn_attack_span(Them, f);
+        }
+
+    } while (newSpan != lastSpan);
+
+    this->fluentSpan[Them] = lastSpan;
+
+    return *this;
+}
 
 /// Entry::evaluate_shelter() calculates the shelter bonus and the storm
 /// penalty for a king, looking at the king file and the two closest files.

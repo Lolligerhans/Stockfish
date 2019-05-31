@@ -52,16 +52,19 @@ struct Entry {
   template<Color Us>
   void evaluate_shelter(const Position& pos, Square ksq, Score& shelter);
 
+  template<Color Us>
+  Entry& compute_fixed(const Position& pos) &;
+
   Key key;
   Score scores[COLOR_NB];
   Bitboard passedPawns[COLOR_NB];
   Bitboard pawnAttacks[COLOR_NB];
   Bitboard pawnAttacksSpan[COLOR_NB];
+  Bitboard fluentSpan[COLOR_NB]; // pawn attack span of all fluent pawns
   Square kingSquares[COLOR_NB];
   Score kingSafety[COLOR_NB];
   int weakUnopposed[COLOR_NB];
   int castlingRights[COLOR_NB];
-  int pawnsOnSquares[COLOR_NB][COLOR_NB]; // [color][light/dark squares]
 };
 
 typedef HashTable<Entry, 16384> Table;
