@@ -754,8 +754,8 @@ namespace {
                     +  9 * outflanking
                     + 18 * pawnsOnBothFlanks
                     + 49 * !pos.non_pawn_material()
-                    + (b * bitlog(kingDanger[WHITE]) + w * bitlog(kingDanger[BLACK]))
-                    -127 ; // 103 -24
+                    + 5 * (b * bitlog(kingDanger[WHITE]) + w * bitlog(kingDanger[BLACK]))
+                    -134 ; // -103 -31 [Total 58122494 Mean 31.1448 o 21.0976] (max is ~60)
 
     // Now apply the bonus: note that we find the attacking side by extracting
     // the sign of the endgame value, and that we carefully cap the bonus so
