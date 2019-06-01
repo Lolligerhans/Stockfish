@@ -395,7 +395,7 @@ namespace {
 
     Bitboard weak, b1, b2, safe, unsafeChecks = 0;
     Bitboard rookChecks, queenChecks, bishopChecks, knightChecks;
-    kingDanger[Us] = 0;
+    kingDanger[Us] = -7;
     const Square ksq = pos.square<KING>(Us);
 
     // Init the score with king shelter and enemy pawns storm
@@ -473,7 +473,7 @@ namespace {
                  -   6 * mg_value(score) / 8
                  +       mg_value(mobility[Them] - mobility[Us])
                  +   5 * kingFlankAttacks * kingFlankAttacks / 16
-                 -   7;
+                 ;
 
     // Transform the kingDanger units into a Score, and subtract it from the evaluation
     if (kingDanger[Us] > 100)
@@ -755,9 +755,7 @@ namespace {
                     + 18 * pawnsOnBothFlanks
                     + 49 * !pos.non_pawn_material()
                     + (b * bitlog(kingDanger[WHITE]) + w * bitlog(kingDanger[BLACK]))
-                    -103 ;
-
-    dbg_mean_of(b * bitlog(kingDanger[WHITE]) + w * bitlog(kingDanger[BLACK]));
+                    -127 ; // 103 -24
 
     // Now apply the bonus: note that we find the attacking side by extracting
     // the sign of the endgame value, and that we carefully cap the bonus so
