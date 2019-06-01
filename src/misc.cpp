@@ -41,6 +41,7 @@ typedef bool(*fun3_t)(HANDLE, CONST GROUP_AFFINITY*, PGROUP_AFFINITY);
 }
 #endif
 
+#include <cmath>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -146,10 +147,16 @@ const string engine_info(bool to_uci) {
 
 /// Debug functions used mainly to collect run-time statistics
 static int64_t hits[2], means[2];
+static double dmeans;
 
-void dbg_hit_on(bool b) { ++hits[0]; if (b) ++hits[1]; }
-void dbg_hit_on(bool c, bool b) { if (c) dbg_hit_on(b); }
-void dbg_mean_of(int v) { ++means[0]; means[1] += v; }
+void dbg_hit_on(bool b, bool c=true) { if(c) ++hits[0], b ? ++hits[1] : 0; }
+void dbg_mean_of(int v) {
+  double d;
+  if (means[0]) d = v - double(means[1])/means[0];
+  else          d = v;
+  ++means[0]; means[1] += v;
+  dmeans += d * (v - double(means[1])/means[0]);
+}
 
 void dbg_print() {
 
@@ -157,9 +164,11 @@ void dbg_print() {
       cerr << "Total " << hits[0] << " Hits " << hits[1]
            << " hit rate (%) " << 100 * hits[1] / hits[0] << endl;
 
+  assert(dmeans/means[0] > 0 && "sqrt for positive only");
   if (means[0])
-      cerr << "Total " << means[0] << " Mean "
-           << (double)means[1] / means[0] << endl;
+      cerr << "Total " << means[0]
+           << " Mean " << (double)means[1] / means[0]
+           << " o " << sqrt(dmeans/means[0]) << endl;
 }
 
 
