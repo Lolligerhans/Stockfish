@@ -594,8 +594,12 @@ namespace {
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
     }
 
+    // bonus for safe pieces
     const Bitboard noPawns = pos.pieces(Us) ^ pos.pieces(Us, PAWN);
-    score += make_score(5,10) * popcount(noPawns);
+    const int safePieces = popcount(noPawns);
+    score += make_score(5,10) * safePieces;
+
+    dbg_mean_of(safePieces);
 
     if (T)
         Trace::add(THREAT, Us, score);
