@@ -149,7 +149,7 @@ const string engine_info(bool to_uci) {
 static int64_t hits[2], means[2];
 static double dmeans;
 
-void dbg_hit_on(bool b, bool c=true) { if(c) ++hits[0], b ? ++hits[1] : 0; }
+void dbg_hit_on(bool b, bool c=true) { hits[0] += c; hits[1] += b * c; }
 void dbg_mean_of(int v) {
   double d;
   if (means[0]) d = v - double(means[1])/means[0];
