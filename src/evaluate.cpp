@@ -746,7 +746,7 @@ namespace {
     const bool w = eg > 0;
     const bool b = eg < 0;
 
-    auto bitlog = [](unsigned long x){ return msb(std::max(1ul,x)); };
+    auto bitlog = [](long long x){ return msb(std::max(1ll,x)); };
 
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
