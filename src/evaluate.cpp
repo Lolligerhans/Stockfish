@@ -755,7 +755,7 @@ namespace {
                     + 18 * pawnsOnBothFlanks
                     + 49 * !pos.non_pawn_material()
                     + (b * bitlog(kingDanger[WHITE]) + w * bitlog(kingDanger[BLACK]))
-                    -110 ;
+                    -103 ;
 
     dbg_mean_of(b * bitlog(kingDanger[WHITE]) + w * bitlog(kingDanger[BLACK]));
 
