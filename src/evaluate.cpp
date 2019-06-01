@@ -746,14 +746,18 @@ namespace {
     const bool w = eg > 0;
     const bool b = eg < 0;
 
+    auto bitlog = [](unsigned long x){ return msb(std::max(1ul,x)); };
+
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
                     + 11 * pos.count<PAWN>()
                     +  9 * outflanking
                     + 18 * pawnsOnBothFlanks
                     + 49 * !pos.non_pawn_material()
-                    + (b * kingDanger[WHITE] + w * kingDanger[BLACK]) / 32
+                    + (b * bitlog(kingDanger[WHITE]) + w * bitlog(kingDanger[BLACK]))
                     -110 ;
+
+    dbg_mean_of(b * bitlog(kingDanger[WHITE]) + w * bitlog(kingDanger[BLACK]));
 
     // Now apply the bonus: note that we find the attacking side by extracting
     // the sign of the endgame value, and that we carefully cap the bonus so
