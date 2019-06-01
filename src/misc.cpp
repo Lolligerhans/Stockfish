@@ -159,13 +159,16 @@ void dbg_mean_of(int v) {
 
 void dbg_print() {
 
+  assert(dmeans > 0 && "sqrt positive only");
+
   if (hits[0])
       cerr << "Total " << hits[0] << " Hits " << hits[1]
            << " hit rate (%) " << 100 * hits[1] / hits[0] << endl;
 
   if (means[0])
-      cerr << "Total " << means[0] << " Mean "
-           << (double)means[1] / means[0] << endl;
+      cerr << "Total " << means[0]
+           << " Mean " << (double)means[1] / means[0]
+           << " o " << sqrt(dmeans/means[0]) << endl;
 }
 
 
