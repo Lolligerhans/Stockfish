@@ -746,13 +746,16 @@ namespace {
     const bool w = eg > 0;
     const bool b = eg < 0;
 
+    // positive = white is in greater danger
+    const signed dangerDiff = kingDanger[WHITE] - kingDanger[BLACK];
+
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
                     + 11 * pos.count<PAWN>()
                     +  9 * outflanking
                     + 18 * pawnsOnBothFlanks
                     + 49 * !pos.non_pawn_material()
-                    + (b * kingDanger[WHITE] + w * kingDanger[BLACK]) / 64
+                    + ((b-w) * dangerDiff) / 32
                     -103 ;
 
     // Now apply the bonus: note that we find the attacking side by extracting
