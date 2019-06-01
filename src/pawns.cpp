@@ -67,6 +67,8 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
+    constexpr Bitboard OutpostRanksThem = (Us == WHITE ? Rank5BB | Rank4BB | Rank3BB
+                                                       : Rank4BB | Rank5BB | Rank6BB);
 
     Bitboard b, neighbours, stoppers, doubled, support, phalanx;
     Bitboard lever, leverPush;
@@ -77,11 +79,12 @@ namespace {
 
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
-    Bitboard const pa = pawn_attacks_bb<Us>(ourPawns);
+    const Bitboard pa = pawn_attacks_bb<Us>(ourPawns);
+    const Bitboard noPawnAttacksSpan = ~(pa | shift<Up>(pa) | shift<Up+Up>(pa));
 
     e->kingSquares[Us]   = SQ_NONE;
     e->pawnAttacks[Us]   = pa;
-    e->noPawnAttacksSpan[Us] = ~(pa | shift<Up>(pa) | shift<Up+Up>(pa));
+    e->outpostSquares[Them] = OutpostRanksThem & noPawnAttacksSpan;
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
