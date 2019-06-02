@@ -192,6 +192,8 @@ Entry& Entry::compute_fixed(const Position& pos) &
         Bitboard untouchable = touchable & (lastSpan ^ newSpan);
         untouchable |= pawn_attacks_bb<Us>(untouchable);
 
+        const Bitboard totalUntouch = ourPawns & ~newSpan; // to cut opponents span with all of our untouchers
+
         // remove untouchables from touchable bb
         touchable ^= untouchable;
 
@@ -205,7 +207,7 @@ Entry& Entry::compute_fixed(const Position& pos) &
             const Square u = pop_lsb(&untouchable);
 
             // untouchables shut down any squares in front of them
-            const Bitboard uSpan = pawn_attack_span(Them, u);
+//            const Bitboard uSpan = pawn_attack_span(Them, u);
             const Bitboard shutting = forward_file_bb(Us, u);
             shutSquares |= shutting;
 
@@ -218,7 +220,7 @@ Entry& Entry::compute_fixed(const Position& pos) &
                 // atk span is stopped once reaching our untouchable pawn
                 // TODO if a pawn is shut down by multiple of our pawns, we
                 // should pick the formost of our pawns to cu the atk span
-                newSpan |= pawn_attack_span(Them, s) ^ uSpan;
+                newSpan |= pawn_attack_span(Them, s) ^ pawn_attack_span(Them, frontmost_sq(Us, forward_file_bb(Them, s) & totalUntouch));
             }
         }
         else
