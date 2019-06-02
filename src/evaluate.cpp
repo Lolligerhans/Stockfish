@@ -305,7 +305,7 @@ namespace {
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
-            bb = OutpostRanks & ~pe->pawn_attacks_span(Them);
+            bb = OutpostRanks & ~pe->fluent_attacks_span(Them);
             if (bb & s)
                 score += Outpost * (Pt == KNIGHT ? 4 : 2)
                                  * ((attackedBy[Us][PAWN] & s) ? 2 : 1);
@@ -598,7 +598,7 @@ namespace {
     const Bitboard noPawns = pos.pieces(Us) ^ pos.pieces(Us, PAWN);
     const int safePieces = popcount(noPawns & ~pe->fluent_attacks_span(Them));
     score += Outpost * safePieces;
-    score += make_score(2,1) * popcount(~pe->fluent_attacks_span(Them)); // TODO count our ark span instead? // TODO count our ark span instead?
+    score += make_score(2,1) * popcount(pe->fluent_attacks_span(Us)); // TODO count our ark span instead? // TODO count our ark span instead?
 
     if (T)
         Trace::add(THREAT, Us, score);
