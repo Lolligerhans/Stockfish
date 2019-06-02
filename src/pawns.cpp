@@ -171,6 +171,8 @@ Entry* probe(const Position& pos) {
   return e;
 }
 
+// about 95% hit rate has entry-probing when bench testing
+// --> more expensive computation is not as bad in entry computation
 template<Color Us>
 Entry& Entry::compute_fixed(const Position& pos) &
 {
@@ -182,15 +184,15 @@ Entry& Entry::compute_fixed(const Position& pos) &
     Bitboard newSpan = this->pawnAttacksSpan[Them]; // global variable to build new, reduced span each iteration
     Bitboard shutSquares = 0; // global variable collecting shut squares
 
-    // TODO try adding our doulbe attacks here no matter the touchable state
-    Bitboard touchable = ourPawns; // global variable to track all pawns which might become untouchable in the next iteration
+    Bitboard touchable = ourPawns | pawn_attacks_bb<Us>(ourPawns); // global variable to track all pawns which might become untouchable in the next iteration
 
     do
     {
         // find NEW untouchable pawns (from last iteration)
         // TODO maybe add squares outside of theri pawnattack span but attacked by our pawn
         Bitboard untouchable = touchable & (lastSpan ^ newSpan);
-        untouchable |= pawn_attacks_bb<Us>(untouchable);
+        // our untouchable squares spawn new squares IFF they are not already the result of such spawning
+//        untouchable |= pawn_attacks_bb<Us>(untouchable & ourPawns); // i think this is inherent in the touchable logic
 
         const Bitboard totalUntouch = ourPawns & ~newSpan; // to cut opponents span with all of our untouchers
 
@@ -220,7 +222,9 @@ Entry& Entry::compute_fixed(const Position& pos) &
                 // atk span is stopped once reaching our untouchable pawn
                 // TODO if a pawn is shut down by multiple of our pawns, we
                 // should pick the formost of our pawns to cu the atk span
-                newSpan |= pawn_attack_span(Them, s) ^ pawn_attack_span(Them, frontmost_sq(Us, forward_file_bb(Them, s) & totalUntouch));
+                newSpan |= pawn_attack_span(Them, s) ^
+                    pawn_attack_span(Them,frontmost_sq(Us,  forward_file_bb(Them, s)
+                                                          & totalUntouch));
             }
         }
         else
