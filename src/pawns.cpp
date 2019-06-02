@@ -178,9 +178,9 @@ Entry& Entry::compute_fixed(const Position& pos) &
     const Bitboard ourPawns = pos.pieces(Us, PAWN);
     const Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-    Bitboard lastSpan = ~0ul; // span from last iteration
+    Bitboard lastSpan = AllSquares; // span from last iteration
     Bitboard newSpan = this->pawnAttacksSpan[Them]; // global variable to build new, reduced span each iteration
-    Bitboard shutSquares = 0ul; // global variable collecting shut squares
+    Bitboard shutSquares = 0; // global variable collecting shut squares
 
     Bitboard touchable = ourPawns | pawn_double_attacks_bb<Us>(ourPawns); // global variable to track all pawns which might become untouchable in the next iteration
 
@@ -195,7 +195,7 @@ Entry& Entry::compute_fixed(const Position& pos) &
 
         // save their last pawn attack span
         lastSpan = newSpan;
-        newSpan = 0ul;
+        newSpan = 0;
 
         // handle newly found ("freigelegte") untouchable pawns
         if( untouchable ) while( untouchable )
