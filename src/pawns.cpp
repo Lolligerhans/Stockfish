@@ -182,13 +182,15 @@ Entry& Entry::compute_fixed(const Position& pos) &
     Bitboard newSpan = this->pawnAttacksSpan[Them]; // global variable to build new, reduced span each iteration
     Bitboard shutSquares = 0ul; // global variable collecting shut squares
 
-    Bitboard touchable = ourPawns | pawn_attacks_bb<Us>(ourPawns); // global variable to track all pawns which might become untouchable in the next iteration
+    // TODO try adding our doulbe attacks here no matter the touchable state
+    Bitboard touchable = ourPawns; // global variable to track all pawns which might become untouchable in the next iteration
 
     do
     {
         // find NEW untouchable pawns (from last iteration)
         // TODO maybe add squares outside of theri pawnattack span but attacked by our pawn
-        Bitboard untouchable = touchable & (lastSpan ^ newSpan);   // TODO maybe add our douly attacked squares here to our pawns
+        Bitboard untouchable = touchable & (lastSpan ^ newSpan);
+        untouchable |= pawn_attacks_bb<Us>(untouchable);
 
         // remove untouchables from touchable bb
         touchable ^= untouchable;
