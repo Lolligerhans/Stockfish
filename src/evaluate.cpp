@@ -594,9 +594,14 @@ namespace {
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
     }
 
+    constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
+                                                   : Rank5BB | Rank4BB | Rank3BB);
+
     // bonus for safe squares, more with piece on them
     const Bitboard noPawns = pos.pieces(Us) ^ pos.pieces(Us, PAWN);
-    const int safePieces = popcount(noPawns & ~pe->fluent_attacks_span(Them));
+    // do no double count N/B outposts
+    const int safePieces = popcount( (noPawns & ~pe->fluent_attacks_span(Them))
+                                   ^ (pos.pieces(Us, KNIGHT, BISHOP) & OutpostRanks & ~pe->pawn_attacks_span(Them)));
     score += Outpost * safePieces;
     score += make_score(2,1) * popcount(pe->fluent_attacks_span(Us));
 
