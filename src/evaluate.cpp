@@ -308,9 +308,11 @@ namespace {
             bb = OutpostRanks & ~pe->pawn_attacks_span(Them);
             if (bb & s)
                 score += Outpost * (Pt == KNIGHT ? 4 : 2)
-                                 * ((attackedBy[Us][PAWN] & s) ? 2 : 1);
+                                 * ((attackedBy[Us][PAWN] & s) ? 2 : 1)
+                                 - Outpost;
 
-            else if (bb &= b & ~pos.pieces(Us))
+            if ((bb = b & ~(pe->pawn_attacks_span(Them) | pos.pieces(Us))
+                       & forward_ranks_bb(Us, s)))
                 score += Outpost * (Pt == KNIGHT ? 2 : 1)
                                  * ((attackedBy[Us][PAWN] & bb) ? 2 : 1);
 
