@@ -595,10 +595,11 @@ namespace {
     }
 
     // bonus for safe squares, more with piece on them
+    constexpr Bitboard InPlay = (Us == WHITE ? ~(Rank1BB | Rank2BB) : ~(Rank8BB | Rank7BB));
     const Bitboard noPawns = pos.pieces(Us) ^ pos.pieces(Us, PAWN);
-    const int safePieces = popcount(noPawns & ~pe->fluent_attacks_span(Them));
+    const int safePieces = popcount(InPlay & noPawns & ~pe->fluent_attacks_span(Them));
     score += Outpost * safePieces;
-    score += make_score(2,1) * popcount(pe->fluent_attacks_span(Us));
+    score += make_score(3,0) * popcount(pe->fluent_attacks_span(Us));
 
     if (T)
         Trace::add(THREAT, Us, score);
