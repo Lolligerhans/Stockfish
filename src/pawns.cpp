@@ -254,6 +254,8 @@ Entry& Entry::compute_fixed(const Position& pos) &
 
     this->fluentSpan[Them] = lastSpan;
 
+    scores[Them] += make_score(2,1) * popcount(lastSpan);
+
     return *this;
 }
 
