@@ -594,11 +594,11 @@ namespace {
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
     }
 
-    // bonus for safe squares, more qith piece on them
+    // bonus for safe squares, more with piece on them
     const Bitboard noPawns = pos.pieces(Us) ^ pos.pieces(Us, PAWN);
     const int safePieces = popcount(noPawns & ~pe->fluent_attacks_span(Them));
     score += Outpost * safePieces;
-    score += make_score(2,1) * popcount(~pe->fluent_attacks_span(Them)); // TODO count our ark span instead? // TODO count our ark span instead?
+    score += make_score(2,1) * popcount(pe->fluent_attacks_span(Us));
 
     if (T)
         Trace::add(THREAT, Us, score);
