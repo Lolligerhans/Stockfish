@@ -184,7 +184,11 @@ Entry& Entry::compute_fixed(const Position& pos) &
     Bitboard newSpan = this->pawnAttacksSpan[Them]; // global variable to build new, reduced span each iteration
     Bitboard shutSquares = 0; // global variable collecting shut squares
 
-    Bitboard touchable = ourPawns | pawn_attacks_bb<Us>(ourPawns); // global variable to track all pawns which might become untouchable in the next iteration
+    // TODO probably better to add pawn attacks of pawns if the pawn is only
+    // challenged by 1 opponent (has no more than 1 opponent in atk span)
+    const Bitboard totalConsidered = ourPawns | pawn_attacks_bb<Us>(ourPawns);
+
+    Bitboard touchable = totalConsidered; // global variable to track all pawns which might become untouchable in the next iteration
 
     do
     {
@@ -192,9 +196,9 @@ Entry& Entry::compute_fixed(const Position& pos) &
         // TODO maybe add squares outside of theri pawnattack span but attacked by our pawn
         Bitboard untouchable = touchable & (lastSpan ^ newSpan);
         // our untouchable squares spawn new squares IFF they are not already the result of such spawning
-//        untouchable |= pawn_attacks_bb<Us>(untouchable & ourPawns); // i think this is inherent in the touchable logic
+//        untouchable |= pawn_attacks_bb<Us>(untouchable & ourPawns); // 3rd alternative for using pawn attacks
 
-        const Bitboard totalUntouch = ourPawns & ~newSpan; // to cut opponents span with all of our untouchers
+        const Bitboard totalUntouch = totalConsidered & ~newSpan; // to cut opponents span with all of our untouchers
 
         // remove untouchables from touchable bb
         touchable ^= untouchable;
