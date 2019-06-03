@@ -597,7 +597,7 @@ namespace {
     // bonus for safe squares, more with piece on them
     const Bitboard noPawns = pos.pieces(Us) ^ pos.pieces(Us, PAWN);
     const int safePieces = popcount(noPawns & ~pe->fluent_attacks_span(Them));
-    score += Outpost * safePieces;
+    score += Outpost * (safePieces-1);
 
     if (T)
         Trace::add(THREAT, Us, score);
