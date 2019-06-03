@@ -599,7 +599,7 @@ namespace {
     const Bitboard noPawns = pos.pieces(Us) ^ pos.pieces(Us, PAWN);
     const int safePieces = popcount(InPlay & noPawns & ~pe->fluent_attacks_span(Them));
     score += Outpost * safePieces;
-    score += make_score(3,0) * popcount(pe->fluent_attacks_span(Us));
+    score += make_score(2,0) * popcount(pe->fluent_attacks_span(Us));
 
     if (T)
         Trace::add(THREAT, Us, score);
