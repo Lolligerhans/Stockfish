@@ -190,7 +190,7 @@ void Entry::compute_fixed(const Position& pos) &
     Bitboard cShutDown      = 0;    // their probably blocked pawns
     Bitboard cUntouchable   = 0;    // our probably safe pawns
     */
-    Bitboard cShutDown      = 0;    // their probably blocked pawns
+    Bitboard cFluentSpan    = 0;    // their probable pawn attack span
 
     constexpr Color Them = ~Us;
     const Bitboard ourPawns = pos.pieces(Us, PAWN);
@@ -228,7 +228,6 @@ void Entry::compute_fixed(const Position& pos) &
             /*
             cShutDown |= shutDown;
             */
-            cShutDown |= shutDown;
             if (shutDown) while (shutDown)
             {
                 const Square s = pop_lsb(&shutDown);
@@ -248,9 +247,10 @@ void Entry::compute_fixed(const Position& pos) &
 
     } while (newSpan != lastSpan);
 
-//    cFluentSpan = lastSpan;
+    cFluentSpan = lastSpan;
 
-    this->fix[Them] = cShutDown;
+    // squares which will probably not be attacked by out pawns anymore = fix
+    this->fix[Them] = ~cFluentSpan;
 }
 
 /// Entry::evaluate_shelter() calculates the shelter bonus and the storm
