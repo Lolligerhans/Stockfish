@@ -383,7 +383,7 @@ namespace {
     // general outpost bonus
     const Bitboard noPawns = pos.pieces(Us) ^ pos.pieces(Us, PAWN);
     const int safePieces = popcount(noPawns & pe->get_fix<Them>());
-    score += Outpost * (safePieces-1);
+    score += make_score(5,2) * (safePieces-1);
 
     if (T)
         Trace::add(Pt, Us, score);
