@@ -228,7 +228,7 @@ namespace {
     Bitboard dblAttackByPawn = pawn_double_attacks_bb<Us>(pos.pieces(Us, PAWN));
 
     // Find our pawns that are blocked or on the first two ranks
-    const Bitboard restrictors = pe->get_fix<Us>() & (pos.pieces(Them) |
+    const Bitboard restrictors = (pe->get_fix<Us>()) & (pos.pieces(Them) |
             pawn_double_attacks_bb<Them>(pos.pieces(Them, PAWN)));
     Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(restrictors | pos.pieces(Us)) | LowRanks);
 
