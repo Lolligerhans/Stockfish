@@ -270,6 +270,14 @@ namespace {
     constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
+    constexpr Bitboard HiRanks = (Us == WHITE ? Rank7BB | Rank8BB
+                                              : Rank1BB | Rank2BB);
+    constexpr Bitboard LoRanks = (Us == WHITE ? Rank3BB
+                                              : Rank6BB);
+    const Bitboard KF = KingFlank[file_of(pos.square<KING>(Them))];
+    const Bitboard OutpostSquares = (Pt == KNIGHT ? OutpostRanks | (HiRanks & KF)
+                                                  : OutpostRanks | (LoRanks & ~KF));
+
     const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
@@ -305,9 +313,9 @@ namespace {
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
-            bb = OutpostRanks & ~pe->pawn_attacks_span(Them);
+            bb = OutpostSquares & ~pe->pawn_attacks_span(Them);
             if (bb & s)
-                score += Outpost * (Pt == KNIGHT ? (distance<File>(s,pos.square<KING>(Them)) < 4 ? 4 : 3) : 2)
+                score += Outpost * (Pt == KNIGHT ? 4 : 2)
                                  * ((attackedBy[Us][PAWN] & s) ? 2 : 1);
 
             else if (bb &= b & ~pos.pieces(Us))
