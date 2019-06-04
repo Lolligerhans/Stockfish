@@ -191,6 +191,7 @@ void Entry::compute_fixed(const Position& pos) &
     Bitboard cShutDown      = 0;    // their probably blocked pawns
     Bitboard cUntouchable   = 0;    // our probably safe pawns
     */
+    Bitboard cShutDown      = 0;    // their probably blocked pawns
 
     constexpr Color Them = ~Us;
     const Bitboard ourPawns = pos.pieces(Us, PAWN);
@@ -228,6 +229,7 @@ void Entry::compute_fixed(const Position& pos) &
             /*
             cShutDown |= shutDown;
             */
+            cShutDown |= shutDown;
             if (shutDown) while (shutDown)
             {
                 const Square s = pop_lsb(&shutDown);
@@ -251,8 +253,7 @@ void Entry::compute_fixed(const Position& pos) &
     cFluentSpan = lastSpan;
     */
 
-    // TODO Replace.
-    this->fix[Us] = 0;
+    this->fix[Them] = cShutDown;
 }
 
 /// Entry::evaluate_shelter() calculates the shelter bonus and the storm
@@ -280,12 +281,15 @@ void Entry::evaluate_shelter(const Position& pos, Square ksq, Score& shelter) {
       Rank ourRank = b ? relative_rank(Us, backmost_sq(Us, b)) : RANK_1;
 
       b = theirPawns & file_bb(f);
-      Rank theirRank = b ? relative_rank(Us, frontmost_sq(Them, b)) : RANK_1;
+      Square s;
+      if ( b ) s = frontmost_sq(Them, b);
+      Rank theirRank = b ? relative_rank(Us, s) : RANK_1;
+      bool blocked = b ? this->get_fix<Us> () & s: false;
 
       int d = std::min(f, ~f);
       bonus[MG] += ShelterStrength[d][ourRank];
 
-      if (ourRank && (ourRank == theirRank - 1))
+      if (blocked)
           bonus[MG] -= 82 * (theirRank == RANK_3), bonus[EG] -= 82 * (theirRank == RANK_3);
       else
           bonus[MG] -= UnblockedStorm[d][theirRank];
