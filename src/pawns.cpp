@@ -187,8 +187,9 @@ Score probe(const Position& pos, Entry** ep) {
             -e->pawn_score<BLACK>();
 
   e->key = key;
-  return e->evaluate<WHITE>(pos)
-        -e->evaluate<BLACK>(pos);
+  Score s = e->evaluate<WHITE>(pos);
+  s -=      e->evaluate<BLACK>(pos);
+  return s;
 }
 
 
