@@ -201,6 +201,7 @@ void Entry::compute_fixed(const Position& pos) &
     Bitboard shutSquares = 0;
 
     const Bitboard totalConsidered = ourPawns | pawn_attacks_bb<Us> (ourPawns);
+//    const Bitboard totalConsidered = ourPawns;
 
     Bitboard touchable = totalConsidered;
 
