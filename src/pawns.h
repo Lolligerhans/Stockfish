@@ -40,6 +40,8 @@ struct Entry {
   int weak_unopposed(Color c) const { return weakUnopposed[c]; }
   int passed_count() const { return popcount(passedPawns[WHITE] | passedPawns[BLACK]); }
 
+  void lie(Position const&) &;
+
   template<Color Us>
   Score king_safety(const Position& pos) {
     return  kingSquares[Us] == pos.square<KING>(Us) && castlingRights[Us] == pos.castling_rights(Us)

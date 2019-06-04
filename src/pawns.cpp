@@ -164,10 +164,27 @@ Entry* probe(const Position& pos) {
   e->key = key;
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
+  e->lie(pos);
 
   return e;
 }
 
+void Entry::lie(Position const& pos) &
+{
+    const Bitboard pawns[] =
+    {
+        pos.pieces(WHITE, PAWN),
+        pos.pieces(BLACK, PAWN)
+    };
+
+    const Bitboard add[] =
+    {
+        pawn_attacks_bb<WHITE> (shift<NORTH>(pawns[WHITE]) & pawnAttacks[WHITE] & ~(pawns[BLACK] | pawnAttacks[BLACK])),
+        pawn_attacks_bb<BLACK> (shift<SOUTH>(pawns[BLACK]) & pawnAttacks[BLACK] & ~(pawns[WHITE] | pawnAttacks[WHITE]))
+    };
+    pawnAttacks[WHITE] |= add[WHITE];
+    pawnAttacks[BLACK] |= add[BLACK];
+}
 
 /// Entry::evaluate_shelter() calculates the shelter bonus and the storm
 /// penalty for a king, looking at the king file and the two closest files.
