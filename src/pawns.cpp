@@ -216,7 +216,7 @@ void Entry::compute_fixed(const Position& pos) &
         cUntouchable |= untouchable;
         */
 
-        const Bitboard totalUntouch = totalConsidered & ~newSpan;
+        const Bitboard totalUntouch = noQuestionsAsked | (totalConsidered & ~newSpan);
         touchable ^= untouchable;
 
         lastSpan = newSpan;
