@@ -386,13 +386,13 @@ namespace {
     }
 
     // general outpost bonus
-//    constexpr Score gop = make_score(5,0);
-//    constexpr Score gpp = make_score(0,10);
-//
-//    const Bitboard noPawns = pos.pieces(Us);
-//    const uint_fast8_t safePieces = popcount(noPawns & pe->get_fix<Them>());
-//    score += gop  * (safePieces-outpostCount);
-//    score += (gpp - gop) * popcount(pos.pieces(Us, PAWN) & pe->get_fix<Them>());
+    constexpr Score gop = make_score(5,0);      // piece bonus
+    constexpr Score gpp = make_score(0,2);     // pawn bonus
+
+    const Bitboard noPawns = pos.pieces(Us);
+    const uint_fast8_t safePieces = popcount(noPawns & pe->get_fix<Them>());
+    score += gop  * (safePieces-outpostCount);
+    score += (gpp - gop) * popcount(pos.pieces(Us, PAWN) & pe->get_fix<Them>());
 
     if (T)
         Trace::add(Pt, Us, score);
