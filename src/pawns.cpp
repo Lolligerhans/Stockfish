@@ -221,7 +221,7 @@ void Entry::compute_fixed(const Position& pos) &
         lastSpan = newSpan;
         newSpan = 0;
 
-        if( untouchable ) while( untouchable )
+        if (untouchable) while (untouchable)
         {
             const Square u = pop_lsb(&untouchable);
 
@@ -232,7 +232,7 @@ void Entry::compute_fixed(const Position& pos) &
             /*
             cShutDown |= shutDown;
             */
-            if (shutDown) while (shutDown)
+            while (shutDown)
             {
                 const Square s = pop_lsb(&shutDown);
                 newSpan |= pawn_attack_span(Them, s) ^
@@ -243,7 +243,7 @@ void Entry::compute_fixed(const Position& pos) &
         else break;
 
         Bitboard fluentPawns = theirPawns & ~shutSquares;
-        if (fluentPawns) while (fluentPawns)
+        while (fluentPawns)
         {
             const Square f = pop_lsb(&fluentPawns);
             newSpan |= pawn_attack_span(Them, f);
