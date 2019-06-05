@@ -273,6 +273,7 @@ namespace {
     const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
+    uint_fast8_t outpostCount = 0;
     Score score = SCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
@@ -378,9 +379,8 @@ namespace {
 
     // general outpost bonus
     const Bitboard noPawns = pos.pieces(Us);
-    const int safePieces = popcount(noPawns & pe->get_fix<Them>());
-    score += make_score(6,0) * (safePieces-3);
-
+    const uint_fast8_t safePieces = popcount(noPawns & pe->get_fix<Them>());
+    score += make_score(6,0) * (safePieces-outpostCount);
     if (T)
         Trace::add(Pt, Us, score);
 
