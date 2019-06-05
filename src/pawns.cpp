@@ -62,6 +62,8 @@ namespace {
   #undef S
   #undef V
 
+  thread_local Bitboard sp2[COLOR_NB];
+
   template<Color Us>
   Score evaluate(const Position& pos, Pawns::Entry* e) {
 
@@ -82,6 +84,8 @@ namespace {
     e->kingSquares[Us]   = SQ_NONE;
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
 
+    sp2[Us] = 0;
+
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
     {
@@ -89,7 +93,10 @@ namespace {
 
         Rank r = relative_rank(Us, s);
 
-        e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
+        const Bitboard span = pawn_attack_span(Us, s);
+        sp2[Us] |= e->pawnAttacksSpan[Us] & span;
+        e->pawnAttacksSpan[Us] |= span;
+
 
         // Flag the pawn
         opposed    = theirPawns & forward_file_bb(Us, s);
@@ -196,26 +203,39 @@ void Entry::compute_fixed(const Position& pos) &
     const Bitboard ourPawns = pos.pieces(Us, PAWN);
     const Bitboard theirPawns = pos.pieces(Them, PAWN);
 
+    Bitboard& span2 = sp2[Us];
+
     Bitboard lastSpan = AllSquares;
     Bitboard newSpan = this->pawnAttacksSpan[Them];
+    Bitboard new2    = span2; span2 = AllSquares;
     Bitboard shutSquares = 0;
 
-    const Bitboard totalConsidered = ourPawns | pawn_attacks_bb<Us>(ourPawns);
+//    const Bitboard totalConsidered = ourPawns | this->pawnAttacks[Us];
+    Bitboard totalConsidered = ourPawns;
 
     Bitboard touchable = totalConsidered;
 
     do
     {
+        Bitboard oneVone     = touchable & (span2 ^ new2);
+        const Bitboard atk   = pawn_attacks_bb<Us>(oneVone);
+        totalConsidered |= atk; touchable |= atk;
         Bitboard untouchable = touchable & (lastSpan ^ newSpan);
         /*
         cUntouchable |= untouchable;
         */
 
         const Bitboard totalUntouch = totalConsidered & ~newSpan;
+
+        while (totalUntouch)
+
         touchable ^= untouchable;
 
-        lastSpan = newSpan;
-        newSpan = 0;
+        lastSpan = newSpan; span2 = new2;
+        newSpan = new2 = 0;
+
+        auto update = [&](Bitboard sp)->void
+        { new2 |= newSpan & sp, newSpan |= sp; };
 
         if( untouchable ) while( untouchable )
         {
@@ -228,21 +248,23 @@ void Entry::compute_fixed(const Position& pos) &
             /*
             cShutDown |= shutDown;
             */
-            if (shutDown) while (shutDown)
+            while (shutDown)
             {
                 const Square s = pop_lsb(&shutDown);
-                newSpan |= pawn_attack_span(Them, s) ^
+                const Bitboard sp = pawn_attack_span(Them, s) ^
                     pawn_attack_span(Them,frontmost_sq(Us,  forward_file_bb(Them, s)
                                                           & totalUntouch));
+                update(sp);
             }
         }
         else break;
 
         Bitboard fluentPawns = theirPawns & ~shutSquares;
-        if (fluentPawns) while (fluentPawns)
+        while (fluentPawns)
         {
             const Square f = pop_lsb(&fluentPawns);
-            newSpan |= pawn_attack_span(Them, f);
+            const Bitboard sp = pawn_attack_span(Them, f);
+            update(sp);
         }
 
     } while (newSpan != lastSpan);
