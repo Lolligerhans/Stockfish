@@ -703,7 +703,7 @@ namespace {
         return SCORE_ZERO;
 
     int weight = pos.count<ALL_PIECES>(Us) - 1;
-    Score score = make_score(pe->space_bonus(Us) * weight * weight / 16, 0);
+    Score score = make_score(pe->space_bonus<Us>(pos) * weight * weight / 16, 0);
 
     if (T)
         Trace::add(SPACE, Us, score);

@@ -38,7 +38,7 @@ struct Entry {
   Bitboard passed_pawns(Color c) const { return passedPawns[c]; }
   Bitboard pawn_attacks_span(Color c) const { return pawnAttacksSpan[c]; }
   int weak_unopposed(Color c) const { return weakUnopposed[c]; }
-  int space_bonus(Color c) const { return spaceBonus[c]; }
+  template<Color Us> int space_bonus(const Position&);
   int passed_count() const { return popcount(passedPawns[WHITE] | passedPawns[BLACK]); }
 
   template<Color Us>
@@ -65,6 +65,32 @@ struct Entry {
   int castlingRights[COLOR_NB];
   int pawnsOnSquares[COLOR_NB][COLOR_NB]; // [color][light/dark squares]
 };
+
+template<Color Us>
+int Entry::space_bonus(const Position& pos)
+{
+    constexpr Color Them = (Us == WHITE ? BLACK : WHITE);
+
+    if (this->spaceBonus[Us] != -1)
+        return this->spaceBonus[Us];
+
+    constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
+    constexpr Bitboard SpaceMask =
+      Us == WHITE ? CenterFiles & (Rank2BB | Rank3BB | Rank4BB)
+                  : CenterFiles & (Rank7BB | Rank6BB | Rank5BB);
+
+    // Find the available squares for our pieces inside the area defined by SpaceMask
+    Bitboard safe =   SpaceMask
+                   & ~pos.pieces(Us, PAWN)
+                   & ~this->pawn_attacks(Them);
+
+    // Find all squares which are at most three squares behind some friendly pawn
+    Bitboard behind = pos.pieces(Us, PAWN);
+    behind |= shift<Down>(behind);
+    behind |= shift<Down+Down>(behind);
+
+    return this->spaceBonus[Us] = popcount(safe) + popcount(behind & safe);
+}
 
 typedef HashTable<Entry, 16384> Table;
 
