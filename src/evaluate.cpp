@@ -276,6 +276,7 @@ namespace {
     const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
+    uint_fast8_t outpostCount = 0;
     Score score = SCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
@@ -311,11 +312,13 @@ namespace {
             bb = OutpostRanks & ~pe->pawn_attacks_span(Them);
             if (bb & s)
                 score += Outpost * (Pt == KNIGHT ? 4 : 2)
-                                 * ((attackedBy[Us][PAWN] & s) ? 2 : 1);
+                                 * ((attackedBy[Us][PAWN] & s) ? 2 : 1),
+                    ++outpostCount;
 
             else if (bb &= b & ~pos.pieces(Us))
                 score += Outpost * (Pt == KNIGHT ? 2 : 1)
-                                 * ((attackedBy[Us][PAWN] & bb) ? 2 : 1);
+                                 * ((attackedBy[Us][PAWN] & bb) ? 2 : 1),
+                    ++outpostCount;
 
             // Knight and Bishop bonus for being right behind a pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
@@ -383,9 +386,8 @@ namespace {
 
     // general outpost bonus
     const Bitboard noPawns = pos.pieces(Us);
-    const int safePieces = popcount(noPawns & pe->get_fix<Them>());
-    score += make_score(6,0) * (safePieces-3);
-
+    const uint_fast8_t safePieces = popcount(noPawns & pe->get_fix<Them>());
+    score += make_score(6,0) * (safePieces-outpostCount);
     if (T)
         Trace::add(Pt, Us, score);
 
