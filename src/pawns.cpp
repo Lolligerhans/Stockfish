@@ -74,8 +74,11 @@ namespace {
     Score score = SCORE_ZERO;
     const Square* pl = pos.squares<PAWN>(Us);
 
-    Bitboard ourPawns   = pos.pieces(  Us, PAWN);
-    Bitboard theirPawns = pos.pieces(Them, PAWN);
+    const Bitboard
+        ourPawns   = pos.pieces(  Us, PAWN),
+        theirPawns = pos.pieces(Them, PAWN);
+    const Bitboard
+        doublPawns = ourPawns & (shift<Up>(ourPawns) | shift<2*Up>(ourPawns));
 
     e->passedPawns[Us] = e->pawnAttacksSpan[Us] = e->weakUnopposed[Us] = 0;
     e->kingSquares[Us]   = SQ_NONE;
@@ -96,8 +99,7 @@ namespace {
         stoppers   = theirPawns & passed_pawn_span(Us, s);
         lever      = theirPawns & PawnAttacks[Us][s];
         leverPush  = theirPawns & PawnAttacks[Us][s + Up];
-        doubled    = ourPawns   & (s - Up);
-        doubled   |= shift<-Up>(doubled);
+        doubled    = doublPawns & s;
         neighbours = ourPawns   & adjacent_files_bb(f);
         phalanx    = neighbours & rank_bb(s);
         support    = neighbours & rank_bb(s - Up);
