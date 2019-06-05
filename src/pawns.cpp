@@ -256,8 +256,6 @@ void Entry::compute_fixed(const Position& pos) &
 
     // squares which will probably not be attacked by out pawns anymore = fix
     this->fix[Them] = ~cFluentSpan;
-
-    scores[Us] += make_score(-5, 1) * popcount(ourPawns & fix[Them]);
 }
 
 /// Entry::evaluate_shelter() calculates the shelter bonus and the storm
