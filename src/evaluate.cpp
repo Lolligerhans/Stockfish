@@ -388,7 +388,7 @@ namespace {
     const Bitboard noPawns = pos.pieces(Us) ^ pos.pieces(Us, PAWN);
     const uint_fast8_t safePieces = popcount(noPawns & pe->get_fix<Them>());
     score += make_score(6,0) * (safePieces-outpostCount);
-    score += make_score(2,1) * popcount(pos.pieces(Us, PAWN) & pe->get_fix<Them>());
+    score += make_score(0,2) * popcount(pos.pieces(Us, PAWN) & pe->get_fix<Them>());
     if (T)
         Trace::add(Pt, Us, score);
 

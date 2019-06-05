@@ -201,14 +201,17 @@ void Entry::compute_fixed(const Position& pos) &
     Bitboard newSpan = this->pawnAttacksSpan[Them];
     Bitboard shutSquares = 0;
 
-    const Bitboard totalConsidered = ourPawns | pawn_attacks_bb<Us> (ourPawns);
-//    const Bitboard totalConsidered = ourPawns;
+    const Bitboard ourPawnAttacks = pawn_attacks_bb<Us> (ourPawns);
+    const Bitboard pawnDoubleAttacks = pawn_double_attacks_bb<Us> (ourPawns);
+    const Bitboard noQuestionsAsked = (pawnDoubleAttacks);
+    const Bitboard totalConsidered = ourPawns | ourPawnAttacks
+                                   | noQuestionsAsked;
 
     Bitboard touchable = totalConsidered;
 
     do
     {
-        Bitboard untouchable = touchable & (lastSpan ^ newSpan);
+        Bitboard untouchable = touchable & ((lastSpan ^ newSpan) | noQuestionsAsked);
         /*
         cUntouchable |= untouchable;
         */
