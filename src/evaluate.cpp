@@ -273,6 +273,7 @@ namespace {
     const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
+    uint_fast8_t outpostCount = 0;
     Score score = SCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
@@ -308,11 +309,13 @@ namespace {
             bb = OutpostRanks & ~pe->pawn_attacks_span(Them);
             if (bb & s)
                 score += Outpost * (Pt == KNIGHT ? 4 : 2)
-                                 * ((attackedBy[Us][PAWN] & s) ? 2 : 1);
+                                 * ((attackedBy[Us][PAWN] & s) ? 2 : 1),
+                    ++outpostCount;
 
             else if (bb &= b & ~pos.pieces(Us))
                 score += Outpost * (Pt == KNIGHT ? 2 : 1)
-                                 * ((attackedBy[Us][PAWN] & bb) ? 2 : 1);
+                                 * ((attackedBy[Us][PAWN] & bb) ? 2 : 1),
+                    ++outpostCount;
 
             // Knight and Bishop bonus for being right behind a pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
@@ -377,6 +380,16 @@ namespace {
                 score -= WeakQueen;
         }
     }
+
+    // general outpost bonus
+    constexpr Score gop = make_score(5,0);      // piece bonus
+    constexpr Score gpp = make_score(0,2);     // pawn bonus
+
+    const Bitboard noPawns = pos.pieces(Us);
+    const uint_fast8_t safePieces = popcount(noPawns & pe->get_fix<Them>());
+    score += gop  * (safePieces-outpostCount);
+    score += (gpp - gop) * popcount(pos.pieces(Us, PAWN) & pe->get_fix<Them>());
+
     if (T)
         Trace::add(Pt, Us, score);
 
