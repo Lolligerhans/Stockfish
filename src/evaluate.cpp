@@ -228,15 +228,16 @@ namespace {
     Bitboard dblAttackByPawn = pawn_double_attacks_bb<Us>(pos.pieces(Us, PAWN));
 
     // Find our pawns that are blocked or on the first two ranks
-//    Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
+    Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
 
 //    const Bitboard restrictors = ((pe->get_fix<Us>()) & (pos.pieces(Them) |
 //                pawn_double_attacks_bb<Them>(pos.pieces(Them, PAWN)))) |
 //        (pos.pieces(Them, PAWN) & pe->pawn_attacks(Them));
 //    Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(restrictors | pos.pieces(Us)) | LowRanks);
-    const Bitboard restrictors = ((pe->get_fix<Us>()) & (pos.pieces(Them))) |
-        (pos.pieces(Them, PAWN) & pe->pawn_attacks(Them));
-    Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(restrictors | pos.pieces(Us)) | LowRanks);
+
+//    const Bitboard restrictors = ((pe->get_fix<Us>()) & (pos.pieces(Them))) |
+//        (pos.pieces(Them, PAWN) & pe->pawn_attacks(Them));
+//    Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(restrictors | pos.pieces(Us)) | LowRanks);
 
     // Squares occupied by those pawns, by our king or queen or controlled by
     // enemy pawns are excluded from the mobility area.
@@ -383,7 +384,7 @@ namespace {
     }
 
     // general outpost bonus
-    constexpr Score gop = make_score(1,0);      // piece bonus
+    constexpr Score gop = make_score(5,0);      // piece bonus
     constexpr Score gpp = make_score(0,2);     // pawn bonus
 
     const Bitboard allPieces = pos.pieces(Us) & pe->get_fix<Them>();
@@ -391,7 +392,7 @@ namespace {
     const uint_fast8_t safePieces = (allPieces ? popcount(allPieces) : 0u);
     const uint_fast8_t safePawns  = (pawns ? popcount(pawns) : 0u);
 
-    score += (gop      ) * ((safePieces-outpostCount) * (pos.count<PAWN>()/2 ));
+    score += (gop      ) * (safePieces-outpostCount);
     score += (gpp - gop) * (safePawns              );
 
     if (T)
