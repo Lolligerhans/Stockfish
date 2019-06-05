@@ -396,11 +396,16 @@ namespace {
 
     const Bitboard allPieces = pos.pieces(Us) & pe->get_fix<Them>();
     const Bitboard pawns = pos.pieces(Us, PAWN) & pe->get_fix<Them>();
-    const uint_fast8_t safePieces = (allPieces ? popcount(allPieces) : 0u);
-    const uint_fast8_t safePawns  = (pawns ? popcount(pawns) : 0u);
-
-    score += (gop      ) * (safePieces-outpostCount);
-    score += (gpp - gop) * (safePawns              );
+    if (allPieces)
+    {
+        const uint_fast8_t safePieces = popcount(allPieces);
+        score += (gop) * (safePieces-outpostCount);
+    }
+    if (pawns)
+    {
+        const uint_fast8_t safePawns  = popcount(pawns);
+        score += (gpp - gop) * (safePawns);
+    }
 
     if (T)
         Trace::add(Pt, Us, score);
