@@ -66,9 +66,11 @@ namespace {
     public:
       template<Color Us>
       static index_t
-      index(Bitboard pawnConfig, Rank r, bool moreOfUs, bool moreOfThem)
+      index(Bitboard pawnConfig, Rank r, bool moreOfUs = false, bool moreOfThem = false)
       {
+          (void) moreOfUs; (void) moreOfThem;
           rank_t rank = std::max(relative_rank(Us, r) - 4, 0);
+          (void) rank;
           return
                // first 10 bits: pawns
                  (pawnConfig & 0x00000001)
@@ -77,16 +79,16 @@ namespace {
                | (pawnConfig & 0x00000400) >>  7 // TODO optimize
                | (pawnConfig & 0x00070000) >> 12
                | (pawnConfig & 0x07000000) >> 17
-
-               // 2 bits: rank
-               | (rank & 0x3) << 10
-
-               // 2 bits: more pawns us/them
-               | (moreOfUs) << 12
-               | (moreOfThem) << 13;
+               ;
+//               // 2 bits: rank
+//               | (rank & 0x3) << 10
+//
+//               // 2 bits: more pawns us/them
+//               | (moreOfUs) << 12
+//               | (moreOfThem) << 13;
       }
 
-      constexpr static uint_fast16_t indexRange() { return 1 << 14; }
+      constexpr static uint_fast16_t indexRange() { return 1 << 10; }
   };
 
   // Input: pawndex(cropshift(pawns))
@@ -201,6 +203,8 @@ namespace {
 
         e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
 
+        goto lut;
+
         // Flag the pawn
         opposed    = theirPawns & forward_file_bb(Us, s);
         stoppers   = theirPawns & passed_pawn_span(Us, s);
@@ -250,6 +254,8 @@ namespace {
         if (doubled && !support)
             score -= Doubled;
     }
+
+lut:
 
     // score our pawns by pawntable
     score = SCORE_ZERO;
