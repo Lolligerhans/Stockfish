@@ -214,7 +214,7 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
 
     do
     {
-        const Bitboard oneVone = touchable & (sp2 ^ new2);
+        const Bitboard oneVone = ourPawns & touchable & (sp2 ^ new2);
         const Bitboard atk   = pawn_attacks_bb<Us>(oneVone);
         totalConsidered |= atk; touchable |= atk;
         Bitboard untouchable = touchable & (lastSpan ^ newSpan);
