@@ -61,10 +61,8 @@ namespace {
   #undef S
   #undef V
 
-  thread_local Bitboard sp2[COLOR_NB];
-
   template<Color Us>
-  Score evaluate(const Position& pos, Pawns::Entry* e) {
+  Score evaluate(const Position& pos, Pawns::Entry* e, Bitboard& sp2) {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
@@ -83,7 +81,7 @@ namespace {
     e->kingSquares[Us]   = SQ_NONE;
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
 
-    sp2[Us] = 0;
+    sp2 = 0;
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -94,7 +92,7 @@ namespace {
         Rank r = relative_rank(Us, s);
 
         const Bitboard span = pawn_attack_span(Us, s);
-        sp2[Us] |= e->pawnAttacksSpan[Us] & span;
+        sp2 |= e->pawnAttacksSpan[Us] & span;
         e->pawnAttacksSpan[Us] |= span;
 
 
@@ -169,11 +167,12 @@ Entry* probe(const Position& pos) {
       return e;
 
   e->key = key;
-  e->scores[WHITE] = evaluate<WHITE>(pos, e);
-  e->scores[BLACK] = evaluate<BLACK>(pos, e);
+  Bitboard sp2[COLOR_NB];
+  e->scores[WHITE] = evaluate<WHITE>(pos, e, sp2[WHITE]);
+  e->scores[BLACK] = evaluate<BLACK>(pos, e, sp2[BLACK]);
 
-  e->compute_fixed<WHITE>(pos);
-  e->compute_fixed<BLACK>(pos);
+  e->compute_fixed<WHITE>(pos, sp2[WHITE]);
+  e->compute_fixed<BLACK>(pos, sp2[BLACK]);
 
   return e;
 }
@@ -190,7 +189,7 @@ Entry* probe(const Position& pos) {
 /// opponents pawn in the near future.
 
 template<Color Us>
-void Entry::compute_fixed(const Position& pos) &
+void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
 {
     // constructible bitboards
     /*
@@ -204,11 +203,9 @@ void Entry::compute_fixed(const Position& pos) &
     const Bitboard ourPawns = pos.pieces(Us, PAWN);
     const Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-    Bitboard& span2 = sp2[Us];
-
     Bitboard lastSpan = AllSquares;
     Bitboard newSpan = this->pawnAttacksSpan[Them];
-    Bitboard new2    = span2; span2 = AllSquares;
+    Bitboard new2    = sp2; sp2 = AllSquares;
     Bitboard shutSquares = 0;
 
 //    const Bitboard totalConsidered = ourPawns | this->pawnAttacks[Us];
@@ -218,7 +215,7 @@ void Entry::compute_fixed(const Position& pos) &
 
     do
     {
-        Bitboard oneVone     = touchable & (span2 ^ new2);
+        const Bitboard oneVone = touchable & (sp2 ^ new2);
         const Bitboard atk   = pawn_attacks_bb<Us>(oneVone);
         totalConsidered |= atk; touchable |= atk;
         Bitboard untouchable = touchable & (lastSpan ^ newSpan);
@@ -228,11 +225,9 @@ void Entry::compute_fixed(const Position& pos) &
 
         const Bitboard totalUntouch = totalConsidered & ~newSpan;
 
-        while (totalUntouch)
-
         touchable ^= untouchable;
 
-        lastSpan = newSpan; span2 = new2;
+        lastSpan = newSpan; sp2 = new2;
         newSpan = new2 = 0;
 
         auto update = [&](Bitboard sp)->void
