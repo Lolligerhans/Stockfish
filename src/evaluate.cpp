@@ -310,7 +310,7 @@ namespace {
                 score += Outpost * (Pt == KNIGHT ? 4 : 2)
                                  * ((attackedBy[Us][PAWN] & s) ? 2 : 1);
 
-            else if (bb &= b & ~pos.pieces(Us))
+            else if (bb &= b)
                 score += Outpost * (Pt == KNIGHT ? 2 : 1)
                                  * ((attackedBy[Us][PAWN] & bb) ? 2 : 1);
 
