@@ -663,11 +663,17 @@ namespace {
 
                 // If the path to the queen is fully defended, assign a big bonus.
                 // Otherwise assign a smaller bonus if the block square is defended.
-                if (defendedSquares == squaresToQueen)
+                const Bitboard undef = squaresToQueen ^ defendedSquares;
+                if (undef)
+                {
+                    const signed rMaxDef{ relative_rank(Us, rank_of(frontmost_sq(Us, undef))) -1 };
+                    const signed missing = RANK_8 - r;
+                    const signed covered = rMaxDef - r;
+                    // scale proportional for defended square
+                    k += 6 * (covered) / (missing);
+                }
+                else
                     k += 6;
-
-                else if (defendedSquares & blockSq)
-                    k += 4;
 
                 bonus += make_score(k * w, k * w);
             }
