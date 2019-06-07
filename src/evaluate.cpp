@@ -154,6 +154,12 @@ namespace {
   constexpr Score WeakQueen          = S( 49, 15);
   constexpr Score WeakUnopposedPawn  = S( 12, 23);
 
+  // general outpost bonus
+  Score gop = make_score(4,0);      // piece bonus
+  Score gpp = make_score(1,2);     // pawn bonus
+  TUNE(SetRange(-5, 10), gop);
+  TUNE(SetRange(-5,10), gpp);
+
 #undef S
 
   // Evaluation class computes and stores attacks tables and other working data
@@ -389,10 +395,6 @@ namespace {
                 score -= WeakQueen;
         }
     }
-
-    // general outpost bonus
-    constexpr Score gop = make_score(4,0);      // piece bonus
-    constexpr Score gpp = make_score(1,2);     // pawn bonus
 
     const Bitboard allPieces = pos.pieces(Us) & pe->get_fix<Them>();
     const Bitboard pawns = pos.pieces(Us, PAWN) & pe->get_fix<Them>();
