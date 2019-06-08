@@ -62,7 +62,7 @@ namespace {
   #undef V
 
   template<Color Us>
-  Score evaluate(const Position& pos, Pawns::Entry* e) {
+  Score evaluate(const Position& pos, Pawns::Entry* e, Bitboard& sp2) {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
@@ -81,6 +81,8 @@ namespace {
     e->kingSquares[Us]   = SQ_NONE;
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
 
+    sp2 = 0;
+
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
     {
@@ -89,7 +91,10 @@ namespace {
         File f = file_of(s);
         Rank r = relative_rank(Us, s);
 
-        e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
+        const Bitboard span = pawn_attack_span(Us, s);
+        sp2 |= e->pawnAttacksSpan[Us] & span;
+        e->pawnAttacksSpan[Us] |= span;
+
 
         // Flag the pawn
         opposed    = theirPawns & forward_file_bb(Us, s);
@@ -162,12 +167,109 @@ Entry* probe(const Position& pos) {
       return e;
 
   e->key = key;
-  e->scores[WHITE] = evaluate<WHITE>(pos, e);
-  e->scores[BLACK] = evaluate<BLACK>(pos, e);
+  Bitboard sp2[COLOR_NB];
+  e->scores[WHITE] = evaluate<WHITE>(pos, e, sp2[WHITE]);
+  e->scores[BLACK] = evaluate<BLACK>(pos, e, sp2[BLACK]);
+
+  e->compute_fixed<WHITE>(pos, sp2[WHITE]);
+  e->compute_fixed<BLACK>(pos, sp2[BLACK]);
 
   return e;
 }
 
+/// Entry::compute_fixed computes a bitboard of squares which could be attacked
+/// by the opponents pawns when advancing. Like pawn_attack_span, it does NOT
+/// account for pawns changing files through captures. Unlike pawn_attack_span,
+/// it DOES account for pawns being blocked or backwards with no hope to advance
+/// on their own.
+///
+/// Apart from the computed fluent_span, also some intermediate values could be
+/// used for bonuses. For example, the untouchable Bitboard is filled with
+/// squares which the algorithm thinks are unlikely to be attacked by an
+/// opponents pawn in the near future.
+
+template<Color Us>
+void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
+{
+    // constructible bitboards
+    /*
+    Bitboard cFluentSpan    = 0;    // their probable pawn attack span
+    Bitboard cShutDown      = 0;    // their probably blocked pawns
+    Bitboard cUntouchable   = 0;    // our probably safe pawns
+    */
+    Bitboard cFluentSpan    = 0;    // their probable pawn attack span
+
+    constexpr Color Them = ~Us;
+    const Bitboard ourPawns = pos.pieces(Us, PAWN);
+    const Bitboard theirPawns = pos.pieces(Them, PAWN);
+
+    Bitboard lastSpan = AllSquares;
+    Bitboard newSpan = this->pawnAttacksSpan[Them];
+    Bitboard new2    = sp2; sp2 = AllSquares;
+    Bitboard shutSquares = 0;
+
+//    const Bitboard totalConsidered = ourPawns | this->pawnAttacks[Us];
+    Bitboard totalConsidered = ourPawns;
+    Bitboard totalUntouch = 0;
+
+    Bitboard touchable = totalConsidered;
+
+    do
+    {
+        const Bitboard oneVone = ourPawns & touchable & (sp2 ^ new2);
+        const Bitboard atk   = pawn_attacks_bb<Us>(oneVone);
+        totalConsidered |= atk; touchable |= atk;
+        Bitboard untouchable = touchable & (lastSpan ^ newSpan);
+        /*
+        cUntouchable |= untouchable;
+        */
+
+        totalUntouch |= untouchable;
+        touchable ^= untouchable;
+
+        lastSpan = newSpan; sp2 = new2;
+        newSpan = new2 = 0;
+
+        auto update = [&](Bitboard sp)->void
+        { new2 |= newSpan & sp, newSpan |= sp; };
+
+        if( untouchable ) while( untouchable )
+        {
+            const Square u = pop_lsb(&untouchable);
+
+            const Bitboard shutting = forward_file_bb(Us, u);
+            shutSquares |= shutting;
+
+            Bitboard shutDown = shutting & theirPawns;
+            /*
+            cShutDown |= shutDown;
+            */
+            while (shutDown)
+            {
+                const Square s = pop_lsb(&shutDown);
+                const Bitboard sp = pawn_attack_span(Them, s) ^
+                    pawn_attack_span(Them,frontmost_sq(Us,  forward_file_bb(Them, s)
+                                                          & totalUntouch));
+                update(sp);
+            }
+        }
+        else break;
+
+        Bitboard fluentPawns = theirPawns & ~shutSquares;
+        while (fluentPawns)
+        {
+            const Square f = pop_lsb(&fluentPawns);
+            const Bitboard sp = pawn_attack_span(Them, f);
+            update(sp);
+        }
+
+    } while (newSpan != lastSpan);
+
+    cFluentSpan = lastSpan;
+
+    // squares which will probably not be attacked by out pawns anymore = fix
+    this->fix[Them] = ~cFluentSpan;
+}
 
 /// Entry::evaluate_shelter() calculates the shelter bonus and the storm
 /// penalty for a king, looking at the king file and the two closest files.
