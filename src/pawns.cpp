@@ -220,9 +220,7 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
         const Bitboard atk   = pawn_attacks_bb<Us>(oneVone);
         totalConsidered |= atk; touchable |= atk;
         Bitboard untouchable = touchable & (lastSpan ^ newSpan);
-        /*
-        cUntouchable |= untouchable;
-        */
+        /* cUntouchable |= untouchable; */
 
         totalUntouch |= untouchable;
         touchable ^= untouchable;
@@ -239,21 +237,19 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
 
             const Bitboard shutting = forward_file_bb(Us, u);
             shutSquares |= shutting;
-
-            Bitboard shutDown = shutting & theirPawns;
-            /*
-            cShutDown |= shutDown;
-            */
-            while (shutDown)
-            {
-                const Square s = pop_lsb(&shutDown);
-                const Bitboard sp = pawn_attack_span(Them, s) ^
-                    pawn_attack_span(Them,frontmost_sq(Us,  forward_file_bb(Them, s)
-                                                          & totalUntouch));
-                update(sp);
-            }
         }
         else break;
+
+//        Bitboard shutDown = shutSquares & theirPawns;
+//        /* cShutDown |= shutDown; */
+//        while (shutDown)
+//        {
+//            const Square s = pop_lsb(&shutDown);
+//            const Bitboard sp = pawn_attack_span(Them, s) ^
+//                pawn_attack_span(Them,frontmost_sq(Us,  forward_file_bb(Them, s)
+//                                                      & totalUntouch));
+//            update(sp);
+//        }
 
         Bitboard fluentPawns = theirPawns & ~shutSquares;
         while (fluentPawns)
