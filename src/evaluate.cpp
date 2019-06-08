@@ -385,7 +385,7 @@ namespace {
 
     // general outpost bonus
     constexpr Score gop = make_score(3,1);  // piece bonus
-    constexpr Score gpp = make_score(2,1);  // pawn bonus
+    constexpr Score gpp = make_score(1,1);  // pawn bonus
 
     const Bitboard allPieces = pos.pieces(Us) & pe->get_fix<Them>();
     const Bitboard pawns = pos.pieces(Us, PAWN) & pe->get_fix<Them>();
