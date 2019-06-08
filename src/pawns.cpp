@@ -209,6 +209,7 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
 
 //    const Bitboard totalConsidered = ourPawns | this->pawnAttacks[Us];
     Bitboard totalConsidered = ourPawns;
+    Bitboard totalUntouchable = 0;
 
     Bitboard touchable = totalConsidered;
 
@@ -222,8 +223,7 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
         cUntouchable |= untouchable;
         */
 
-        const Bitboard totalUntouch = totalConsidered & ~newSpan;
-
+        totalUntouchable |= untouchable;
         touchable ^= untouchable;
 
         lastSpan = newSpan; sp2 = new2;
