@@ -31,49 +31,6 @@
 
 namespace {
 
-  static unsigned long long ull = 0;
-#define SHOULD_PRINT ((ull % 5001) == 0)
-
-  void dbg_fix(Bitboard pawns, Bitboard ours, Bitboard fluent)
-  {
-      if (!SHOULD_PRINT) return;
-
-      std::cerr << "pawn config and span:" << std::endl;
-      std::cerr << "------------------" << std::endl;
-      for (Square s = SQ_A1; s <= SQ_H8; ++s)
-      {
-          if (pawns & s) std::cerr << "o "; else
-          if (ours  & s) std::cerr << "x "; else
-                         std::cerr << ". ";
-          if (int(s) % 8 == 7) std::cerr << std::endl;
-      }
-      std::cerr << "------------------" << std::endl;
-      for (Square s = SQ_A1; s <= SQ_H8; ++s)
-      {
-          if (fluent & s) std::cerr << "+ "; else
-                          std::cerr << ". ";
-          if (int(s) % 8 == 7) std::cerr << std::endl;
-      }
-      std::cerr << "------------------" << std::endl
-                << std::endl;
-      std::cin.ignore();
-  }
-
-#define LOG(_b) do {\
-    std::cerr << "------------------" << std::endl;\
-    for (Square _s = SQ_A1; _s <= SQ_H8; ++_s)\
-    {\
-        if ((_b) & _s) std::cerr << "o ";\
-        else            std::cerr << ". ";\
-        if (int(_s) % 8 == 7) std::cerr << std::endl;\
-    }\
-    std::cerr << "------------------" << std::endl << std::endl;\
-}while(false);
-
-#define P(_m) if (SHOULD_PRINT) do { std::cerr << (#_m) << std::endl; } while(false);
-#define D(_v) if (SHOULD_PRINT) do { P(_v) LOG(_v) } while(false);
-
-
   #define V Value
   #define S(mg, eg) make_score(mg, eg)
 
@@ -236,8 +193,6 @@ Entry* probe(const Position& pos) {
 template<Color Us>
 void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
 {
-++ull;
-
     constexpr Color Them    = ~Us;
 
     // inputs
@@ -274,16 +229,10 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
         iterSpan2   = nextSpan2; nextSpan2 = 0;
     };
 
-    P(BEGIN OF NEW ITERATION)
-
     while (true)
     {
         // transit iter bbs from last iteration
         getIterSpan();
-
-        D(iterSpan);
-        D(iterSpan1);
-        D(iterSpan2);
 
         // find iinitial iteration untouchables (expanded during shortcut step: step 2)
         Bitboard faceToFace         = ourPawns & iterSpan1; // pawns facing exactly 1 opponent
@@ -414,12 +363,10 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
     }
 
     this->fluentSpan[Them] = iterSpan;
-    dbg_fix(theirPawns, ourPawns, this->fluentSpan[Them]);
     return;
 
 nospan:
     this->fluentSpan[Them] = this->pawnAttacksSpan[Them];
-    dbg_fix(theirPawns, ourPawns, this->fluentSpan[Them]);
     return;
 
 }
