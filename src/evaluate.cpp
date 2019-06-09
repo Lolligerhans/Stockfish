@@ -394,8 +394,8 @@ namespace {
     constexpr Score gop = make_score(3,1);  // piece bonus
     constexpr Score gpp = make_score(1,1);  // pawn bonus
 
-    const Bitboard allPieces = pos.pieces(Us) & pe->get_fix<Them>();
-    const Bitboard pawns = pos.pieces(Us, PAWN) & pe->get_fix<Them>();
+    const Bitboard allPieces = pos.pieces(Us) & ~pe->fluent_span<Them>();
+    const Bitboard pawns = pos.pieces(Us, PAWN) & ~pe->fluent_span<Them>();
     if (allPieces)
     {
         const uint_fast8_t safePieces = popcount(allPieces);
