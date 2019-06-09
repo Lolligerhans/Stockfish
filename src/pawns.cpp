@@ -31,8 +31,13 @@
 
 namespace {
 
+  static unsigned long long ull = 0;
+#define SHOULD_PRINT ((ull % 5001) == 0)
+
   void dbg_fix(Bitboard pawns, Bitboard ours, Bitboard fluent)
   {
+      if (!SHOULD_PRINT) return;
+
       std::cerr << "pawn config and span:" << std::endl;
       std::cerr << "------------------" << std::endl;
       for (Square s = SQ_A1; s <= SQ_H8; ++s)
@@ -53,6 +58,21 @@ namespace {
                 << std::endl;
       std::cin.ignore();
   }
+
+#define LOG(_b) do {\
+    std::cerr << "------------------" << std::endl;\
+    for (Square _s = SQ_A1; _s <= SQ_H8; ++_s)\
+    {\
+        if ((_b) & _s) std::cerr << "o ";\
+        else            std::cerr << ". ";\
+        if (int(_s) % 8 == 7) std::cerr << std::endl;\
+    }\
+    std::cerr << "------------------" << std::endl << std::endl;\
+}while(false);
+
+#define P(_m) if (SHOULD_PRINT) do { std::cerr << (#_m) << std::endl; } while(false);
+#define D(_v) if (SHOULD_PRINT) do { P(_v) LOG(_v) } while(false);
+
 
   #define V Value
   #define S(mg, eg) make_score(mg, eg)
@@ -196,8 +216,8 @@ Entry* probe(const Position& pos) {
   e->scores[WHITE] = evaluate<WHITE>(pos, e, sp2[WHITE]);
   e->scores[BLACK] = evaluate<BLACK>(pos, e, sp2[BLACK]);
 
-  e->compute_fixed<WHITE>(pos, sp2[WHITE]);
-  e->compute_fixed<BLACK>(pos, sp2[BLACK]);
+  e->compute_fixed<WHITE>(pos, sp2[BLACK]);
+  e->compute_fixed<BLACK>(pos, sp2[WHITE]);
 
   return e;
 }
@@ -216,6 +236,8 @@ Entry* probe(const Position& pos) {
 template<Color Us>
 void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
 {
+++ull;
+
     constexpr Color Them    = ~Us;
 
     // inputs
@@ -228,7 +250,7 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
     Bitboard totalConsidered    = ourPawns;
     Bitboard totalUntouchable   = 0;
     Bitboard totalShut          = 0; // shut squares(!)
-    Bitboard totalFix                = 0; // accum. shut down pawns (after any number of steps)
+    Bitboard totalFix           = 0; // accum. shut down pawns (after any number of steps)
 
     // iteration bitboards: updated at the beginning of each main iteration, but not in-between
     Bitboard iterSpan,
@@ -252,10 +274,16 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
         iterSpan2   = nextSpan2; nextSpan2 = 0;
     };
 
+    P(BEGIN OF NEW ITERATION)
+
     while (true)
     {
         // transit iter bbs from last iteration
         getIterSpan();
+
+        D(iterSpan);
+        D(iterSpan1);
+        D(iterSpan2);
 
         // find iinitial iteration untouchables (expanded during shortcut step: step 2)
         Bitboard faceToFace         = ourPawns & iterSpan1; // pawns facing exactly 1 opponent
@@ -270,6 +298,8 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
         totalUntouchable           |= untouchable;
 
         if (!untouchable) break;    // done
+
+        Bitboard iterFix = 0;
 
         do
         {
@@ -290,7 +320,7 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
                 totalShut |= shutting;
                 stepFixed |= fix;
             }
-            totalFix |= stepFixed;
+            iterFix  |= stepFixed;
 
             // _________________________________________________________________
             // step 2: 1-step shortcut to possibly remove layer 2 (using span2)
@@ -343,16 +373,32 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
                 // TODO algorithm for pawn-double-attacks required? (how?)(if both are face-to-face = block also 1-span squares)
             }
             totalUntouchable |= untouchable;
-
         }
         while (untouchable); // loop back to step 1 if one-step shortcut found new untouchable pawns
+
+        totalFix |= iterFix;
 
         if (!totalUntouchable)
             goto nospan; // TODO worth it?
 
-        //
         // _________________________________________________________________
-        // step 3: compute entire fluent span to prepare next iteration
+        // step 3: compute fluent span of pawns not handles during current
+        //         iteration (cannot create untouched pawns)
+        Bitboard oldFix = totalFix ^ iterFix;
+        while (oldFix)
+        {
+            const Square    o               = pop_lsb           (&oldFix);
+            const Bitboard  span            = pawn_attack_span  (Them, o);
+            const Bitboard  block           = forward_file_bb   (Them, o) & totalUntouchable;
+            const Square    b               = frontmost_sq      (  Us, block);
+            const Bitboard  blockerSpan     = pawn_attack_span  (Them, b);
+            const Bitboard  leftoverSpan    = span ^ blockerSpan;
+  
+            addNewSpan(leftoverSpan);
+        }
+
+        // _________________________________________________________________
+        // step 4: compute span of fluent pawns to prepare next iteration
         //
         // addNewSpan()     update fluent span bbs for next iteration
         Bitboard fluent = theirPawns ^ totalFix;
@@ -367,15 +413,13 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
 
     }
 
-    static unsigned long long ull = 0;
-
     this->fluentSpan[Them] = iterSpan;
-    if (++ull % 10000 == 0) dbg_fix(theirPawns, ourPawns, this->fluentSpan[Them]);
+    dbg_fix(theirPawns, ourPawns, this->fluentSpan[Them]);
     return;
 
 nospan:
     this->fluentSpan[Them] = this->pawnAttacksSpan[Them];
-    if (++ull % 10000 == 0) dbg_fix(theirPawns, ourPawns, this->fluentSpan[Them]);
+    dbg_fix(theirPawns, ourPawns, this->fluentSpan[Them]);
     return;
 
 }
