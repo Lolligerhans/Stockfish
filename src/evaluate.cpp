@@ -230,15 +230,6 @@ namespace {
     // Find our pawns that are blocked or on the first two ranks
     Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
 
-//    const Bitboard restrictors = ((pe->get_fix<Us>()) & (pos.pieces(Them) |
-//                pawn_double_attacks_bb<Them>(pos.pieces(Them, PAWN)))) |
-//        (pos.pieces(Them, PAWN) & pe->pawn_attacks(Them));
-//    Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(restrictors | pos.pieces(Us)) | LowRanks);
-
-//    const Bitboard restrictors = ((pe->get_fix<Us>()) & (pos.pieces(Them))) |
-//        (pos.pieces(Them, PAWN) & pe->pawn_attacks(Them));
-//    Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(restrictors | pos.pieces(Us)) | LowRanks);
-
     // Squares occupied by those pawns, by our king or queen or controlled by
     // enemy pawns are excluded from the mobility area.
     mobilityArea[Us] = ~(b | pos.pieces(Us, KING, QUEEN) | pe->pawn_attacks(Them));
@@ -279,7 +270,6 @@ namespace {
     const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
-    uint_fast8_t outpostCount = 0;
     Score score = SCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
@@ -312,12 +302,12 @@ namespace {
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
-            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
+            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->fluent_span<Them>();
             if (bb & s)
-                score += Outpost * (Pt == KNIGHT ? 2 : 1), ++outpostCount;
+                score += Outpost * (Pt == KNIGHT ? 2 : 1);
 
             else if (bb & b & ~pos.pieces(Us))
-                score += Outpost / (Pt == KNIGHT ? 1 : 2), ++outpostCount;
+                score += Outpost / (Pt == KNIGHT ? 1 : 2);
 
             // Knight and Bishop bonus for being right behind a pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
@@ -382,24 +372,6 @@ namespace {
                 score -= WeakQueen;
         }
     }
-
-    // general outpost bonus
-    constexpr Score gop = make_score(3,1);  // piece bonus
-    constexpr Score gpp = make_score(1,1);  // pawn bonus
-
-    const Bitboard allPieces = pos.pieces(Us) & ~pe->fluent_span<Them>();
-    const Bitboard pawns = pos.pieces(Us, PAWN) & ~pe->fluent_span<Them>();
-    if (allPieces)
-    {
-        const uint_fast8_t safePieces = popcount(allPieces);
-        score += (gop) * (safePieces-outpostCount);
-    }
-    if (pawns)
-    {
-        const uint_fast8_t safePawns  = popcount(pawns);
-        score += (gpp - gop) * (safePawns);
-    }
-
     if (T)
         Trace::add(Pt, Us, score);
 

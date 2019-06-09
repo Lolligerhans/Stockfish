@@ -341,11 +341,10 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
 
     }
 
-    this->fluentSpan[Them] = iterSpan;
+    this->pawnAttacksSpan[Them] = iterSpan;
     return;
 
 nospan:
-    this->fluentSpan[Them] = this->pawnAttacksSpan[Them];
     return;
 
 }
