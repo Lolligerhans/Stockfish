@@ -26,7 +26,33 @@
 #include "position.h"
 #include "thread.h"
 
+// dbg
+#include <iostream>
+
 namespace {
+
+  void dbg_fix(Bitboard pawns, Bitboard ours, Bitboard fluent)
+  {
+      std::cerr << "pawn config and span:" << std::endl;
+      std::cerr << "------------------" << std::endl;
+      for (Square s = SQ_A1; s <= SQ_H8; ++s)
+      {
+          if (pawns & s) std::cerr << "o "; else
+          if (ours  & s) std::cerr << "x "; else
+                         std::cerr << ". ";
+          if (int(s) % 8 == 7) std::cerr << std::endl;
+      }
+      std::cerr << "------------------" << std::endl;
+      for (Square s = SQ_A1; s <= SQ_H8; ++s)
+      {
+          if (fluent & s) std::cerr << "+ "; else
+                          std::cerr << ". ";
+          if (int(s) % 8 == 7) std::cerr << std::endl;
+      }
+      std::cerr << "------------------" << std::endl
+                << std::endl;
+      std::cin.ignore();
+  }
 
   #define V Value
   #define S(mg, eg) make_score(mg, eg)
@@ -341,11 +367,15 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
 
     }
 
+    static unsigned long long ull = 0;
+
     this->fluentSpan[Them] = iterSpan;
+    if (++ull % 10000 == 0) dbg_fix(theirPawns, ourPawns, this->fluentSpan[Them]);
     return;
 
 nospan:
     this->fluentSpan[Them] = this->pawnAttacksSpan[Them];
+    if (++ull % 10000 == 0) dbg_fix(theirPawns, ourPawns, this->fluentSpan[Them]);
     return;
 
 }
