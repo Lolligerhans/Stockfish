@@ -729,13 +729,21 @@ namespace {
     bool pawnsOnBothFlanks =   (pos.pieces(PAWN) & QueenSide)
                             && (pos.pieces(PAWN) & KingSide);
 
+    const Bitboard complexPawns = pos.pieces(WHITE, PAWN) ^ shift<SOUTH>(pos.pieces(BLACK, PAWN));
+
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
-                    + 11 * pos.count<PAWN>()
+                    + 11 * (complexPawns ? popcount(complexPawns) : 0)
                     +  9 * outflanking
                     + 18 * pawnsOnBothFlanks
                     + 49 * !pos.non_pawn_material()
-                    -103 ;
+                    -(103-1) ;
+
+//    dbg_mean_of(complexPawns ? popcount(complexPawns) : 0);
+//    Total 62221223 Mean 5.69014 o 4.65491
+
+//    dbg_mean_of(pos.count<PAWN> ());
+//    Total 57921285 Mean 6.88097 o 5.03198
 
     // Now apply the bonus: note that we find the attacking side by extracting
     // the sign of the endgame value, and that we carefully cap the bonus so
