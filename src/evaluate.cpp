@@ -476,8 +476,8 @@ namespace {
                  -   6 * mg_value(score) / 8
                  +       mg_value(mobility[Them] - mobility[Us])
                  +   5 * kingFlankAttacks * kingFlankAttacks / 16
-                 +  50 * bool(ksq           & pe->fluent_span<Them> ())
-                 + 200 * bool(kingRing[Us]  & pe->fluent_span<Them> ())
+                 +  25 * bool(ksq           & pe->fluent_span<Them> ())
+                 + 100 * bool(kingRing[Us]  & pe->fluent_span<Them> ())
                  - (7+67);
 
 //    dbg_mean_of(50 * bool(ksq & pe->fluent_span<Them>()) + 200 * bool(kingRing[Us] & pe->fluent_span<Them> ()));
@@ -755,9 +755,9 @@ namespace {
                     +  9 * outflanking
                     + 18 * pawnsOnBothFlanks
                     + 49 * !pos.non_pawn_material()
-                    + 20 * bool(pe->fluent_span<WHITE> () & Rank8BB)
-                    + 20 * bool(pe->fluent_span<BLACK> () & Rank1BB)
-                    - (103+13) ;
+                    + 10 * (eg >= 0) * bool(pe->fluent_span<WHITE> () & Rank8BB)
+                    + 10 * (eg <= 0) * bool(pe->fluent_span<BLACK> () & Rank1BB)
+                    - (103+3) ;
 
 //    Total 58821058 Mean -34.5451 o 47.0287 (complexity)
 //    dbg_mean_of(complexity);

@@ -203,6 +203,7 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
 
     // total bitboards
     Bitboard totalConsidered    = ourPawns;
+    Bitboard totalConsidered1   = 0;
     Bitboard totalUntouchable   = 0;
     Bitboard totalShut          = 0; // shut squares(!)
     Bitboard totalFix           = 0; // accum. shut down pawns (after any number of steps)
@@ -237,11 +238,17 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
         // find iinitial iteration untouchables (expanded during shortcut step: step 2)
         Bitboard faceToFace         = ourPawns & iterSpan1; // pawns facing exactly 1 opponent
         Bitboard faceOffs           = pawn_attacks_bb<Us> (faceToFace);
+        const Bitboard lowPressure  = ourPawns & ~iterSpan2;
+        Bitboard ganks              = pawn_double_attacks_bb<Us>(lowPressure);
 
         totalConsidered            |= faceOffs;
+        totalConsidered1           |= ganks;
 
         Bitboard considered         = totalConsidered & ~totalUntouchable; // sqaures which MIGHT block opponents, if they are outside of any attack span
         Bitboard untouchable        = considered & ~iterSpan;
+
+        Bitboard considered1        = totalConsidered1 & ~totalUntouchable;
+        untouchable                |= considered1 & ~iterSpan2;
 
         const Bitboard iterUntouchable = totalUntouchable; // memorize situation before this iteration
         totalUntouchable           |= untouchable;
@@ -280,7 +287,7 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
             //  - considered        squares which become untouchable when leaving their
             //                      attack span. out pawns and face-offs (when found
             //                      untouchable during this step, removen from this
-            //                      bb).
+            //                      bb; for fast-rescoring of only-resp.-squares).
             //  - addNewSpan()      adding new restricted pawn attack span for this
             //                      iteration
             //  - stepFixed         their pawns fixed in step 1 (destructed during this
