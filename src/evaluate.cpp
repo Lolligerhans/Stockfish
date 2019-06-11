@@ -350,8 +350,8 @@ namespace {
 
             // Bonus for rook on an open or semi-open file
             if (pos.is_on_semiopen_file(Us, s))
-                if (pos.is_on_semiopen_file(Them, s)) score += make_score(18,  7) * (4+r) / 8;
-                else                                  score += make_score(44, 20) * (4+r) / 8;
+                if (pos.is_on_semiopen_file(Them, s)) score += make_score(18,  7) * (10+r) / 14;
+                else                                  score += make_score(44, 20) * (10+r) / 14;
 
             // Penalty when trapped by the king, even more if the king cannot castle
             else if (mob <= 3)
