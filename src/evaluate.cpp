@@ -279,6 +279,7 @@ namespace {
     const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
+//    uint_fast8_t outpostCount = 0;
     Score score = SCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
@@ -381,6 +382,24 @@ namespace {
                 score -= WeakQueen;
         }
     }
+
+    // general outpost bonus
+//    constexpr Score gop = make_score(3,0);  // piece bonus
+//    constexpr Score gpp = make_score(1,2);  // pawn bonus
+//
+//    const Bitboard allPieces = pos.pieces(Us) & ~pe->fluent_span<Them>();
+//    const Bitboard pawns = pos.pieces(Us, PAWN) & ~pe->fluent_span<Them>();
+//    if (allPieces)
+//    {
+//        const uint_fast8_t safePieces = popcount(allPieces);
+//        score += (gop) * (safePieces-outpostCount);
+//    }
+//    if (pawns)
+//    {
+//        const uint_fast8_t safePawns  = popcount(pawns);
+//        score += (gpp - gop) * (safePawns);
+//    }
+
     if (T)
         Trace::add(Pt, Us, score);
 
@@ -476,9 +495,9 @@ namespace {
                  -   6 * mg_value(score) / 8
                  +       mg_value(mobility[Them] - mobility[Us])
                  +   5 * kingFlankAttacks * kingFlankAttacks / 16
-                 +  25 * bool(ksq           & pe->fluent_span<Them> ())
-                 + 100 * bool(kingRing[Us]  & pe->fluent_span<Them> ())
-                 - (7+67);
+//                 +  25 * bool(ksq           & pe->fluent_span<Them> ())
+                 - 200 * !bool(kingRing[Us] & pe->fluent_span<Them> ())
+                 - (7);
 
 //    dbg_mean_of(50 * bool(ksq & pe->fluent_span<Them>()) + 200 * bool(kingRing[Us] & pe->fluent_span<Them> ()));
 //    Total 124208086 Mean 134.143 o 106.475
@@ -751,13 +770,13 @@ namespace {
 
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
-                    + 11 * pos.count<PAWN>()
+//                    + 11 * pos.count<PAWN>()
                     +  9 * outflanking
                     + 18 * pawnsOnBothFlanks
                     + 49 * !pos.non_pawn_material()
-                    + 10 * (eg >= 0) * bool(pe->fluent_span<WHITE> () & Rank8BB)
-                    + 10 * (eg <= 0) * bool(pe->fluent_span<BLACK> () & Rank1BB)
-                    - (103+3) ;
+                    + 10 * (popcount(pe->fluent_span<WHITE> () & Rank8BB)
+                           +popcount(pe->fluent_span<BLACK> () & Rank1BB))
+                    - (103) ;
 
 //    Total 58821058 Mean -34.5451 o 47.0287 (complexity)
 //    dbg_mean_of(complexity);
