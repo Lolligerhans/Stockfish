@@ -458,16 +458,13 @@ namespace {
 
     int kingFlankAttacks = popcount(b1) + popcount(b2);
 
-    Bitboard kingProx = attackedBy[Us][KING];
-    kingProx |= shift<  Up>(kingProx);
-    kingProx |= shift<EAST>(kingProx);
-    kingProx |= shift<WEST>(kingProx);
+    const Bitboard kingUp = attackedBy[Us][KING] | shift<Up>(attackedBy[Us][KING]);
 
     kingDanger +=        kingAttackersCount[Them] * kingAttackersWeight[Them]
                  +  69 * kingAttacksCount[Them]
                  + 185 * popcount(kingRing[Us] & weak)
-                 - 100 * bool(attackedBy[Us][KNIGHT] & kingProx)
-                 -  35 * bool(attackedBy[Us][BISHOP] & kingProx)
+                 - 100 * bool(attackedBy[Us][KNIGHT] & kingUp)
+                 -  35 * bool(attackedBy[Us][BISHOP] & kingUp)
                  + 150 * popcount(pos.blockers_for_king(Us) | unsafeChecks)
                  - 873 * !pos.count<QUEEN>(Them)
                  -   6 * mg_value(score) / 8
