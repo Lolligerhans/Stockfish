@@ -241,11 +241,10 @@ namespace {
     attackedBy2[Us] = dblAttackByPawn | (attackedBy[Us][KING] & attackedBy[Us][PAWN]);
 
     // Init our king safety tables
-    const Bitboard smallRing = attackedBy[Us][KING];
-    kingRing[Us] = smallRing
-        | shift<  Up>(smallRing)
-        | shift<WEST>(smallRing)
-        | shift<EAST>(smallRing);
+    kingRing[Us] = attackedBy[Us][KING];
+    kingRing[Us] |= shift<  Up>(kingRing[Us]);
+    kingRing[Us] |= shift<WEST>(kingRing[Us]);
+    kingRing[Us] |= shift<EAST>(kingRing[Us]);
 
     kingAttackersCount[Them] = popcount(kingRing[Us] & pe->pawn_attacks(Them));
     kingAttacksCount[Them] = kingAttackersWeight[Them] = 0;
