@@ -301,14 +301,6 @@ namespace {
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
-            // Bonus if piece is on an outpost square or can reach one
-            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
-            if (bb & s)
-                score += Outpost * (Pt == KNIGHT ? 2 : 1);
-
-            else if (bb & b & ~pos.pieces(Us))
-                score += Outpost / (Pt == KNIGHT ? 1 : 2);
-
             // Knight and Bishop bonus for being right behind a pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
                 score += MinorBehindPawn;
@@ -372,6 +364,18 @@ namespace {
                 score -= WeakQueen;
         }
     }
+
+    bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
+    const Bitboard knop = pos.pieces(Us, KNIGHT) & bb;
+    const Bitboard biop = pos.pieces(Us, BISHOP) & bb;
+    bb &= ~pos.pieces(Us);
+    const Bitboard knat = attackedBy[Us][KNIGHT] & bb;
+    const Bitboard biat = attackedBy[Us][BISHOP] & bb;
+    auto const nb = [](Bitboard const& x) -> int{ return bool(x) + more_than_one(x); };
+    score += Outpost/2 * (4 * nb(knop)
+                        + 2 * (nb(biop) + nb(knat))
+                        + 1 * nb(biat));
+
     if (T)
         Trace::add(Pt, Us, score);
 
