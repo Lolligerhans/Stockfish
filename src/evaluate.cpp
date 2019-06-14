@@ -365,16 +365,15 @@ namespace {
         }
     }
 
-    bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
-    const Bitboard knop = pos.pieces(Us, KNIGHT) & bb;
-    const Bitboard biop = pos.pieces(Us, BISHOP) & bb;
-    bb &= ~pos.pieces(Us);
-    const Bitboard knat = attackedBy[Us][KNIGHT] & bb;
-    const Bitboard biat = attackedBy[Us][BISHOP] & bb;
-    auto const nb = [](Bitboard const& x) -> int{ return bool(x) + more_than_one(x); };
-    score += Outpost/2 * (4 * nb(knop)
-                        + 2 * (nb(biop) + nb(knat))
-                        + 1 * nb(biat));
+    if (Pt == KNIGHT || Pt == BISHOP)
+    {
+        bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
+        const Bitboard   op = pos.pieces(Us, Pt) & bb;
+        const Bitboard opat = attackedBy[Us][Pt] & bb & ~pos.pieces(Us);
+        auto const nb = [](Bitboard const& x) -> int{ return bool(x) + more_than_one(x); };
+        auto const opScore = (Pt == KNIGHT ? Outpost : Outpost/2);
+        score += opScore * (2*nb(op) + nb(opat));
+    }
 
     if (T)
         Trace::add(Pt, Us, score);
