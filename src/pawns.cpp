@@ -83,7 +83,6 @@ namespace {
     e->passedPawns[Us]   = 0;
     e->kingSquares[Us]   = SQ_NONE;
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
-    e->compute_outposts<Us>();
 
     // Unsupported enemy pawns attacked twice by us
     score += Attacked2Unsupported * popcount(  theirPawns
@@ -178,7 +177,8 @@ Entry* probe(const Position& pos) {
   e->key = key;
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
-  e->compute_outposts();
+  e->compute_outposts<WHITE>();
+  e->compute_outposts<BLACK>();
 
   return e;
 }
@@ -256,19 +256,15 @@ Score Entry::do_king_safety(const Position& pos) {
 template<Color Us>
 void Entry::compute_outposts() &
 {
-    constexpr Direction Up               = (Us == WHITE ? NORTH : SOUTH);
-    constexpr Bitboard  OutpostRanksThem = (Us == WHITE ? Rank5BB | Rank4BB | Rank3BB
-                                                        : Rank4BB | Rank5BB | Rank6BB);
-    Bitboard const& pa = pawnAttacks[Us];
+    constexpr Direction        Down = (Us == WHITE ? SOUTH : NORTH);
+    constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
+                                                   : Rank5BB | Rank4BB | Rank3BB);
+    Bitboard const& pat = pawnAttacks[~Us];
 
-    outpostSquares[~Us] = ~(pa | shift<Up>(pa) | shift<Up+Up>(pa))
-                        & OutpostRanksThem;
-}
-
-void Entry::compute_outposts() &
-{
-    outpostSquares[WHITE] &= pawnAttacks[WHITE];
-    outpostSquares[BLACK] &= pawnAttacks[BLACK];
+    // pawn protected squares in outpost ranks
+    // outside of their pawn attack span
+    outpostSquares[Us] = OutpostRanks & pawnAttacks[Us]
+                       & ~(pat | shift<Down>(pat) | shift<Down+Down>(pat));
 }
 
 // Explicit template instantiation
