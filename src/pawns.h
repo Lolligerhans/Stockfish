@@ -53,7 +53,6 @@ struct Entry {
 
   template<Color Us>
   void compute_outposts(void) &;
-  void compute_outposts(void) &;
 
   Key key;
   Score scores[COLOR_NB];
