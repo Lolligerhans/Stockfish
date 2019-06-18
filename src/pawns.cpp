@@ -78,9 +78,10 @@ namespace {
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-    e->passedPawns[Us] = e->pawnAttacksSpan[Us] = 0;
+    e->passedPawns[Us]   = 0;
     e->kingSquares[Us]   = SQ_NONE;
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
+    e->compute_outposts<Us>();
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -88,8 +89,6 @@ namespace {
         assert(pos.piece_on(s) == make_piece(Us, PAWN));
 
         Rank r = relative_rank(Us, s);
-
-        e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
 
         // Flag the pawn
         opposed    = theirPawns & forward_file_bb(Us, s);
@@ -163,6 +162,7 @@ Entry* probe(const Position& pos) {
   e->key = key;
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
+  e->compute_outposts();
 
   return e;
 }
@@ -239,6 +239,24 @@ Score Entry::do_king_safety(const Position& pos) {
       evaluate_shelter<Us>(pos, relative_square(Us, SQ_C1), shelter);
 
   return shelter - make_score(VALUE_ZERO, 16 * minPawnDist);
+}
+
+template<Color Us>
+void Entry::compute_outposts() &
+{
+    constexpr Direction Up               = (Us == WHITE ? NORTH : SOUTH);
+    constexpr Bitboard  OutpostRanksThem = (Us == WHITE ? Rank5BB | Rank4BB | Rank3BB
+                                                        : Rank4BB | Rank5BB | Rank6BB);
+    Bitboard const& pa = pawnAttacks[Us];
+
+    outpostSquares[~Us] = ~(pa | shift<Up>(pa) | shift<Up+Up>(pa))
+                        & OutpostRanksThem;
+}
+
+void Entry::compute_outposts() &
+{
+    outpostSquares[WHITE] &= pawnAttacks[WHITE];
+    outpostSquares[BLACK] &= pawnAttacks[BLACK];
 }
 
 // Explicit template instantiation
