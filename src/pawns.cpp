@@ -170,6 +170,12 @@ Entry* probe(const Position& pos) {
   e->key = key;
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
+  if (pos.count<PAWN>())
+      e->comp = popcount(( e->pawn_attacks_span(WHITE)
+                         | e->pawn_attacks_span(BLACK))
+                        & (Rank8BB | Rank1BB));
+  else
+      e->comp = 0;
 
   return e;
 }

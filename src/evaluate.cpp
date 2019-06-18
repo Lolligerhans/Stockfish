@@ -739,9 +739,7 @@ namespace {
                     +  9 * outflanking
                     + 18 * pawnsOnBothFlanks
                     + 49 * !pos.non_pawn_material()
-                    +  9 * (popcount(( pe->pawn_attacks_span(WHITE)
-                                     | pe->pawn_attacks_span(BLACK))
-                                    & (Rank8BB | Rank1BB)))
+                    + 12 * pe->complexity()
                     -103 ;
 
     // Now apply the bonus: note that we find the attacking side by extracting
