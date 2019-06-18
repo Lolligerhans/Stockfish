@@ -89,6 +89,7 @@ public:
   Bitboard pieces(Color c) const;
   Bitboard pieces(Color c, PieceType pt) const;
   Bitboard pieces(Color c, PieceType pt1, PieceType pt2) const;
+  Bitboard pieces(Color c, std::initializer_list<PieceType> pts) const;
   Piece piece_on(Square s) const;
   Square ep_square() const;
   bool empty(Square s) const;
@@ -236,6 +237,12 @@ inline Bitboard Position::pieces(Color c) const {
 
 inline Bitboard Position::pieces(Color c, PieceType pt) const {
   return byColorBB[c] & byTypeBB[pt];
+}
+
+inline Bitboard Position::pieces(Color c, std::initializer_list<PieceType> pts) const {
+  Bitboard b = 0;
+  for (auto pt : pts) b |= byTypeBB[pt];
+  return byColorBB[c] & b;
 }
 
 inline Bitboard Position::pieces(Color c, PieceType pt1, PieceType pt2) const {
