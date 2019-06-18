@@ -247,12 +247,11 @@ void Entry::compute_outposts() &
     constexpr Direction        Down = (Us == WHITE ? SOUTH : NORTH);
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
-    Bitboard const& pat = pawnAttacks[~Us];
 
-    // pawn protected squares in outpost ranks
-    // outside of their pawn attack span
-    outpostSquares[Us] = OutpostRanks & pawnAttacks[Us]
-                       & ~(pat | shift<Down>(pat) | shift<Down+Down>(pat));
+    Bitboard const& pat = pawnAttacks[~Us];
+    Bitboard const atkSpanThem = pat | shift<Down>(pat) | shift<Down+Down>(pat);
+
+    outpostSquares[Us] = OutpostRanks & pawnAttacks[Us] & ~atkSpanThem;
 }
 
 // Explicit template instantiation
