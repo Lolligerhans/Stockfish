@@ -133,6 +133,8 @@ namespace {
   };
 
   // Assorted bonuses and penalties
+  Score Sniper                       = S(20,20);
+  TUNE(Sniper);
   constexpr Score BishopPawns        = S(  3,  7);
   constexpr Score CorneredBishop     = S( 50, 50);
   constexpr Score FlankAttacks       = S(  8,  0);
@@ -183,6 +185,9 @@ namespace {
 
     Bitboard _loose[COLOR_NB];
     auto loose()->void{   _loose[BLACK] = pos.pieces(BLACK, PAWN) & ~ pe->fluent_span<BLACK>(); _loose[WHITE] = pos.pieces(WHITE, PAWN) & ~ pe->fluent_span<WHITE>();}
+
+//    Bitboard _loose;
+//    auto loose()->void{_loose=(pos.pieces(WHITE, PAWN) & ~ pe->fluent_span<WHITE>())|(pos.pieces(BLACK, PAWN) & ~ pe->fluent_span<BLACK>());}
 
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
@@ -400,7 +405,7 @@ namespace {
 //        };
         const Bitboard snipes = b & _loose[Them];
         auto a = (bool(snipes) + more_than_one(snipes));
-        score += make_score(20,0) * a;
+        score += Sniper * a;
 
 //        if (Pt == QUEEN)
 //            dbg_mean_of(a);
