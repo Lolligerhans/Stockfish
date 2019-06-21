@@ -133,7 +133,12 @@ namespace {
   };
 
   // Assorted bonuses and penalties
-  Score Sniper                       = S(20,20);
+  Score Sniper []                       = {
+      S(20,20),
+      S(20,20),
+      S(20,20),
+      S(20,20),
+  };
   TUNE(Sniper);
   constexpr Score BishopPawns        = S(  3,  7);
   constexpr Score CorneredBishop     = S( 50, 50);
@@ -405,7 +410,7 @@ namespace {
 //        };
         const Bitboard snipes = b & _loose[Them];
         auto a = (bool(snipes) + more_than_one(snipes));
-        score += Sniper * a;
+        score += Sniper[Pt-2] * a;
 
 //        if (Pt == QUEEN)
 //            dbg_mean_of(a);
