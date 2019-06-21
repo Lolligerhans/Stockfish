@@ -386,15 +386,24 @@ namespace {
         }
 
         // weak pawn attack bonus
-        constexpr Score bonus[] =
-        {
-            make_score(5,10),
-            make_score(5,15),
-            make_score(5,10),
-            make_score(5,10),
-        };
-        score += bonus[Pt-2] * bool(_loose[Them] & b);
+//        constexpr Score bonus[] =
+//        {
+//            make_score(14,0),
+//            make_score(10,0),
+//            make_score(8,0),
+//            make_score(6,0),
+//
+////            make_score(0,7),
+////            make_score(0,5),
+////            make_score(0,4),
+////            make_score(0,3),
+//        };
+        const Bitboard snipes = b & _loose[Them];
+        auto a = (bool(snipes) + more_than_one(snipes));
+        score += make_score(20,0) * a;
 
+//        if (Pt == QUEEN)
+//            dbg_mean_of(a);
     }
 
     // general outpost bonus

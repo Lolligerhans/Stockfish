@@ -179,16 +179,13 @@ Entry* probe(const Position& pos) {
   return e;
 }
 
-/// Entry::compute_fixed computes a bitboard of squares which could be attacked
-/// by the opponents pawns when advancing. Like pawn_attack_span, it does NOT
-/// account for pawns changing files through captures. Unlike pawn_attack_span,
-/// it DOES account for pawns being blocked or backwards with no hope to advance
-/// on their own.
-///
-/// Apart from the computed fluent_span, also some intermediate values could be
-/// used for bonuses. For example, the untouchable Bitboard is filled with
-/// squares which the algorithm thinks are unlikely to be attacked by an
-/// opponents pawn in the near future.
+// TODO
+//  +------+
+//  | o . .| o  their pawns
+//  | o . .| x  our pawns
+//  | . . .|
+//  | . x .| Our pawn should shut down both of the opponents pawns.
+//  +------+
 
 template<Color Us>
 void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
@@ -324,9 +321,6 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
                 addNewSpan(leftoverSpan); // TODO I think impossible to correct during current iteration
                 untouchable |= onlyRespUntouch;
                 considered  ^= onlyRespUntouch;
-
-                // TODO algorithm for face-off required? (effect?) (need span3 logic i think)
-                // TODO algorithm for pawn-double-attacks required? (how?)(if both are face-to-face = block also 1-span squares)
             }
             totalUntouchable |= untouchable;
         }
