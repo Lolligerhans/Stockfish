@@ -66,11 +66,7 @@ struct Entry {
   int castlingRights[COLOR_NB];
 };
 
-<<<<<<< 889cde6184edf5245b0ecc765fed443e7d17ff84
 typedef HashTable<Entry, 131072> Table;
-=======
-typedef HashTable<Entry, 16384*4> Table;
->>>>>>> fluent king danger + complexity
 
 Entry* probe(const Position& pos);
 
