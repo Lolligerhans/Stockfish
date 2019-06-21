@@ -181,6 +181,9 @@ namespace {
     Bitboard mobilityArea[COLOR_NB];
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
 
+    Bitboard _loose[COLOR_NB];
+    auto loose()->void{   _loose[BLACK] = pos.pieces(BLACK, PAWN) & ~ pe->fluent_span<BLACK>(); _loose[WHITE] = pos.pieces(WHITE, PAWN) & ~ pe->fluent_span<WHITE>();}
+
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
     // is also calculated is ALL_PIECES.
@@ -312,7 +315,7 @@ namespace {
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
-            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->fluent_span<Them>();
+            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
             if (bb & s)
                 score += Outpost * (Pt == KNIGHT ? 2 : 1);
 
@@ -381,6 +384,17 @@ namespace {
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
         }
+
+        // weak pawn attack bonus
+        constexpr Score bonus[] =
+        {
+            make_score(5,10),
+            make_score(5,15),
+            make_score(5,10),
+            make_score(5,10),
+        };
+        score += bonus[Pt-2] * bool(_loose[Them] & b);
+
     }
 
     // general outpost bonus
@@ -855,6 +869,8 @@ namespace {
 
     initialize<WHITE>();
     initialize<BLACK>();
+
+    loose();
 
     // Pieces should be evaluated first (populate attack tables)
     score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
