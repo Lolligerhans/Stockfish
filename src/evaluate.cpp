@@ -133,13 +133,15 @@ namespace {
   };
 
   // Assorted bonuses and penalties
-  Score Sniper []                       = {
-      S(20,20),
-      S(20,20),
-      S(20,20),
-      S(20,20),
+  constexpr Score Sniper [] = {
+//  Score Sniper [] = {
+      S(28,15),
+      S(18,29),
+      S(24,22),
+      S(24,24),
   };
-  TUNE(Sniper);
+//  TUNE(Sniper);
+
   constexpr Score BishopPawns        = S(  3,  7);
   constexpr Score CorneredBishop     = S( 50, 50);
   constexpr Score FlankAttacks       = S(  8,  0);
