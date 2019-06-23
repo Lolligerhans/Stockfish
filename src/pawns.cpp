@@ -180,12 +180,19 @@ Entry* probe(const Position& pos) {
 }
 
 // TODO
-//  +------+
-//  | o . .| o  their pawns
-//  | o . .| x  our pawns
-//  | . . .|
-//  | . x .| Our pawn should shut down both of the opponents pawns.
-//  +------+
+//  +-------+ (1)
+//  | o . . | o  their pawns
+//  | o . . | x  our pawns
+//  | . . . |
+//  | . x . | Our pawn should shut down both of the opponents pawns.
+//  +-------+
+
+// TODO ?
+//  +-------+ (2)
+//  | . . . |
+//  | o . . |
+//  | . x . | Our attacked pawns should not be considered.
+//  +-------+
 
 template<Color Us>
 void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
@@ -209,8 +216,7 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
     Bitboard iterSpan,
              iterSpan1,
              iterSpan2;
-    // next bitboards: online construction for running iteration
-    Bitboard nextSpan   = init,
+    Bitboard nextSpan   = init, // next bitboards: construction for running iteration
              nextSpan2  = init2;
 
     auto const addNewSpan = [&](const Bitboard span)
@@ -232,11 +238,12 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
         // transit iter bbs from last iteration
         getIterSpan();
 
-        // find iinitial iteration untouchables (expanded during shortcut step: step 2)
-        Bitboard faceToFace         = ourPawns & iterSpan1; // pawns facing exactly 1 opponent
-        Bitboard faceOffs           = pawn_attacks_bb<Us> (faceToFace);
+        // 1v1 rule
+        const Bitboard faceToFace   = ourPawns & iterSpan1; // pawns facing exactly 1 opponent
+        const Bitboard faceOffs     = pawn_attacks_bb<Us> (faceToFace);
+        // 2v2 rule
         const Bitboard lowPressure  = ourPawns & ~iterSpan2;
-        Bitboard ganks              = pawn_double_attacks_bb<Us>(lowPressure);
+        const Bitboard ganks        = pawn_double_attacks_bb<Us>(lowPressure);
 
         totalConsidered            |= faceOffs;
         totalConsidered1           |= ganks;
