@@ -36,7 +36,8 @@ struct Entry {
   Score pawn_score(Color c) const { return scores[c]; }
   Bitboard pawn_attacks(Color c) const { return pawnAttacks[c]; }
   Bitboard passed_pawns(Color c) const { return passedPawns[c]; }
-  inline Bitboard outpost_squares(Color c) const { return outpostSquares[c]; }
+  template<Color Us>
+  Bitboard outpost_squares() const&;
   int passed_count() const { return popcount(passedPawns[WHITE] | passedPawns[BLACK]); }
 
   template<Color Us>
@@ -52,17 +53,37 @@ struct Entry {
   void evaluate_shelter(const Position& pos, Square ksq, Score& shelter);
 
   template<Color Us>
-  void compute_outposts(void) &;
+  void compute_outposts(void) const&;
 
   Key key;
   Score scores[COLOR_NB];
   Bitboard passedPawns[COLOR_NB];
   Bitboard pawnAttacks[COLOR_NB];
-  Bitboard outpostSquares[COLOR_NB];
+  mutable Bitboard outpostSquares[COLOR_NB];
   Square kingSquares[COLOR_NB];
   Score kingSafety[COLOR_NB];
   int castlingRights[COLOR_NB];
 };
+
+template<Color Us>
+inline Bitboard Entry::outpost_squares() const&
+{
+    if (outpostSquares[Us] == AllSquares) compute_outposts<Us>();
+    return outpostSquares[Us];
+}
+
+template<Color Us>
+void Entry::compute_outposts() const&
+{
+    constexpr Direction        Down = (Us == WHITE ? SOUTH : NORTH);
+    constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
+                                                   : Rank5BB | Rank4BB | Rank3BB);
+
+    Bitboard const& pat = pawnAttacks[~Us];
+    Bitboard const atkSpanThem = pat | shift<Down>(pat) | shift<Down+Down>(pat);
+
+    outpostSquares[Us] = OutpostRanks & pawnAttacks[Us] & ~atkSpanThem;
+}
 
 typedef HashTable<Entry, 131072> Table;
 
