@@ -53,7 +53,57 @@ namespace Tablebases {
 namespace TB = Tablebases;
 
 using std::string;
-using Eval::evaluate;
+
+namespace
+{
+
+    class Discount
+    {
+        using size_t = int;
+        using discount_t = int; // storing internally as int
+
+        static constexpr size_t size = 1024; // max ply the discounting works for
+        static constexpr discount_t accuracy = 1024 * 16; // ~0.1% accurate discounting
+
+      public:
+        using discount_list_t = std::array<discount_t, size>;
+        using float_t = double; // compute with double precision
+
+        static constexpr float_t discount = 0.999;
+
+      private:
+        discount_list_t l;
+
+        Discount(Discount const&) = delete;
+        Discount& operator=(Discount const&) = delete;
+
+      public:
+        Discount()
+        {
+            float_t d = static_cast<float_t> (accuracy);
+            for (size_t i = 0; i < size; ++i)
+            {
+                l[i] = static_cast<discount_t> (d+.5);
+                d *= discount;
+            }
+        }
+
+        auto operator()(Value const& v, Depth const& d) -> Value
+        {
+            const size_t ply = static_cast<size_t> (d / ONE_PLY);
+            assert(ply < size);
+            return ((v * l[ply]) + (accuracy/2)) / accuracy;
+        }
+    };
+
+    thread_local Discount discount;
+}
+
+auto evaluate(Position const& pos, Depth d) -> Value
+{
+    return discount(Eval::evaluate(pos), d);
+}
+
 using namespace Search;
 
 namespace {
@@ -558,7 +608,7 @@ namespace {
         if (   Threads.stop.load(std::memory_order_relaxed)
             || pos.is_draw(ss->ply)
             || ss->ply >= MAX_PLY)
-            return (ss->ply >= MAX_PLY && !inCheck) ? evaluate(pos)
+            return (ss->ply >= MAX_PLY && !inCheck) ? evaluate(pos, depth)
                                                     : value_draw(depth, pos.this_thread());
 
         // Step 3. Mate distance pruning. Even if we mate at the next move our score
@@ -695,7 +745,7 @@ namespace {
         // Never assume anything on values stored in TT
         ss->staticEval = eval = tte->eval();
         if (eval == VALUE_NONE)
-            ss->staticEval = eval = evaluate(pos);
+            ss->staticEval = eval = evaluate(pos, depth);
 
         // Can ttValue be used as a better position evaluation?
         if (    ttValue != VALUE_NONE
@@ -708,7 +758,7 @@ namespace {
         {
             int bonus = -(ss-1)->statScore / 512;
 
-            ss->staticEval = eval = evaluate(pos) + bonus;
+            ss->staticEval = eval = evaluate(pos, depth) + bonus;
         }
         else
             ss->staticEval = eval = -(ss-1)->staticEval + 2 * Eval::Tempo;
@@ -1247,7 +1297,7 @@ moves_loop: // When in check, search starts from here
     // Check for an immediate draw or maximum ply reached
     if (   pos.is_draw(ss->ply)
         || ss->ply >= MAX_PLY)
-        return (ss->ply >= MAX_PLY && !inCheck) ? evaluate(pos) : VALUE_DRAW;
+        return (ss->ply >= MAX_PLY && !inCheck) ? evaluate(pos, depth) : VALUE_DRAW;
 
     assert(0 <= ss->ply && ss->ply < MAX_PLY);
 
@@ -1283,7 +1333,7 @@ moves_loop: // When in check, search starts from here
         {
             // Never assume anything on values stored in TT
             if ((ss->staticEval = bestValue = tte->eval()) == VALUE_NONE)
-                ss->staticEval = bestValue = evaluate(pos);
+                ss->staticEval = bestValue = evaluate(pos, depth);
 
             // Can ttValue be used as a better position evaluation?
             if (    ttValue != VALUE_NONE
@@ -1292,7 +1342,7 @@ moves_loop: // When in check, search starts from here
         }
         else
             ss->staticEval = bestValue =
-            (ss-1)->currentMove != MOVE_NULL ? evaluate(pos)
+            (ss-1)->currentMove != MOVE_NULL ? evaluate(pos, depth)
                                              : -(ss-1)->staticEval + 2 * Eval::Tempo;
 
         // Stand pat. Return immediately if static value is at least beta
