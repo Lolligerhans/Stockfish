@@ -303,7 +303,9 @@ namespace {
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
-            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
+            bb = OutpostRanks &
+                (attackedBy[Us][PAWN] | (attackedBy[Us][ALL_PIECES] & ~attackedBy[Them][ALL_PIECES])) &
+                ~pe->pawn_attacks_span(Them);
             if (bb & s)
                 score += Outpost * (Pt == KNIGHT ? 2 : 1);
 
@@ -814,10 +816,10 @@ namespace {
     initialize<BLACK>();
 
     // Pieces should be evaluated first (populate attack tables)
-    score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
-            + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
-            + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
+    score +=  pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
+    score +=  pieces<BLACK, BISHOP>(); score -= pieces<WHITE, BISHOP>();
+    score +=  pieces<BLACK, KNIGHT>(); score -= pieces<WHITE, KNIGHT>();
 
     score += mobility[WHITE] - mobility[BLACK];
 
