@@ -389,13 +389,8 @@ namespace {
             : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
             : pos.attacks_from<Pt>(s);
 
-        if (pos.blockers_for_king(Us) & s)
-            // ?
-            b &= LineBB[pos.square<KING>(Us)][s];
-
         Bitboard const secured = attackedBy[Us][PAWN] |
-            (attackedBy[Us][ALL_PIECES] & ~attackedBy[Them][ALL_PIECES]) |
-            (attackedBy2[Us] & ~attackedBy2[Them]);
+            (attackedBy[Us][ALL_PIECES] & ~attackedBy[Them][ALL_PIECES]);
 
         // Bonus if piece is on an outpost square or can reach one
         bb = OutpostRanks & secured & ~pe->pawn_attacks_span(Them);
