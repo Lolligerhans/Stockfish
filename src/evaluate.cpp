@@ -133,6 +133,13 @@ namespace {
   };
 
   // Assorted bonuses and penalties
+  constexpr Score Sniper [] = {
+      S(28,15),
+      S(18,29),
+      S(24,22),
+      S(24,24),
+  };
+
   constexpr Score AttacksOnSpaceArea = S(  4,  0);
   constexpr Score BishopPawns        = S(  3,  7);
   constexpr Score CorneredBishop     = S( 50, 50);
@@ -181,6 +188,13 @@ namespace {
     Pawns::Entry* pe;
     Bitboard mobilityArea[COLOR_NB];
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
+
+    Bitboard _loose[COLOR_NB];
+    auto loose()->void{ _loose[BLACK] = pos.pieces(BLACK, PAWN) & ~ pe->fluent_span<BLACK>();
+                        _loose[WHITE] = pos.pieces(WHITE, PAWN) & ~ pe->fluent_span<WHITE>();}
+
+//    Bitboard _loose;
+//    auto loose()->void{_loose=(pos.pieces(WHITE, PAWN) & ~ pe->fluent_span<WHITE>())|(pos.pieces(BLACK, PAWN) & ~ pe->fluent_span<BLACK>());}
 
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
@@ -231,6 +245,15 @@ namespace {
     // Find our pawns that are blocked or on the first two ranks
     Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
 
+//    const Bitboard restrictors = ((pe->get_fix<Us>()) & (pos.pieces(Them) |
+//                pawn_double_attacks_bb<Them>(pos.pieces(Them, PAWN)))) |
+//        (pos.pieces(Them, PAWN) & pe->pawn_attacks(Them));
+//    Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(restrictors | pos.pieces(Us)) | LowRanks);
+
+//    const Bitboard restrictors = ((~pe->fluent_span<Us>()) & (pos.pieces(Them))) |
+//        (pos.pieces(Them, PAWN) & pe->pawn_attacks(Them));
+//    Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(restrictors | pos.pieces(Us)) | LowRanks);
+
     // Squares occupied by those pawns, by our king or queen or controlled by
     // enemy pawns are excluded from the mobility area.
     mobilityArea[Us] = ~(b | pos.pieces(Us, KING, QUEEN) | pe->pawn_attacks(Them));
@@ -271,6 +294,7 @@ namespace {
     const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
+//    uint_fast8_t outpostCount = 0;
     Score score = SCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
@@ -372,7 +396,43 @@ namespace {
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
         }
+
+        // weak pawn attack bonus
+//        constexpr Score bonus[] =
+//        {
+//            make_score(14,0),
+//            make_score(10,0),
+//            make_score(8,0),
+//            make_score(6,0),
+//
+////            make_score(0,7),
+////            make_score(0,5),
+////            make_score(0,4),
+////            make_score(0,3),
+//        };
+
+        const Bitboard snipes = b & _loose[Them];
+        auto a = (bool(snipes) + more_than_one(snipes));
+        score += Sniper[Pt-2] * a;
     }
+
+    // general outpost bonus
+//    constexpr Score gop = make_score(3,0);  // piece bonus
+//    constexpr Score gpp = make_score(1,2);  // pawn bonus
+//
+//    const Bitboard allPieces = pos.pieces(Us) & ~pe->fluent_span<Them>();
+//    const Bitboard pawns = pos.pieces(Us, PAWN) & ~pe->fluent_span<Them>();
+//    if (allPieces)
+//    {
+//        const uint_fast8_t safePieces = popcount(allPieces);
+//        score += (gop) * (safePieces-outpostCount);
+//    }
+//    if (pawns)
+//    {
+//        const uint_fast8_t safePawns  = popcount(pawns);
+//        score += (gpp - gop) * (safePawns);
+//    }
+
     if (T)
         Trace::add(Pt, Us, score);
 
@@ -468,7 +528,12 @@ namespace {
                  -   6 * mg_value(score) / 8
                  +       mg_value(mobility[Them] - mobility[Us])
                  +   5 * kingFlankAttacks * kingFlankAttacks / 16
-                 -   7;
+//                 +  25 * bool(ksq           & pe->fluent_span<Them> ())
+//                 - 200 * !bool(kingRing[Us] & pe->fluent_span<Them> ())
+                 - (7);
+
+//    dbg_mean_of(50 * bool(ksq & pe->fluent_span<Them>()) + 200 * bool(kingRing[Us] & pe->fluent_span<Them> ()));
+//    Total 124208086 Mean 134.143 o 106.475
 
     // Transform the kingDanger units into a Score, and subtract it from the evaluation
     if (kingDanger > 100)
@@ -740,7 +805,16 @@ namespace {
                     +  9 * outflanking
                     + 18 * pawnsOnBothFlanks
                     + 49 * !pos.non_pawn_material()
-                    -103 ;
+//                    + 10 * (popcount(pe->fluent_span<WHITE> () & Rank8BB)
+//                           +popcount(pe->fluent_span<BLACK> () & Rank1BB))
+                    - (103) ;
+
+//    Total 58821058 Mean -34.5451 o 47.0287 (complexity)
+//    dbg_mean_of(complexity);
+
+//    dbg_mean_of(  20 * bool(pe->fluent_span<WHITE> () & Rank8BB)
+//                + 20 * bool(pe->fluent_span<BLACK> () & Rank1BB));
+//    Total 60084081 Mean 26.176 o 17.4484
 
     // Now apply the bonus: note that we find the attacking side by extracting
     // the sign of the endgame value, and that we carefully cap the bonus so
@@ -812,6 +886,8 @@ namespace {
 
     initialize<WHITE>();
     initialize<BLACK>();
+
+    loose();
 
     // Pieces should be evaluated first (populate attack tables)
     score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
