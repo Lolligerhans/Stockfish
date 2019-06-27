@@ -273,6 +273,8 @@ namespace {
     Bitboard b, bb;
     Score score = SCORE_ZERO;
 
+    Bitboard const weakPawn = pos.pieces(Them, PAWN) & ~ attackedBy[Them][PAWN];
+
     attackedBy[Us][Pt] = 0;
 
     for (Square s = *pl; s != SQ_NONE; s = *++pl)
@@ -350,7 +352,7 @@ namespace {
         {
             // Bonus for aligning rook with enemy pawns on the same rank/file
             if (relative_rank(Us, s) >= RANK_5)
-                score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
+                score += RookOnPawn * popcount(PseudoAttacks[ROOK][s] & weakPawn);
 
             // Bonus for rook on an open or semi-open file
             if (pos.is_on_semiopen_file(Us, s))
