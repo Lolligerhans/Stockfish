@@ -169,6 +169,7 @@ namespace {
   private:
     template<Color Us> void initialize();
     template<Color Us, PieceType Pt> Score pieces();
+    template<Color Us, PieceType Pt> Score pieces2();
     template<Color Us> Score king() const;
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
@@ -266,11 +267,9 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
-    constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
-                                                   : Rank5BB | Rank4BB | Rank3BB);
     const Square* pl = pos.squares<Pt>(Us);
 
-    Bitboard b, bb;
+    Bitboard b;
     Score score = SCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
@@ -302,14 +301,6 @@ namespace {
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
-            // Bonus if piece is on an outpost square or can reach one
-            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
-            if (bb & s)
-                score += Outpost * (Pt == KNIGHT ? 2 : 1);
-
-            else if (bb & b & ~pos.pieces(Us))
-                score += Outpost / (Pt == KNIGHT ? 1 : 2);
-
             // Knight and Bishop bonus for being right behind a pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
                 score += MinorBehindPawn;
@@ -379,6 +370,44 @@ namespace {
     return score;
   }
 
+  // Evaluation::pieces() scores pieces of a given color and type
+  template<Tracing T> template<Color Us, PieceType Pt>
+  Score Evaluation<T>::pieces2() {
+
+    constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
+    constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
+                                                   : Rank5BB | Rank4BB | Rank3BB);
+    const Square* pl = pos.squares<Pt>(Us);
+
+    Bitboard b, bb;
+    Score score = SCORE_ZERO;
+
+    for (Square s = *pl; s != SQ_NONE; s = *++pl)
+    {
+        // Find attacked squares, including x-ray attacks for bishops and rooks
+        b = Pt == BISHOP ? attacks_bb<BISHOP>(s, pos.pieces() ^ pos.pieces(QUEEN))
+            : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
+            : pos.attacks_from<Pt>(s);
+
+        if (pos.blockers_for_king(Us) & s)
+            // ?
+            b &= LineBB[pos.square<KING>(Us)][s];
+
+        Bitboard const secured = attackedBy[Us][PAWN] |
+            (attackedBy[Us][ALL_PIECES] & ~attackedBy[Them][ALL_PIECES]) |
+            (attackedBy2[Us] & ~attackedBy2[Them]);
+
+        // Bonus if piece is on an outpost square or can reach one
+        bb = OutpostRanks & secured & ~pe->pawn_attacks_span(Them);
+        if (bb & s)
+            score += Outpost * (Pt == KNIGHT ? 2 : 1);
+
+        else if (bb & b & ~pos.pieces(Us))
+            score += Outpost / (Pt == KNIGHT ? 1 : 2);
+    }
+
+    return score;
+  }
 
   // Evaluation::king() assigns bonuses and penalties to a king of a given color
   template<Tracing T> template<Color Us>
@@ -820,6 +849,9 @@ namespace {
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
     score += mobility[WHITE] - mobility[BLACK];
+
+    score +=  pieces2<WHITE, KNIGHT>() - pieces2<BLACK, KNIGHT>()
+            + pieces2<WHITE, BISHOP>() - pieces2<BLACK, BISHOP>();
 
     score +=  king<   WHITE>() - king<   BLACK>()
             + threats<WHITE>() - threats<BLACK>()
