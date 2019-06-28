@@ -133,6 +133,13 @@ namespace {
   };
 
   // Assorted bonuses and penalties
+  constexpr Score Sniper [] = {
+      S(28,15),
+      S(18,29),
+      S(24,22),
+      S(24,24),
+  };
+
   constexpr Score AttacksOnSpaceArea = S(  4,  0);
   constexpr Score BishopPawns        = S(  3,  7);
   constexpr Score CorneredBishop     = S( 50, 50);
@@ -181,6 +188,11 @@ namespace {
     Pawns::Entry* pe;
     Bitboard mobilityArea[COLOR_NB];
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
+
+    Bitboard _loose[COLOR_NB];
+    auto loose()->void{ _loose[BLACK] = pos.pieces(BLACK, PAWN) & ~ pe->pawn_attacks_span(BLACK);
+                        _loose[WHITE] = pos.pieces(WHITE, PAWN) & ~ pe->pawn_attacks_span(BLACK); }
+
 
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
@@ -372,6 +384,10 @@ namespace {
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
         }
+
+        const Bitboard snipes = b & _loose[Them];
+        auto a = (bool(snipes) + more_than_one(snipes));
+        score += Sniper[Pt-2] * a;
     }
     if (T)
         Trace::add(Pt, Us, score);
@@ -812,6 +828,8 @@ namespace {
 
     initialize<WHITE>();
     initialize<BLACK>();
+
+    loose();
 
     // Pieces should be evaluated first (populate attack tables)
     score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
