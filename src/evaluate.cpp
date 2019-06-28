@@ -412,7 +412,7 @@ namespace {
 //        };
 
         const Bitboard snipes = b & _loose[Them];
-        auto a = (bool(snipes) + more_than_one(snipes));
+        int a = (bool(snipes));
         score += Sniper[Pt-2] * a;
     }
 
