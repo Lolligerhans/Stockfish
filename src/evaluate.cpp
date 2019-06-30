@@ -394,14 +394,14 @@ namespace {
       Score score = SCORE_ZERO;
 
     // general outpost bonus
-//    constexpr Bitboard orb = (Us == WHITE ? Rank3BB | Rank4BB | Rank5BB | Rank6BB | Rank7BB | Rank8BB : Rank1BB | Rank2BB | Rank3BB | Rank4BB | Rank5BB | Rank6BB );
+    constexpr Bitboard orb = (Us == WHITE ? Rank3BB | Rank4BB | Rank5BB | Rank6BB | Rank7BB | Rank8BB : Rank1BB | Rank2BB | Rank3BB | Rank4BB | Rank5BB | Rank6BB );
     constexpr Score gop = make_score(21,7);  // piece bonus
     constexpr Score gpp = make_score(0,0);  // pawn bonus
 
-//    const Bitboard allPieces = pos.pieces(Us) & ~pe->fluent_span<Them>() & orb;
-//    const Bitboard pawns = pos.pieces(Us, PAWN) & ~pe->fluent_span<Them>() & orb;
-    const Bitboard allPieces = pos.pieces(Us) & ~pe->fluent_span<Them>();
-    const Bitboard pawns = pos.pieces(Us, PAWN) & ~pe->fluent_span<Them>();
+    const Bitboard allPieces = pos.pieces(Us) & ~pe->fluent_span<Them>() & orb;
+    const Bitboard pawns = pos.pieces(Us, PAWN) & ~pe->fluent_span<Them>() & orb;
+//    const Bitboard allPieces = pos.pieces(Us) & ~pe->fluent_span<Them>();
+//    const Bitboard pawns = pos.pieces(Us, PAWN) & ~pe->fluent_span<Them>();
     if (allPieces)
     {
         const int safePieces = popcount(allPieces);
