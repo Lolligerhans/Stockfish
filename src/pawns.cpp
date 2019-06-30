@@ -96,7 +96,8 @@ namespace {
 
         Rank r = relative_rank(Us, s);
 
-        e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
+        if (!(theirPawns & (s+Up)))
+            e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
 
         // Flag the pawn
         opposed    = theirPawns & forward_file_bb(Us, s);
