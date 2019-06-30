@@ -176,6 +176,7 @@ namespace {
   private:
     template<Color Us> void initialize();
     template<Color Us, PieceType Pt> Score pieces();
+    template<Color Us> Score test();
     template<Color Us> Score king() const;
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
@@ -189,9 +190,11 @@ namespace {
     Bitboard mobilityArea[COLOR_NB];
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
 
-    Bitboard _loose[COLOR_NB];
-    auto loose()->void{ _loose[BLACK] = pos.pieces(BLACK, PAWN) & ~ pe->fluent_span<BLACK>();
-                        _loose[WHITE] = pos.pieces(WHITE, PAWN) & ~ pe->fluent_span<WHITE>();}
+    int outpostCount[COLOR_NB];
+
+//    Bitboard _loose[COLOR_NB];
+//    auto loose()->void{ _loose[BLACK] = pos.pieces(BLACK, PAWN) & ~ pe->fluent_span<BLACK>();
+//                        _loose[WHITE] = pos.pieces(WHITE, PAWN) & ~ pe->fluent_span<WHITE>();}
 
 //    Bitboard _loose;
 //    auto loose()->void{_loose=(pos.pieces(WHITE, PAWN) & ~ pe->fluent_span<WHITE>())|(pos.pieces(BLACK, PAWN) & ~ pe->fluent_span<BLACK>());}
@@ -280,6 +283,8 @@ namespace {
 
     // Remove from kingRing[] the squares defended by two pawns
     kingRing[Us] &= ~dblAttackByPawn;
+
+    outpostCount[Us] = 0;
   }
 
 
@@ -294,7 +299,7 @@ namespace {
     const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
-//    uint_fast8_t outpostCount = 0;
+
     Score score = SCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
@@ -327,11 +332,13 @@ namespace {
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
-            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
+            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->fluent_span<Them>();
             if (bb & s)
+//                score += Outpost * (Pt == KNIGHT ? 2 : 1), ++outpostCount[Us];
                 score += Outpost * (Pt == KNIGHT ? 2 : 1);
 
             else if (bb & b & ~pos.pieces(Us))
+//                score += Outpost / (Pt == KNIGHT ? 1 : 2), ++outpostCount[Us];
                 score += Outpost / (Pt == KNIGHT ? 1 : 2);
 
             // Knight and Bishop bonus for being right behind a pawn
@@ -397,6 +404,25 @@ namespace {
                 score -= WeakQueen;
         }
 
+    }
+
+//    const Bitboard snipes = b & _loose[Them];
+//    int a = (bool(snipes) + more_than_one(snipes));
+//    score += Sniper[Pt-2] * a;
+
+    if (T)
+        Trace::add(Pt, Us, score);
+
+    return score;
+  }
+
+  template<Tracing T> template<Color Us>
+  Score Evaluation<T>::test() {
+
+      constexpr Color Them = ~Us;
+
+      Score score = SCORE_ZERO;
+
         // weak pawn attack bonus
 //        constexpr Score bonus[] =
 //        {
@@ -410,35 +436,30 @@ namespace {
 ////            make_score(0,4),
 ////            make_score(0,3),
 //        };
-
-        const Bitboard snipes = b & _loose[Them];
-        int a = (bool(snipes));
-        score += Sniper[Pt-2] * a;
-    }
+      return score;
 
     // general outpost bonus
-//    constexpr Score gop = make_score(3,0);  // piece bonus
-//    constexpr Score gpp = make_score(1,2);  // pawn bonus
-//
-//    const Bitboard allPieces = pos.pieces(Us) & ~pe->fluent_span<Them>();
-//    const Bitboard pawns = pos.pieces(Us, PAWN) & ~pe->fluent_span<Them>();
-//    if (allPieces)
-//    {
-//        const uint_fast8_t safePieces = popcount(allPieces);
-//        score += (gop) * (safePieces-outpostCount);
-//    }
-//    if (pawns)
-//    {
-//        const uint_fast8_t safePawns  = popcount(pawns);
-//        score += (gpp - gop) * (safePawns);
-//    }
+//    constexpr Bitboard orb = (Us == WHITE ? Rank3BB | Rank4BB | Rank5BB | Rank6BB | Rank7BB | Rank8BB : Rank1BB | Rank2BB | Rank3BB | Rank4BB | Rank5BB | Rank6BB );
+    constexpr Score gop = make_score(21,7);  // piece bonus
+    constexpr Score gpp = make_score(0,0);  // pawn bonus
 
-    if (T)
-        Trace::add(Pt, Us, score);
+//    const Bitboard allPieces = pos.pieces(Us) & ~pe->fluent_span<Them>() & orb;
+//    const Bitboard pawns = pos.pieces(Us, PAWN) & ~pe->fluent_span<Them>() & orb;
+    const Bitboard allPieces = pos.pieces(Us) & ~pe->fluent_span<Them>();
+    const Bitboard pawns = pos.pieces(Us, PAWN) & ~pe->fluent_span<Them>();
+    if (allPieces)
+    {
+        const int safePieces = popcount(allPieces);
+        score += (gop) * (safePieces-outpostCount[Us]);
+    }
+    if (pawns)
+    {
+        const int safePawns  = popcount(pawns);
+        score += (gpp - gop) * (safePawns);
+    }
 
-    return score;
+
   }
-
 
   // Evaluation::king() assigns bonuses and penalties to a king of a given color
   template<Tracing T> template<Color Us>
@@ -887,7 +908,7 @@ namespace {
     initialize<WHITE>();
     initialize<BLACK>();
 
-    loose();
+//    loose();
 
     // Pieces should be evaluated first (populate attack tables)
     score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
@@ -896,6 +917,8 @@ namespace {
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
     score += mobility[WHITE] - mobility[BLACK];
+
+    score += test<WHITE>() - test<BLACK>();
 
     score +=  king<   WHITE>() - king<   BLACK>()
             + threats<WHITE>() - threats<BLACK>()
