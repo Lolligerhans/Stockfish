@@ -170,6 +170,8 @@ Entry* probe(const Position& pos) {
   e->key = key;
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
+  const Bitboard p = e->passedPawns[WHITE] | e->passedPawns[BLACK];
+  e->passers = p ? popcount(p) : 0;
 
   return e;
 }

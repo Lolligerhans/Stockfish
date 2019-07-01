@@ -33,11 +33,21 @@ namespace Pawns {
 
 struct Entry {
 
+  Key key;
+  Score scores[COLOR_NB];
+  Bitboard passedPawns[COLOR_NB];
+  Bitboard pawnAttacks[COLOR_NB];
+  Bitboard pawnAttacksSpan[COLOR_NB];
+  Square kingSquares[COLOR_NB];
+  Score kingSafety[COLOR_NB];
+  int_least8_t castlingRights[COLOR_NB];
+  int_least8_t passers;
+
   Score pawn_score(Color c) const { return scores[c]; }
   Bitboard pawn_attacks(Color c) const { return pawnAttacks[c]; }
   Bitboard passed_pawns(Color c) const { return passedPawns[c]; }
   Bitboard pawn_attacks_span(Color c) const { return pawnAttacksSpan[c]; }
-  int passed_count() const { return popcount(passedPawns[WHITE] | passedPawns[BLACK]); }
+  auto passed_count() const -> decltype(passers) { return passers; }
 
   template<Color Us>
   Score king_safety(const Position& pos) {
@@ -51,14 +61,6 @@ struct Entry {
   template<Color Us>
   void evaluate_shelter(const Position& pos, Square ksq, Score& shelter);
 
-  Key key;
-  Score scores[COLOR_NB];
-  Bitboard passedPawns[COLOR_NB];
-  Bitboard pawnAttacks[COLOR_NB];
-  Bitboard pawnAttacksSpan[COLOR_NB];
-  Square kingSquares[COLOR_NB];
-  Score kingSafety[COLOR_NB];
-  int castlingRights[COLOR_NB];
 };
 
 typedef HashTable<Entry, 131072> Table;
