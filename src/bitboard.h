@@ -297,6 +297,12 @@ inline int popcount(Bitboard b) {
 #endif
 }
 
+inline int_fast8_t fastcount(Bitboard b)
+{
+    using t = int_fast8_t;
+    return t(bool(b)) + t(more_than_one(b));
+}
+
 
 /// lsb() and msb() return the least/most significant bit in a non-zero bitboard
 

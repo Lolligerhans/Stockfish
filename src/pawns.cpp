@@ -85,7 +85,7 @@ namespace {
     e->pawnAttacks[Us] = pawn_attacks_bb<Us>(ourPawns);
 
     // Unsupported enemy pawns attacked twice by us
-    score += Attacked2Unsupported * popcount(  theirPawns
+    score += Attacked2Unsupported * fastcount(  theirPawns
                                              & pawn_double_attacks_bb<Us>(ourPawns)
                                              & ~pawn_attacks_bb<Them>(theirPawns));
 
@@ -118,7 +118,7 @@ namespace {
         // which could become passed after one or two pawn pushes when are
         // not attacked more times than defended.
         if (   !(stoppers ^ lever) ||
-              (!(stoppers ^ leverPush) && popcount(phalanx) >= popcount(leverPush)))
+              (!(stoppers ^ leverPush) && fastcount(phalanx) >= fastcount(leverPush)))
             e->passedPawns[Us] |= s;
 
         else if (stoppers == square_bb(s + Up) && r >= RANK_5)
@@ -133,7 +133,7 @@ namespace {
         if (support | phalanx)
         {
             int v =  Connected[r] * (phalanx ? 3 : 2) / (opposed ? 2 : 1)
-                   + 17 * popcount(support);
+                   + 17 * fastcount(support);
 
             score += make_score(v, v * (r - 2) / 4);
         }
