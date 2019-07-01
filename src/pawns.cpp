@@ -80,7 +80,7 @@ namespace {
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-    e->passedPawns[Us] = e->pawnAttacksSpan[Us] = 0;
+    e->passedPawns[Us] = e->smartSpan[Us] = 0;
     e->kingSquares[Us] = SQ_NONE;
     e->pawnAttacks[Us] = pawn_attacks_bb<Us>(ourPawns);
 
@@ -99,8 +99,8 @@ namespace {
         Rank r = relative_rank(Us, s);
 
         const Bitboard span = pawn_attack_span(Us, s);
-        sp2 |= e->pawnAttacksSpan[Us] & span;
-        e->pawnAttacksSpan[Us] |= span;
+        sp2 |= e->smartSpan[Us] & span;
+        e->smartSpan[Us] |= span;
 
 
         // Flag the pawn
@@ -206,7 +206,7 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
     // inputs
     const Bitboard ourPawns     = pos.pieces(Us, PAWN);
     const Bitboard theirPawns   = pos.pieces(Them, PAWN);
-    const Bitboard init         = this->pawnAttacksSpan[Them];
+    const Bitboard init         = this->smartSpan[Them];
     const Bitboard init2        = sp2; // squares challenged by more than 1 opponent in current configuration
 
     // total bitboards
@@ -378,7 +378,8 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
     return;
 
 nospan:
-    this->smartSpan[Them] = this->pawnAttacksSpan[Them];
+    /* nothing */
+//    this->smartSpan[Them] = this->pawnAttacksSpan[Them];
     return;
 
 }

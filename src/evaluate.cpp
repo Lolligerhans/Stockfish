@@ -169,7 +169,7 @@ namespace {
   private:
     template<Color Us> void initialize();
     template<Color Us, PieceType Pt> Score pieces();
-    template<Color Us> Score test();
+    template<Color Us> Score test() const;
     template<Color Us> Score king() const;
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
@@ -260,8 +260,6 @@ namespace {
 
     // Remove from kingRing[] the squares defended by two pawns
     kingRing[Us] &= ~dblAttackByPawn;
-
-    outpostCount[Us] = 0;
   }
 
 
@@ -309,7 +307,7 @@ namespace {
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
-            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->fluent_span(Them);
+            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->fluent_span<Them>();
             if (bb & s)
                 score += Outpost * (Pt == KNIGHT ? 2 : 1), ++outpostCount[Us];
 
@@ -387,7 +385,7 @@ namespace {
   }
 
   template<Tracing T> template<Color Us>
-  Score Evaluation<T>::test() {
+  Score Evaluation<T>::test() const {
 
       constexpr Color Them = ~Us;
 
@@ -856,8 +854,6 @@ namespace {
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
     score += mobility[WHITE] - mobility[BLACK];
-
-    score += test<WHITE>() - test<BLACK>();
 
     score +=  king<   WHITE>() - king<   BLACK>()
             + threats<WHITE>() - threats<BLACK>()
