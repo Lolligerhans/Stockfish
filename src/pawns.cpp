@@ -85,10 +85,10 @@ namespace {
     e->pawnAttacks[Us] = pawn_attacks_bb<Us>(ourPawns);
 
     // Unsupported enemy pawns attacked twice by us
-    score += Attacked2Unsupported * popcount(  theirPawns
+    score += Attacked2Unsupported/2 * popcount(  theirPawns
                                              & pawn_double_attacks_bb<Us>(ourPawns)
                                              & ~pawn_attacks_bb<Them>(theirPawns));
-    score -= Attacked2Unsupported * popcount(
+    score -= Attacked2Unsupported/2 * popcount(
             theirPawns &
             pawn_attacks_bb<Us>(ourPawns & ~e->pawnAttacks[Us]));
 
