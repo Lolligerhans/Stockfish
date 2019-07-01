@@ -309,7 +309,7 @@ namespace {
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
-            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
+            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->fluent_span(Them);
             if (bb & s)
                 score += Outpost * (Pt == KNIGHT ? 2 : 1), ++outpostCount[Us];
 
@@ -398,7 +398,7 @@ namespace {
     constexpr Score gop = make_score(18,6);  // piece bonus
 //    constexpr Score gpp = make_score(0,0);  // pawn bonus
 
-    const Bitboard allPieces = (pos.pieces(Us) ^ (pos.pieces(Us, PAWN, KING))) & ~pe->fluent_span<Them>() & orb;
+    const Bitboard allPieces = (pos.pieces(Us) ^ (pos.pieces(Us, PAWN))) & ~pe->fluent_span<Them>() & orb;
 //    const Bitboard pawns = pos.pieces(Us, PAWN) & ~pe->fluent_span<Them>() & orb;
 //    const Bitboard allPieces = pos.pieces(Us) & ~pe->fluent_span<Them>();
 //    const Bitboard pawns = pos.pieces(Us, PAWN) & ~pe->fluent_span<Them>();
