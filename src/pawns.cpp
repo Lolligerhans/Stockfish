@@ -170,7 +170,12 @@ Entry* probe(const Position& pos) {
   e->key = key;
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
-  e->comp = popcount(( e->pawn_attacks_span(WHITE)
+  // note: as long as we have usual little or big endianess this works as the
+  // first byte is always outside OutpostRanks (overwriting it does not have
+  // any effect on eval).
+  // Only when some esoteric memory is used this could fail.
+  // If the added memory is the problem this should fix it (?).
+  *(int8_t*)(&e->pawnAttacksSpan[WHITE]) = (int8_t) popcount(( e->pawn_attacks_span(WHITE)
                      | e->pawn_attacks_span(BLACK))
                       & (Rank8BB | Rank1BB));
 
