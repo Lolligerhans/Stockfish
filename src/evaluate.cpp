@@ -301,7 +301,7 @@ namespace {
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         // no escape
-        constexpr Score NoEscape = make_score(10,50); // size of penalty??
+        constexpr Score NoEscape = make_score(50,0); // size of penalty??
         const Bitboard freedom = ~pe->pawn_attacks_span(Them) | pe->pawn_attacks_span(Us);
         if (!(b & freedom))
             score -= NoEscape; // problem: possibly mostly applies for pinned pieces
