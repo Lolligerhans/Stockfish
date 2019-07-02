@@ -302,7 +302,7 @@ namespace {
 
         // no escape
         constexpr Score NoEscape = make_score(10,50); // size of penalty??
-        const Bitboard freedom = ~pe->pawn_attacks_span(Them);
+        const Bitboard freedom = ~pe->pawn_attacks_span(Them) | pe->pawn_attacks_span(Us);
         if (!(b & freedom))
             score -= NoEscape; // problem: possibly mostly applies for pinned pieces
 
