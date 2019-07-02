@@ -267,11 +267,22 @@ namespace {
     constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
+
+    Score score = SCORE_ZERO;
+
+    if (Pt == PAWN)
+    {
+        constexpr Score Block = make_score(18,6);
+
+        Bitboard blockable = pos.pieces(Us, PAWN) & ~shift<Down>(pe->fluent_span<Us>());
+        score -= Block * popcount(blockable & shift<Down>(pos.pieces(Them)));
+
+        return score;
+    }
+
     const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
-
-    Score score = SCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
 
@@ -817,7 +828,8 @@ namespace {
     score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
             + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
-            + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
+            + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >()
+            + pieces<WHITE, PAWN  >() - pieces<BLACK, PAWN  >();
 
     score += mobility[WHITE] - mobility[BLACK];
 
