@@ -300,6 +300,12 @@ namespace {
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
+        // no escape
+        constexpr Score NoEscape = make_score(10,50); // size of penalty??
+        const Bitboard freedom = ~pe->pawn_attacks_span(Them);
+        if (!(b & freedom))
+            score -= NoEscape; // problem: possibly mostly applies for pinned pieces
+
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
