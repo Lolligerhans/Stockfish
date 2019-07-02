@@ -298,13 +298,14 @@ namespace {
 
         int mob = popcount(b & mobilityArea[Us]);
 
-        mobility[Us] += MobilityBonus[Pt - 2][mob];
-
         // no escape
-        constexpr Score NoEscape = make_score(50,0); // size of penalty??
-        const Bitboard freedom = ~pe->pawn_attacks_span(Them) | pe->pawn_attacks_span(Us);
-        if (!(b & freedom))
-            score -= NoEscape; // problem: possibly mostly applies for pinned pieces
+        const Bitboard freedom = /*~pe->pawn_attacks_span(Them) |*/ pe->pawn_attacks_span(Us);
+
+        if (b & freedom)
+            mobility[Us] += MobilityBonus[Pt-2][mob];
+        else
+            mobility[Us] += MobilityBonus[Pt-2][std::max(0, mob-2)];
+
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
