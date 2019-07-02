@@ -468,7 +468,11 @@ namespace {
                  -   6 * mg_value(score) / 8
                  +       mg_value(mobility[Them] - mobility[Us])
                  +   5 * kingFlankAttacks * kingFlankAttacks / 16
-                 - (7);
+                 - 200 * !bool(attackedBy[Us][KING] & pe->fluent_span<Them> ())
+                 - (7 + 75);
+
+//    dbg_mean_of(-200 * !bool(attackedBy[Us][KING] & pe->fluent_span<Them> ()));
+//    Total 118205368 Mean -74.6103 o 96.7231
 
     // Transform the kingDanger units into a Score, and subtract it from the evaluation
     if (kingDanger > 100)
