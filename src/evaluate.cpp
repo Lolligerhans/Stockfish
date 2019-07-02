@@ -469,7 +469,7 @@ namespace {
                  +       mg_value(mobility[Them] - mobility[Us])
                  +   5 * kingFlankAttacks * kingFlankAttacks / 16
                  - 200 * !bool(attackedBy[Us][KING] & pe->fluent_span<Them> ())
-                 - (7 - 75);
+                 - (7);
 
 //    dbg_mean_of(-200 * !bool(attackedBy[Us][KING] & pe->fluent_span<Them> ()));
 //    Total 118205368 Mean -74.6103 o 96.7231
