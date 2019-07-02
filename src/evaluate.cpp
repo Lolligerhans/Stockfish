@@ -285,9 +285,12 @@ namespace {
         if (pos.blockers_for_king(Us) & s)
             b &= LineBB[pos.square<KING>(Us)][s];
 
+        if (!(attackedBy[Them][PAWN] & s)) // maybe exclude attacks from pinned pawns
+        {
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
         attackedBy[Us][Pt] |= b;
         attackedBy[Us][ALL_PIECES] |= b;
+        }
 
         if (b & kingRing[Them])
         {
