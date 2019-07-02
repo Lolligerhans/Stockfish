@@ -272,7 +272,7 @@ namespace {
 
     if (Pt == PAWN)
     {
-        constexpr Score Block = make_score(18,6);
+        constexpr Score Block = make_score(18,9);
 
         Bitboard blockable = pos.pieces(Us, PAWN) & ~shift<Down>(pe->fluent_span<Us>());
         score -= Block * popcount(blockable & shift<Down>(pos.pieces(Them)));
