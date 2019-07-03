@@ -195,8 +195,6 @@ namespace {
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
 
-    Bitboard ninja[COLOR_NB];
-
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
     int kingAttackersCount[COLOR_NB];
@@ -259,8 +257,6 @@ namespace {
 
     // Remove from kingRing[] the squares defended by two pawns
     kingRing[Us] &= ~dblAttackByPawn;
-
-    ninja[Us] = 0;
   }
 
 
@@ -275,7 +271,7 @@ namespace {
                                                    : Rank5BB | Rank4BB | Rank3BB);
     const Square* pl = pos.squares<Pt>(Us);
 
-    Bitboard b, bb;
+    Bitboard b, bb, ninja = 0;
     Score score = SCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
@@ -294,16 +290,18 @@ namespace {
         {
             // ninja attack behind our pawn
             bb = b & forward_file_bb(Us, s) & pos.pieces(Us, PAWN);
-            ninja[Us] |= shift<Up>(bb) & ~pos.pieces();
+            ninja |= shift<Up>(bb) & ~pos.pieces();
 
             // ninja attack behind their pawn
             bb = b & forward_file_bb(Them, s) & pos.pieces(Them, PAWN);
-            ninja[Us] |= shift<Down>(bb) & ~pos.pieces();
+            ninja |= shift<Down>(bb) & ~pos.pieces();
         }
 
-        attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
-        attackedBy[Us][Pt] |= b;
-        attackedBy[Us][ALL_PIECES] |= b;
+        ninja |= b;
+
+        attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & ninja;
+        attackedBy[Us][Pt] |= ninja;
+        attackedBy[Us][ALL_PIECES] |= ninja;
 
         if (b & kingRing[Them])
         {
@@ -621,7 +619,7 @@ namespace {
       return std::min(distance(pos.square<KING>(c), s), 5);
     };
 
-    Bitboard b, squaresToQueen, defendedSquares, unsafeSquares;
+    Bitboard b, bb, squaresToQueen, defendedSquares, unsafeSquares;
     Score score = SCORE_ZERO;
 
     b = pe->passed_pawns(Us);
@@ -655,9 +653,13 @@ namespace {
                 defendedSquares = squaresToQueen = forward_file_bb(Us, s);
                 unsafeSquares = passed_pawn_span(Us, s);
 
-                defendedSquares &= attackedBy[Us][ALL_PIECES] | ninja[Us];
+                bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN);
 
-                unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them) | ninja[Them];
+                if (!(pos.pieces(Us) & bb))
+                    defendedSquares &= attackedBy[Us][ALL_PIECES];
+
+                if (!(pos.pieces(Them) & bb))
+                    unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
 
                 // If there are no enemy attacks on passed pawn span, assign a big bonus.
                 // Otherwise assign a smaller bonus if the path to queen is not attacked
