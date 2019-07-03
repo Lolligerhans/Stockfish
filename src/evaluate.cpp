@@ -275,7 +275,7 @@ namespace {
     {
         constexpr Score Block = make_score(25,10);
 
-        Bitboard blockable = (pos.pieces(Us, PAWN)) & ~(pe->fluent_span<Us>());
+        Bitboard blockable = (pos.pieces(Us, PAWN)) & ~(pe->fluent_span<Us>() | shift<Down>(pe->fluent_span<Us>()));
         score -= Block * popcount(blockable & (
 //                                               pos.pieces(Them)
                                                 (attackedBy[Them][ALL_PIECES] & ~attackedBy[Us][ALL_PIECES])
