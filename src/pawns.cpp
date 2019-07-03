@@ -96,8 +96,6 @@ namespace {
 
         Rank r = relative_rank(Us, s);
 
-        e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
-
         // Flag the pawn
         opposed    = theirPawns & forward_file_bb(Us, s);
         stoppers   = theirPawns & passed_pawn_span(Us, s);
@@ -136,12 +134,21 @@ namespace {
                    + 17 * popcount(support);
 
             score += make_score(v, v * (r - 2) / 4);
+
+            e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
         }
         else if (!neighbours)
+        {
             score -= Isolated + WeakUnopposed * int(!opposed);
+            e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s); // ?
+//            e->pawnAttacksSpan[Us] |= pawnAttacks[Us][s]; // ?
+        }
 
         else if (backward)
+        {
             score -= Backward + WeakUnopposed * int(!opposed);
+//            e->pawnAttacksSpan[Us] |= pawnAttacks[Us][s]; // ?
+        }
 
         if (doubled && !support)
             score -= Doubled;
