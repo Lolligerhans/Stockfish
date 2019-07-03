@@ -292,13 +292,17 @@ namespace {
 
         if (Pt == ROOK || Pt == QUEEN)
         {
+            const Bitboard noPiece = ~pos.pieces();
+
             // ninja attack behind our pawn
             bb = b & forward_file_bb(Us, s) & pos.pieces(Us, PAWN);
-            ninja[Us] |= shift<Up>(bb) & ~pos.pieces();
+            while ((bb = shift<Up>(bb) & ~noPiece))
+                ninja[Us] |= bb;
 
             // ninja attack behind their pawn
             bb = b & forward_file_bb(Them, s) & pos.pieces(Them, PAWN);
-            ninja[Us] |= shift<Down>(bb) & ~pos.pieces();
+            while ((bb = shift<Down>(bb) & ~noPiece))
+                ninja[Them] |= bb;
         }
 
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
