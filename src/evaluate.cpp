@@ -273,10 +273,10 @@ namespace {
 
     if (Pt == PAWN)
     {
-        constexpr Score Block = make_score(25,5);
+        constexpr Score Block = MinorBehindPawn;
 
-        Bitboard blockable = shift<Up>(pos.pieces(Us, PAWN)) & ~(pe->fluent_span<Us>()); // not if blocked by pawn
-        score -= Block * popcount(blockable & ( pos.pieces(Them) // not by pawn
+        Bitboard blockable = shift<Up>(pos.pieces(Us, PAWN)) & ~(pe->fluent_span<Us>() | pos.pieces(PAWN));
+        score -= Block * popcount(blockable & ( pos.pieces(Them)
 //                                              |(attackedBy[Them][ALL_PIECES] & ~attackedBy[Us][ALL_PIECES])
 //                                              |(attackedBy2[Them] & ~attackedBy[Us][ALL_PIECES])
                                               ));
