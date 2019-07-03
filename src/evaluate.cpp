@@ -302,7 +302,7 @@ namespace {
             // ninja attack behind their pawn
             bb = b & forward_file_bb(Them, s) & pos.pieces(Them, PAWN);
             while ((bb = shift<Down>(bb) & ~noPiece))
-                ninja[Them] |= bb;
+                ninja[Us] |= bb;
         }
 
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
