@@ -128,27 +128,27 @@ namespace {
         }
 
         // Score this pawn
+        bool span = true;
         if (support | phalanx)
         {
             int v =  Connected[r] * (phalanx ? 3 : 2) / (opposed ? 2 : 1)
                    + 17 * popcount(support);
 
             score += make_score(v, v * (r - 2) / 4);
-
-            e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
         }
         else if (!neighbours)
-        {
             score -= Isolated + WeakUnopposed * int(!opposed);
-            e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s); // ?
-//            e->pawnAttacksSpan[Us] |= pawnAttacks[Us][s]; // ?
-        }
 
         else if (backward)
         {
             score -= Backward + WeakUnopposed * int(!opposed);
-//            e->pawnAttacksSpan[Us] |= pawnAttacks[Us][s]; // ?
+            span = false;
         }
+
+        if (span)
+            e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
+//        else
+//            e->pawnAttacksSpan[Us] |= pawnAttacks[s]; // ?
 
         if (doubled && !support)
             score -= Doubled;
