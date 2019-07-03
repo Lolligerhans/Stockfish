@@ -52,7 +52,7 @@ struct Entry {
   void evaluate_shelter(const Position& pos, Square ksq, Score& shelter);
 
   template<Color Us>
-  void compute_outposts(void) &;
+  void compute_outposts(Position const&) &;
 
   Key key;
   Score scores[COLOR_NB];
