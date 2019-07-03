@@ -128,7 +128,6 @@ namespace {
         }
 
         // Score this pawn
-        bool span = true;
         if (support | phalanx)
         {
             int v =  Connected[r] * (phalanx ? 3 : 2) / (opposed ? 2 : 1)
@@ -140,15 +139,12 @@ namespace {
             score -= Isolated + WeakUnopposed * int(!opposed);
 
         else if (backward)
-        {
             score -= Backward + WeakUnopposed * int(!opposed);
-            span = false;
-        }
 
-        if (span)
-            e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
-        else
+        if (backward)
             e->pawnAttacksSpan[Us] |= PawnAttacks[Us][s];
+        else
+            e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
 
         if (doubled && !support)
             score -= Doubled;
