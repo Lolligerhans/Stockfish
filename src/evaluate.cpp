@@ -265,7 +265,7 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
-    constexpr Direction Up = -Down;
+//    constexpr Direction Up = -Down;
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
 
@@ -275,9 +275,10 @@ namespace {
     {
         constexpr Score Block = MinorBehindPawn;
 
-        Bitboard blockable = shift<Up>(pos.pieces(Us, PAWN)) & ~(pe->fluent_span<Us>() | pos.pieces(PAWN));
-        score -= Block * popcount(blockable & ( pos.pieces(Them)
-//                                              |(attackedBy[Them][ALL_PIECES] & ~attackedBy[Us][ALL_PIECES])
+        Bitboard blockable = (pos.pieces(Us, PAWN)) & ~(pe->fluent_span<Us>());
+        score -= Block * popcount(blockable & (
+//                                               pos.pieces(Them)
+                                                (attackedBy[Them][ALL_PIECES] & ~attackedBy[Us][ALL_PIECES])
 //                                              |(attackedBy2[Them] & ~attackedBy[Us][ALL_PIECES])
                                               ));
 
