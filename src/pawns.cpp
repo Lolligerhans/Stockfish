@@ -243,13 +243,13 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
         getIterSpan();
 
         // 1v1 rule
-        const Bitboard faceToFace   = ourPawns & iterSpan1; // pawns facing exactly 1 opponent
-        const Bitboard faceOffs     = pawn_attacks_bb<Us> (faceToFace);
+//        const Bitboard faceToFace   = ourPawns & iterSpan1; // pawns facing exactly 1 opponent
+//        const Bitboard faceOffs     = pawn_attacks_bb<Us> (faceToFace);
         // 2v2 rule
         const Bitboard lowPressure  = ourPawns & ~iterSpan2;
         const Bitboard ganks        = pawn_double_attacks_bb<Us>(lowPressure);
 
-        totalConsidered            |= faceOffs;
+//        totalConsidered            |= faceOffs;
         totalConsidered1           |= ganks;
 
         Bitboard considered         = totalConsidered & ~totalUntouchable; // sqaures which MIGHT block opponents, if they are outside of any attack span
