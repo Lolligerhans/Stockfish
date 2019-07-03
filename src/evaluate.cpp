@@ -195,6 +195,8 @@ namespace {
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
 
+    Bitboard ninja[COLOR_NB];
+
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
     int kingAttackersCount[COLOR_NB];
@@ -257,6 +259,8 @@ namespace {
 
     // Remove from kingRing[] the squares defended by two pawns
     kingRing[Us] &= ~dblAttackByPawn;
+
+    ninja[Us] = 0;
   }
 
 
@@ -290,11 +294,11 @@ namespace {
         {
             // ninja attack behind our pawn
             bb = b & forward_file_bb(Us, s) & pos.pieces(Us, PAWN);
-            b |= shift<Up>(bb) & ~pos.pieces();
+            ninja[Us] |= shift<Up>(bb) & ~pos.pieces();
 
             // ninja attack behind their pawn
             bb = b & forward_file_bb(Them, s) & pos.pieces(Them, PAWN);
-            b |= shift<Down>(bb) & ~pos.pieces();
+            ninja[Us] |= shift<Down>(bb) & ~pos.pieces();
         }
 
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
@@ -651,9 +655,9 @@ namespace {
                 defendedSquares = squaresToQueen = forward_file_bb(Us, s);
                 unsafeSquares = passed_pawn_span(Us, s);
 
-                defendedSquares &= attackedBy[Us][ALL_PIECES];
+                defendedSquares &= attackedBy[Us][ALL_PIECES] | ninja[Us];
 
-                unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
+                unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them) | ninja[Them];
 
                 // If there are no enemy attacks on passed pawn span, assign a big bonus.
                 // Otherwise assign a smaller bonus if the path to queen is not attacked
