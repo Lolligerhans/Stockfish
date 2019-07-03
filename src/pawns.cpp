@@ -147,8 +147,8 @@ namespace {
 
         if (span)
             e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
-//        else
-//            e->pawnAttacksSpan[Us] |= pawnAttacks[s]; // ?
+        else
+            e->pawnAttacksSpan[Us] |= PawnAttacks[Us][s];
 
         if (doubled && !support)
             score -= Doubled;
