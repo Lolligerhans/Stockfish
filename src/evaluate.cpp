@@ -288,8 +288,13 @@ namespace {
 
         if (Pt == ROOK || Pt == QUEEN)
         {
+            // ninja attack behind our pawn
             bb = b & forward_file_bb(Us, s) & pos.pieces(Us, PAWN);
             b |= shift<Up>(bb) & ~pos.pieces();
+
+            // ninja attack behind their pawn
+            bb = b & forward_file_bb(Them, s) & pos.pieces(Them, PAWN);
+            b |= shift<Down>(bb) & ~pos.pieces();
         }
 
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
