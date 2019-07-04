@@ -904,3 +904,5 @@ std::string Eval::trace(const Position& pos) {
 // bishop-op (1) (dubious)
 // protpost_ (interferes  outpost)
 // king-danger-ring (dubious?)
+//
+//early-passer2 is w/o speedup
