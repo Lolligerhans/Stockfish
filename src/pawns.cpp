@@ -132,8 +132,11 @@ namespace {
         }
 
         // passer look-ahead
-        if ((r >= RANK_5) && ((theirPawns & pawn_attack_span(Us, s)) == stoppers) &&
-            (popcount(stoppers) == 1) && (more_than_one(ourPawns & passed_pawn_span(Them, s+Up))))
+        if (r >= RANK_5
+             and not opposed
+             and not more_than_one(stoppers)
+             and more_than_one(ourPawns & passed_pawn_span(Them, s+Up))
+           )
             e->passedPawns[Us] |= s;
 
         // Score this pawn
