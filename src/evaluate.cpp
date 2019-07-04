@@ -903,3 +903,4 @@ std::string Eval::trace(const Position& pos) {
 // racing outposts (4) (dubious)
 // bishop-op (1) (dubious)
 // protpost_ (interferes  outpost)
+// king-danger-ring (dubious?)
