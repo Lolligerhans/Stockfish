@@ -132,7 +132,6 @@ namespace {
     S(-30,-14), S(-9, -8), S( 0,  9), S( -1,  7)
   };
 
-  // Assorted bonuses and penalties
   constexpr Score AttacksOnSpaceArea = S(  4,  0);
   constexpr Score BishopPawns        = S(  3,  7);
   constexpr Score CorneredBishop     = S( 50, 50);
@@ -271,6 +270,7 @@ namespace {
     const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
+
     Score score = SCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
@@ -304,7 +304,7 @@ namespace {
         {
             // Bonus if piece is on an outpost square or can reach one
             bb = (Pt == KNIGHT ? OutpostRanks : shift<Down>(OutpostRanks))
-                & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
+                & attackedBy[Us][PAWN] & ~pe->fluent_span<Them>();
             if (bb & s)
                 score += Outpost * (Pt == KNIGHT ? 2 : 1);
 
@@ -373,13 +373,13 @@ namespace {
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
         }
+
     }
     if (T)
         Trace::add(Pt, Us, score);
 
     return score;
   }
-
 
   // Evaluation::king() assigns bonuses and penalties to a king of a given color
   template<Tracing T> template<Color Us>
@@ -469,7 +469,7 @@ namespace {
                  -   6 * mg_value(score) / 8
                  +       mg_value(mobility[Them] - mobility[Us])
                  +   5 * kingFlankAttacks * kingFlankAttacks / 16
-                 -   7;
+                 - (7);
 
     // Transform the kingDanger units into a Score, and subtract it from the evaluation
     if (kingDanger > 100)
@@ -741,7 +741,7 @@ namespace {
                     +  9 * outflanking
                     + 18 * pawnsOnBothFlanks
                     + 49 * !pos.non_pawn_material()
-                    -103 ;
+                    - (103) ;
 
     // Now apply the bonus: note that we find the attacking side by extracting
     // the sign of the endgame value, and that we carefully cap the bonus so
