@@ -297,7 +297,7 @@ namespace {
         }
 
 //        int mob = popcount(b & mobilityArea[Us]);
-        int mob = popcount(b & (mobilityArea[Us] | (pos.pieces(Them) & ~pos.pieces(PAWN))));
+        int mob = popcount(b & (mobilityArea[Us] | pos.pieces(Them)));
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
