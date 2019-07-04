@@ -830,8 +830,9 @@ namespace {
 
     // Interpolate between a middlegame and a (scaled by 'sf') endgame score
     ScaleFactor sf = scale_factor(eg_value(score));
-    v =  mg_value(score) * int(me->game_phase())
-       + eg_value(score) * int(PHASE_MIDGAME - me->game_phase()) * sf / SCALE_FACTOR_NORMAL;
+    auto phase = me->game_phase() + PawnValueMg * popcount(pos.pieces(WHITE, PAWN) & shift<SOUTH>(pos.pieces(BLACK, PAWN)));
+    v =  mg_value(score) * int(phase)
+       + eg_value(score) * int(PHASE_MIDGAME - phase) * sf / SCALE_FACTOR_NORMAL;
 
     v /= PHASE_MIDGAME;
 
