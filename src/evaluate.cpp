@@ -195,6 +195,8 @@ namespace {
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
 
+    Bitboard attackable[COLOR_NB][3];
+
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
     int kingAttackersCount[COLOR_NB];
@@ -257,6 +259,10 @@ namespace {
 
     // Remove from kingRing[] the squares defended by two pawns
     kingRing[Us] &= ~dblAttackByPawn;
+
+    attackable[Us][2] = pos.pieces(Them, QUEEN, KING);
+    attackable[Us][1] = attackable[Us][2] | pos.pieces(Them, ROOK);
+    attackable[Us][0] = attackable[Us][1] | pos.pieces(Them, KNIGHT, BISHOP);
   }
 
 
@@ -297,7 +303,10 @@ namespace {
         }
 
 //        int mob = popcount(b & mobilityArea[Us]);
-        int mob = popcount(b & (mobilityArea[Us] | (pos.pieces(Them) & ~pos.pieces(PAWN))));
+        constexpr int i = (Pt == QUEEN ? 2 : Pt == ROOK ? 1 : 0);
+        const Bitboard& atk = attackable[Us][i];
+
+        int mob = popcount(b & (mobilityArea[Us] | atk));
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
