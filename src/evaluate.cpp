@@ -904,5 +904,8 @@ std::string Eval::trace(const Position& pos) {
 // bishop-op (1) (dubious)
 // protpost_ (interferes  outpost)
 // king-danger-ring (dubious?)
+// counter-passer_1 (when using mp_1 w/ phalanx take care)
 //
-//early-passer2 is w/o speedup
+// notes
+// early-passer2 is w/o speedup
+// mp_1 is without phalanx
