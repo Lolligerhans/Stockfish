@@ -898,14 +898,21 @@ std::string Eval::trace(const Position& pos) {
   return ss.str();
 }
 
-// missing
-// ps_attack2 (dubious)
-// racing outposts (4) (dubious)
-// bishop-op (1) (dubious)
-// protpost_ (interferes  outpost)
-// king-danger-ring (dubious?)
-// counter-passer_1 (when using mp_1 w/ phalanx take care)
+// applied
+//  - X outpost-squares
+//  -   protdist
+//  - Y early-passer_2 (no optimization)(=lol_ps-edgemaj5 with passer-span)
+//  -   capture-passer
+//  -   mp_1 (more passers)(without phalanx)
 //
-// notes
-// early-passer2 is w/o speedup
-// mp_1 is without phalanx
+//  X = speedup non-functional
+//  Y = positive elo LTC
+
+// missing
+//  - ps_attack2 (dubious)
+//  - racing outposts (4) (dubious)
+//  - bishop-op (1) (dubious)
+//  - protpost_ (interferes  outpost)
+//  - king-danger-ring (dubious?)
+//  - counter-passer_1 (when using mp_1 w/ phalanx take care)
+//  - space speedup (interferes with space attacks)
