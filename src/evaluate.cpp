@@ -899,3 +899,9 @@ std::string Eval::trace(const Position& pos) {
 
   return ss.str();
 }
+
+// missing
+// ps_attack2 (dubious)
+// racing outposts (4) (dubious)
+// bishop-op (1) (dubious)
+// protpost_ (interferes  outpost)
