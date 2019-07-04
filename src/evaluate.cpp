@@ -296,10 +296,11 @@ namespace {
             kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
         }
 
-//        int mob = popcount(b & mobilityArea[Us]);
-        int mob = popcount(b & (mobilityArea[Us] | (pos.pieces() ^ pos.pieces(PAWN))));
+        int mob = popcount(b & mobilityArea[Us]);
+        int mob2 = popcount(b & (mobilityArea[Us] | (pos.pieces() ^ pos.pieces(PAWN))));
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
+        mobility[Us] += MobilityBonus[Pt - 2][mob2];
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
@@ -820,7 +821,7 @@ namespace {
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
-    score += mobility[WHITE] - mobility[BLACK];
+    score += (mobility[WHITE] - mobility[BLACK])/2;
 
     score +=  king<   WHITE>() - king<   BLACK>()
             + threats<WHITE>() - threats<BLACK>()
