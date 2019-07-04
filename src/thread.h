@@ -58,6 +58,7 @@ public:
   void wait_for_search_finished();
 
   Pawns::Table pawnsTable;
+  Pawns::OutpostTable outpostTable;
   Material::Table materialTable;
   size_t pvIdx, multiPV, pvLast, shuffleExts;
   int selDepth, nmpMinPly;

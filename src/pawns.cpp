@@ -168,8 +168,6 @@ Entry* probe(const Position& pos) {
   e->key = key;
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
-  e->compute_outposts<WHITE>();
-  e->compute_outposts<BLACK>();
 
   return e;
 }
@@ -244,17 +242,31 @@ Score Entry::do_king_safety(const Position& pos) {
   return shelter - make_score(VALUE_ZERO, 16 * minPawnDist);
 }
 
+OutpostEntry* probeOutposts(Position const& pos, Entry const* e)
+{
+    Key key = pos.pawn_key();
+    OutpostEntry* o = pos.this_thread()->outpostTable[key];
+
+    if (o->key == key) return o;
+
+    o->key = key;
+    o->compute_outposts<WHITE>(e);
+    o->compute_outposts<BLACK>(e);
+
+    return o;
+}
+
 template<Color Us>
-void Entry::compute_outposts() &
+void OutpostEntry::compute_outposts(Entry const* e)
 {
     constexpr Direction        Down = (Us == WHITE ? SOUTH : NORTH);
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
 
-    Bitboard const& pat = pawnAttacks[~Us];
+    Bitboard const& pat = e->pawnAttacks[~Us];
     Bitboard const atkSpanThem = pat | shift<Down>(pat) | shift<Down+Down>(pat);
 
-    outpostSquares[Us] = OutpostRanks & pawnAttacks[Us] & ~atkSpanThem;
+    outpostSquares[Us] = OutpostRanks & e->pawnAttacks[Us] & ~atkSpanThem;
 }
 
 // Explicit template instantiation

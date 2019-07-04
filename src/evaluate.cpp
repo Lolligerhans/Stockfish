@@ -179,6 +179,7 @@ namespace {
     const Position& pos;
     Material::Entry* me;
     Pawns::Entry* pe;
+    Pawns::OutpostEntry* oe;
     Bitboard mobilityArea[COLOR_NB];
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
 
@@ -301,7 +302,7 @@ namespace {
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
-            bb = pe->outpost_squares(Us);
+            bb = oe->outpost_squares(Us);
             if (bb & s)
                 score += Outpost * (Pt == KNIGHT ? 2 : 1);
 
@@ -810,6 +811,9 @@ namespace {
 
     initialize<WHITE>();
     initialize<BLACK>();
+
+    if (pos.pieces(KNIGHT, BISHOP))
+        oe = Pawns::probeOutposts(pos, pe);
 
     // Pieces should be evaluated first (populate attack tables)
     score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
