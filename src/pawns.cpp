@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <climits>
 
 #include "bitboard.h"
 #include "pawns.h"
@@ -146,6 +147,8 @@ namespace {
         if (doubled && !support)
             score -= Doubled;
     }
+
+    e->spaceBonus[Us] = -1;
 
     return score;
   }
