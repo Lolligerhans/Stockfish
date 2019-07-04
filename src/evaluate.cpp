@@ -187,6 +187,8 @@ namespace {
     // is also calculated is ALL_PIECES.
     Bitboard attackedBy[COLOR_NB][PIECE_TYPE_NB];
 
+    Bitboard attackedByP[COLOR_NB];
+
     // attackedBy2[color] are the squares attacked by at least 2 units of a given
     // color, including x-rays. But diagonal x-rays through pawns are not computed.
     Bitboard attackedBy2[COLOR_NB];
@@ -240,6 +242,7 @@ namespace {
     attackedBy[Us][PAWN] = pe->pawn_attacks(Us);
     attackedBy[Us][ALL_PIECES] = attackedBy[Us][KING] | attackedBy[Us][PAWN];
     attackedBy2[Us] = dblAttackByPawn | (attackedBy[Us][KING] & attackedBy[Us][PAWN]);
+    attackedByP[Us] = 0;
 
     // Init our king safety tables
     kingRing[Us] = attackedBy[Us][KING];
@@ -373,6 +376,9 @@ namespace {
                 score -= WeakQueen;
         }
     }
+
+    attackedByP[Us] |= attackedBy[Us][Pt];
+
     if (T)
         Trace::add(Pt, Us, score);
 
@@ -608,13 +614,6 @@ namespace {
     Bitboard b, bb, squaresToQueen, defendedSquares, unsafeSquares;
     Score score = SCORE_ZERO;
 
-    const Bitboard atk =
-        attackedBy[Them][KNIGHT] |
-        attackedBy[Them][BISHOP] |
-        attackedBy[Them][ROOK  ] |
-        attackedBy[Them][QUEEN ]
-        ;
-
 
     b = pe->passed_pawns(Us);
 
@@ -650,10 +649,11 @@ namespace {
                 bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN);
 
                 if (!(pos.pieces(Us) & bb))
-                    defendedSquares &= attackedBy[Us][ALL_PIECES];
+                    defendedSquares &= attackedByP[Us]
+                                     | (attackedBy[Us][PAWN] & ~attackedBy[Them][PAWN]);
 
                 if (!(pos.pieces(Them) & bb))
-                    unsafeSquares &= atk | pos.pieces(Them);
+                    unsafeSquares &= attackedByP[Them] | pos.pieces(Them);
 
                 // If there are no enemy attacks on passed pawn span, assign a big bonus.
                 // Otherwise assign a smaller bonus if the path to queen is not attacked
