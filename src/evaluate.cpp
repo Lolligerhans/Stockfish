@@ -192,6 +192,7 @@ namespace {
     // attackedBy2[color] are the squares attacked by at least 2 units of a given
     // color, including x-rays. But diagonal x-rays through pawns are not computed.
     Bitboard attackedBy2[COLOR_NB];
+    Bitboard attackedBy2P[COLOR_NB];
 
     // kingRing[color] are the squares adjacent to the king plus some other
     // very near squares, depending on king position.
@@ -243,6 +244,7 @@ namespace {
     attackedBy[Us][ALL_PIECES] = attackedBy[Us][KING] | attackedBy[Us][PAWN];
     attackedBy2[Us] = dblAttackByPawn | (attackedBy[Us][KING] & attackedBy[Us][PAWN]);
     attackedByP[Us] = 0;
+    attackedBy2P[Us] = dblAttackByPawn;
 
     // Init our king safety tables
     kingRing[Us] = attackedBy[Us][KING];
@@ -650,7 +652,8 @@ namespace {
 
                 if (!(pos.pieces(Us) & bb))
                     defendedSquares &= attackedByP[Us]
-                                     | (attackedBy[Us][PAWN] & ~attackedBy[Them][PAWN]);
+                                     | (attackedBy[Us][PAWN] & ~attackedBy[Them][PAWN])
+                                     | (attackedBy2P[Us] & ~attackedBy2P[Them]);
 
                 if (!(pos.pieces(Them) & bb))
                     unsafeSquares &= attackedByP[Them] | pos.pieces(Them);
