@@ -171,7 +171,7 @@ namespace {
     template<Color Us, PieceType Pt> Score pieces();
     template<Color Us> Score king() const;
     template<Color Us> Score threats() const;
-    template<Color Us> Score passed() const;
+    template<Color Us> Score passed();
     template<Color Us> Score space() const;
     ScaleFactor scale_factor(Value eg) const;
     Score initiative(Value eg) const;
@@ -596,7 +596,7 @@ namespace {
   // pawns of the given color.
 
   template<Tracing T> template<Color Us>
-  Score Evaluation<T>::passed() const {
+  Score Evaluation<T>::passed() {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
@@ -641,9 +641,14 @@ namespace {
 
                 bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN);
 
-                if (!(pos.pieces(Us) & bb))
-                    defendedSquares &= (attackedBy[Us][ALL_PIECES] & ~attackedBy2[Them])
-                                    | attackedBy2[Us];
+                if (pos.pieces(Us) & bb)
+                {
+                    attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & squaresToQueen;
+                    attackedBy[Us][ALL_PIECES] |= squaresToQueen; // this also applies to attacks on space area later
+                }
+
+                defendedSquares &= (attackedBy[Us][ALL_PIECES] & ~attackedBy2[Them])
+                                 | attackedBy2[Us];
 
                 if (!(pos.pieces(Them) & bb))
                     unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
