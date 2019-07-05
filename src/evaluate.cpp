@@ -901,14 +901,13 @@ std::string Eval::trace(const Position& pos) {
 // applied
 //  - X outpost-squares
 //  -   protdist
-//  - Y early-passer_2 (no optimization)(=lol_ps-edgemaj5 with passer-span)
 //  -   capture-passer
 //  -   mp_1 (more passers)(without phalanx)
 //
 //  X = speedup non-functional
-//  Y = positive elo LTC
 
 // missing
+//  - smart span (whale)
 //  - ps_attack2 (dubious)
 //  - racing outposts (4) (dubious)
 //  - bishop-op (1) (dubious)
