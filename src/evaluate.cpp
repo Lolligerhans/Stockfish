@@ -304,10 +304,10 @@ namespace {
         {
             // Bonus if piece is on an outpost square or can reach one
             bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
-            if (bb & s)
+            if (bb & s && !(b & pos.pieces(Them, Pt)))
                 score += Outpost * (Pt == KNIGHT ? 2 : 1);
 
-            else if (!(b & pos.pieces(Them, Pt)) && bb & b & ~pos.pieces(Us))
+            else if (bb & b & ~pos.pieces(Us) && !(b & pos.pieces(Them, Pt)))
                 score += Outpost / (Pt == KNIGHT ? 1 : 2);
 
             // Knight and Bishop bonus for being right behind a pawn
