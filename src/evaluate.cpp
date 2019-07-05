@@ -296,7 +296,7 @@ namespace {
             if (Pt == BISHOP || Pt == ROOK)
             {
                 // pawn might be pinned making this bonus less reliable
-                if (pos.st->pinners[Us] & s && attackedBy[Us][PAWN] & s && b & pos.blockers_for_king(Them) & pos.pieces(ROOK))
+                if (pos.st->pinners[Us] & s && attackedBy[Us][PAWN] & s && b & pos.blockers_for_king(Them) & pos.pieces(QUEEN))
                     score += make_score(200,200);
             }
         }
