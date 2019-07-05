@@ -634,8 +634,6 @@ namespace {
                 bonus -= make_score(0, king_proximity(Us, blockSq + Up) * w);
 
             // If the pawn is free to advance, then increase the bonus
-            if (pos.empty(blockSq))
-            {
                 defendedSquares = squaresToQueen = forward_file_bb(Us, s);
                 unsafeSquares = passed_pawn_span(Us, s);
 
@@ -660,7 +658,6 @@ namespace {
                     k += 5;
 
                 bonus += make_score(k * w, k * w);
-            }
         } // r > RANK_3
 
         // Scale down bonus for candidate passers which need more than one
