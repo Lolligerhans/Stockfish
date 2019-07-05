@@ -613,11 +613,15 @@ namespace {
       return std::min(distance(pos.square<KING>(c), s), 5);
     };
 
-    Bitboard b, bb, squaresToQueen, defendedSquares, unsafeSquares;
+    Bitboard b, bb, squaresToQueen, defendedSquares, unsafeSquares, atk;
     Score score = SCORE_ZERO;
 
-
     b = pe->passed_pawns(Us);
+
+    if (b)
+        atk = attackedByP[Us]
+            | (attackedBy[Us][PAWN] & ~attackedBy[Them][PAWN])
+            | (attackedBy2P[Us] & ~attackedBy2P[Them]);
 
     while (b)
     {
@@ -651,10 +655,7 @@ namespace {
                 bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN);
 
                 if (!(pos.pieces(Us) & bb))
-                    defendedSquares &= attackedByP[Us]
-                                     | (attackedBy[Us][PAWN] & ~attackedBy[Them][PAWN])
-                                     | (attackedBy2P[Us] & ~attackedBy2P[Them]);
-
+                    defendedSquares &= atk;
                 if (!(pos.pieces(Them) & bb))
                     unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
 
