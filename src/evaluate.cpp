@@ -644,7 +644,10 @@ namespace {
                 if (pos.pieces(Us) & bb)
                 {
                     attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & squaresToQueen;
-                    attackedBy[Us][ALL_PIECES] |= squaresToQueen; // this also applies to attacks on space area later
+                    attackedBy[Us][ALL_PIECES] |= squaresToQueen; // passed is called last to avoid undef. beh.
+                    // bit of a sideeffect on the call to the other color tho
+                    // choose white first bc black is worse in opening and need
+                    // correct passers less so passer eval is reduced
                 }
 
                 defendedSquares &= (attackedBy[Us][ALL_PIECES] & ~attackedBy2[Them])
@@ -829,8 +832,9 @@ namespace {
 
     score +=  king<   WHITE>() - king<   BLACK>()
             + threats<WHITE>() - threats<BLACK>()
-            + passed< WHITE>() - passed< BLACK>()
             + space<  WHITE>() - space<  BLACK>();
+    score += passed< WHITE>();
+    score += passed< BLACK>();
 
     score += initiative(eg_value(score));
 
