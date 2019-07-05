@@ -192,7 +192,9 @@ private:
   Color sideToMove;
   Score psq;
   Thread* thisThread;
+public:
   StateInfo* st;
+private:
   bool chess960;
 };
 
