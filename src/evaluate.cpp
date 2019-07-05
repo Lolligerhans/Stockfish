@@ -759,10 +759,12 @@ namespace {
 //    dbg_mean_of(18*pawnsOnBothFlanks);
 //    Total 58010369 Mean 12.9558 o 9.59653
 
-    // Double counting of passers (effectively triple count those pawns)
+    // _6:
+    // Double counting of passers
 //    dbg_mean_of(18*pawnsOnBothFlanks);
 //    Total 58414595 Mean 13.688 o 11.7276
 
+    // _5:
     // 17* double counting for passers
 //    dbg_mean_of(17*pawnsOnBothFlanks);
 //    Total 59057834 Mean 13.0397 o 11.0639
