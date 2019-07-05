@@ -731,24 +731,41 @@ namespace {
     int outflanking =  distance<File>(pos.square<KING>(WHITE), pos.square<KING>(BLACK))
                      - distance<Rank>(pos.square<KING>(WHITE), pos.square<KING>(BLACK));
 
-    int pawnsOnBothFlanks =   (pos.pieces(PAWN) & QueenSide)
-                           && (pos.pieces(PAWN) & KingSide);
     bool weg = eg > 0;
     bool beg = eg < 0;
-    if (weg)
-        pawnsOnBothFlanks += pe->passed_pawns(WHITE) & QueenSide
-                          && pe->passed_pawns(WHITE) & KingSide;
-    else
-        pawnsOnBothFlanks += pe->passed_pawns(BLACK) & QueenSide
-                          && pe->passed_pawns(BLACK) & KingSide;
+
+    int pawnsOnBothFlanks =
+        (weg ? pe->passed_pawns(WHITE) & QueenSide
+            && pe->passed_pawns(WHITE) & KingSide
+             : pe->passed_pawns(BLACK) & QueenSide
+            && pe->passed_pawns(BLACK) & KingSide);
+    pawnsOnBothFlanks *= 2;
+    pawnsOnBothFlanks +=  (pos.pieces(PAWN) & QueenSide)
+                       && (pos.pieces(PAWN) & KingSide);
 
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
                     + 11 * pos.count<PAWN>()
                     +  9 * outflanking
-                    + 18 * pawnsOnBothFlanks
+                    + 17 * pawnsOnBothFlanks
                     + 49 * !pos.non_pawn_material()
-                    -103 ;
+                    -104 ;
+
+    // Old bonus:
+//    dbg_mean_of(18*pawnsOnBothFlanks);
+//    Total 57857700 Mean 12.5803 o 8.2572
+
+    // New bonus (add together):
+//    dbg_mean_of(18*pawnsOnBothFlanks);
+//    Total 58010369 Mean 12.9558 o 9.59653
+
+    // Double counting of passers (effectively triple count those pawns)
+//    dbg_mean_of(18*pawnsOnBothFlanks);
+//    Total 58414595 Mean 13.688 o 11.7276
+
+    // 17* double counting for passers
+//    dbg_mean_of(17*pawnsOnBothFlanks);
+//    Total 59057834 Mean 13.0397 o 11.0639
 
     // Now apply the bonus: note that we find the attacking side by extracting
     // the sign of the endgame value, and that we carefully cap the bonus so
