@@ -747,9 +747,9 @@ namespace {
     int complexity =   9 * pe->passed_count()
                     + 11 * pos.count<PAWN>()
                     +  9 * outflanking
-                    + 17 * pawnsOnBothFlanks
+                    + 18 * pawnsOnBothFlanks
                     + 49 * !pos.non_pawn_material()
-                    -104 ;
+                    -103 ;
 
     // Old bonus:
 //    dbg_mean_of(18*pawnsOnBothFlanks);
