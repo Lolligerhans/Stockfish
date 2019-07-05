@@ -610,10 +610,6 @@ namespace {
 
     b = pe->passed_pawns(Us);
 
-    const Bitboard atk = (attackedBy[Us][ALL_PIECES] & ~attackedBy2[Them])
-                       | attackedBy2[Us]
-                       | attackedBy[Us][PAWN];
-
     while (b)
     {
         Square s = pop_lsb(&b);
@@ -646,7 +642,9 @@ namespace {
                 bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN);
 
                 if (!(pos.pieces(Us) & bb))
-                    defendedSquares &= atk;
+                    defendedSquares &= (attackedBy[Us][ALL_PIECES] & ~attackedBy2[Them])
+                                     | attackedBy2[Us]
+                                     | attackedBy[Us][PAWN];;
 
                 if (!(pos.pieces(Them) & bb))
                     unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
