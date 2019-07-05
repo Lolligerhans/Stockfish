@@ -731,22 +731,23 @@ namespace {
     int outflanking =  distance<File>(pos.square<KING>(WHITE), pos.square<KING>(BLACK))
                      - distance<Rank>(pos.square<KING>(WHITE), pos.square<KING>(BLACK));
 
-    int pawnsOnBothFlanks =   (pos.pieces(PAWN) & QueenSide)
+    bool pawnsOnBothFlanks =   (pos.pieces(PAWN) & QueenSide)
                            && (pos.pieces(PAWN) & KingSide);
-    bool weg = eg > 0;
-    bool beg = eg < 0;
-    if (weg)
-        pawnsOnBothFlanks += pe->passed_pawns(WHITE) & QueenSide
-                          && pe->passed_pawns(WHITE) & KingSide;
-    else
-        pawnsOnBothFlanks += pe->passed_pawns(BLACK) & QueenSide
-                          && pe->passed_pawns(BLACK) & KingSide;
+    const bool weg = eg > 0;
+    const bool beg = eg < 0;
+    bool passerOnBothFlanks = (weg
+            ? ( pe->passed_pawns(WHITE) & QueenSide
+             && pe->passed_pawns(WHITE) & KingSide)
+            : ( pe->passed_pawns(BLACK) & QueenSide
+             && pe->passed_pawns(BLACK) & KingSide)
+            );
 
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
                     + 11 * pos.count<PAWN>()
                     +  9 * outflanking
                     + 18 * pawnsOnBothFlanks
+                    +  9 * passerOnBothFlanks
                     + 49 * !pos.non_pawn_material()
                     -103 ;
 
