@@ -123,7 +123,7 @@ namespace {
 
         else if (r >= RANK_5 && stoppers == square_bb(s + Up))
         {
-            b = shift<Up>(support) & ~theirPawns;
+            b = (shift<Up>(support) & ~theirPawns) | phalanx;
             while (b)
             {
                 Square sacSquare = pop_lsb(&b);
