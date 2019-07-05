@@ -731,8 +731,16 @@ namespace {
     int outflanking =  distance<File>(pos.square<KING>(WHITE), pos.square<KING>(BLACK))
                      - distance<Rank>(pos.square<KING>(WHITE), pos.square<KING>(BLACK));
 
-    bool pawnsOnBothFlanks =   (pos.pieces(PAWN) & QueenSide)
-                            && (pos.pieces(PAWN) & KingSide);
+    int pawnsOnBothFlanks =   (pos.pieces(PAWN) & QueenSide)
+                           && (pos.pieces(PAWN) & KingSide);
+    bool weg = eg > 0;
+    bool beg = eg < 0;
+    if (weg)
+        pawnsOnBothFlanks += pe->passed_pawns(WHITE) & QueenSide
+                          && pe->passed_pawns(WHITE) & KingSide;
+    else
+        pawnsOnBothFlanks += pe->passed_pawns(BLACK) & QueenSide
+                          && pe->passed_pawns(BLACK) & KingSide;
 
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
@@ -745,7 +753,7 @@ namespace {
     // Now apply the bonus: note that we find the attacking side by extracting
     // the sign of the endgame value, and that we carefully cap the bonus so
     // that the endgame score will never change sign after the bonus.
-    int v = ((eg > 0) - (eg < 0)) * std::max(complexity, -abs(eg));
+    int v = ((weg) - (beg)) * std::max(complexity, -abs(eg));
 
     if (T)
         Trace::add(INITIATIVE, make_score(0, v));
