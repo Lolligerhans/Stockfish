@@ -226,20 +226,39 @@ namespace {
 
     const Square ksq = pos.square<KING>(Us);
 
-    Bitboard dblAttackByPawn = pawn_double_attacks_bb<Us>(pos.pieces(Us, PAWN));
+    if (Us == WHITE)
+    {
+        Bitboard p = pos.pieces(Us, PAWN) & ~pos.blockers_for_king(Us);
+        Bitboard attackByPawn = pawn_attacks_bb<Us>(p) |
+            pawn_attacks_bb<Us>(pos.pieces(Us, PAWN) & pos.st->pinners[Them]);
+        Bitboard dblAttackByPawn = pawn_double_attacks_bb<Us>(p);
+
+        // Initialize attackedBy[] for king and pawns
+        attackedBy[Us][KING] = pos.attacks_from<KING>(ksq);
+        attackedBy[Us][PAWN] = attackByPawn;
+        attackedBy[Us][ALL_PIECES] = attackedBy[Us][KING] | attackedBy[Us][PAWN];
+        attackedBy2[Us] = dblAttackByPawn | (attackedBy[Us][KING] & attackedBy[Us][PAWN]);
+
+        // ---------------------------------------------------------------------
+
+        p = pos.pieces(Them, PAWN) & ~pos.blockers_for_king(Them);
+        attackByPawn = pawn_attacks_bb<Us>(p) |
+            pawn_attacks_bb<Them>(pos.pieces(Them, PAWN) & pos.st->pinners[Us]);
+        dblAttackByPawn = pawn_double_attacks_bb<Them>(p);
+
+        attackedBy[Them][KING] = pos.attacks_from<KING>(pos.square<KING>(Them));
+        attackedBy[Them][PAWN] = attackByPawn;
+        attackedBy[Them][ALL_PIECES] = attackedBy[Them][KING] | attackedBy[Them][PAWN];
+        attackedBy2[Them] = dblAttackByPawn | (attackedBy[Them][KING] & attackedBy[Them][PAWN]);
+    }
 
     // Find our pawns that are blocked or on the first two ranks
     Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
 
     // Squares occupied by those pawns, by our king or queen or controlled by
     // enemy pawns are excluded from the mobility area.
-    mobilityArea[Us] = ~(b | pos.pieces(Us, KING, QUEEN) | pe->pawn_attacks(Them));
+    mobilityArea[Us] = ~(b | pos.pieces(Us, KING, QUEEN) | attackedBy[Them][PAWN]);
 
-    // Initialize attackedBy[] for king and pawns
-    attackedBy[Us][KING] = pos.attacks_from<KING>(ksq);
-    attackedBy[Us][PAWN] = pe->pawn_attacks(Us);
-    attackedBy[Us][ALL_PIECES] = attackedBy[Us][KING] | attackedBy[Us][PAWN];
-    attackedBy2[Us] = dblAttackByPawn | (attackedBy[Us][KING] & attackedBy[Us][PAWN]);
 
     // Init our king safety tables
     kingRing[Us] = attackedBy[Us][KING];
@@ -252,11 +271,11 @@ namespace {
     else if (file_of(ksq) == FILE_A)
         kingRing[Us] |= shift<EAST>(kingRing[Us]);
 
-    kingAttackersCount[Them] = popcount(kingRing[Us] & pe->pawn_attacks(Them));
+    kingAttackersCount[Them] = popcount(kingRing[Us] & attackedBy[Them][PAWN]);
     kingAttacksCount[Them] = kingAttackersWeight[Them] = 0;
 
     // Remove from kingRing[] the squares defended by two pawns
-    kingRing[Us] &= ~dblAttackByPawn;
+    kingRing[Us] &= ~(attackedBy2[Us] & ~attackedBy[Us][KING]);
   }
 
 
