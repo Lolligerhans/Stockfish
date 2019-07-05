@@ -902,12 +902,11 @@ std::string Eval::trace(const Position& pos) {
 //  - X outpost-squares
 //  -   protdist
 //  -   capture-passer
-//  -   mp_1 (more passers)(without phalanx)
 //
 //  X = speedup non-functional
 
 // missing
-//  - smart span (whale)
+//  - smart span (whale, interferes with outpost-squares)
 //  - ps_attack2 (dubious)
 //  - racing outposts (4) (dubious)
 //  - bishop-op (1) (dubious)
