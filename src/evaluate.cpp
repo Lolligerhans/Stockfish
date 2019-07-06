@@ -285,7 +285,9 @@ namespace {
         if (pos.st->pinners[Us] & s)
         {
             bb = LineBB[pos.square<KING>(Them)][s];
-            if (bb & b & (attackedBy[Us][PAWN] | ~attackedBy[Them][PAWN]))
+            if (bb & b & (attackedBy[Us][PAWN]
+                         | ~(attackedBy[Them][PAWN]
+                            |attackedBy[Them][KING])))
                 b |= bb;
         }
         if (pos.blockers_for_king(Us) & s)
