@@ -286,18 +286,27 @@ namespace {
             b &= LineBB[pos.square<KING>(Us)][s];
 
         // free real estate
-        else
+        else if (Pt == BISHOP || Pt == ROOK)
         {
-            if (Pt == BISHOP)
+            if (pos.st->pinners[Us] & s)
             {
-                if (pos.st->pinners[Us] & s && b & pos.blockers_for_king(Them) & pos.pieces(ROOK))
-                    score += make_score(100,100);
-            }
-            if (Pt == BISHOP || Pt == ROOK)
-            {
-                // pawn might be pinned making this bonus less reliable
-                if (pos.st->pinners[Us] & s && attackedBy[Us][PAWN] & s && b & pos.blockers_for_king(Them) & pos.pieces(QUEEN))
-                    score += make_score(200,200);
+                if (Pt == BISHOP)
+                {
+                    if (b & pos.blockers_for_king(Them) & pos.pieces(ROOK))
+                        score += make_score(50,50)
+                               + make_score(75,75) * bool(attackedBy[Us][PAWN] & s);
+
+                    // pawn might be pinned making this bonus less reliable
+                    if (b & pos.blockers_for_king(Them) & pos.pieces(QUEEN))
+                        score += make_score(100,100)
+                               + make_score(250,250) * bool(attackedBy[Us][PAWN] & s);
+                }
+                else
+                {
+                    if (b & pos.blockers_for_king(Them) & pos.pieces(QUEEN))
+                        score += make_score(100,100)
+                            + make_score(150,150) * bool(attackedBy[Us][PAWN] & s);
+                }
             }
         }
 
