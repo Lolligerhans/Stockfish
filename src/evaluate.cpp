@@ -143,6 +143,7 @@ namespace {
   constexpr Score LongDiagonalBishop = S( 45,  0);
   constexpr Score MinorBehindPawn    = S( 18,  3);
   constexpr Score Outpost            = S( 36, 12);
+  constexpr Score PawnBreaks         = S(  2,  4);
   constexpr Score PawnlessFlank      = S( 17, 95);
   constexpr Score RestrictedPiece    = S(  7,  7);
   constexpr Score RookOnPawn         = S( 10, 32);
@@ -195,6 +196,8 @@ namespace {
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
 
+    Bitboard breakSquares[COLOR_NB];
+
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
     int kingAttackersCount[COLOR_NB];
@@ -211,6 +214,8 @@ namespace {
     // a white knight on g5 and black's king is on g8, this white knight adds 2
     // to kingAttacksCount[WHITE].
     int kingAttacksCount[COLOR_NB];
+
+    int breaks[COLOR_NB];
   };
 
 
@@ -257,6 +262,9 @@ namespace {
 
     // Remove from kingRing[] the squares defended by two pawns
     kingRing[Us] &= ~dblAttackByPawn;
+
+    breakSquares[Us] = shift<Up>(pe->pawn_breaks(Us));
+    breaks[Us] = 0;
   }
 
 
@@ -297,8 +305,36 @@ namespace {
         }
 
         int mob = popcount(b & mobilityArea[Us]);
-
         mobility[Us] += MobilityBonus[Pt - 2][mob];
+
+        breaks[Us] += popcount(b & breakSquares[Us]);
+
+        // possible number of tests:
+        //
+        // tests     paramter:
+        // =================
+        //    1      any version to start with
+        //
+        //   +n      bonus score
+        //   +2      count attacks on our breaks only or their breaks, too? their breaks only??
+        //           (guess: both)
+        //   +1      consider squares attacked doubly by their pawns but not attacked by our pawns?
+        //           (guess: no, pawn attacks)
+        //   +2      exclude square occupied by their pawns? if their pawn is pawn protected?
+        //           (guess: ?)
+        //  (+1      above, but different for our and their breaks when counting both)
+        //           (guess: ?)
+        //   +1      break +1 from R/Q behind unblocked pawn (or any if pushable is required)
+        //           (guess: yes)
+        //   +1      require that by "breaking" a pawn blocking one of our other pawns is attacked
+        //           (guess: ?)
+        //  ================
+        //    7      important
+        //   +3      optional
+        //
+        //  If first tests are at all promising, some more tests should follow
+        //  to try combinations of the best scoring parameters from each line (1
+        //  to 3 tests).
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
@@ -815,11 +851,14 @@ namespace {
 
     // Pieces should be evaluated first (populate attack tables)
     score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
-            + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
-            + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
+            + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>();
+    breaks[WHITE] *= 2; breaks[BLACK] *= 2;
+    score +=  pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
     score += mobility[WHITE] - mobility[BLACK];
+
+    score += PawnBreaks * (breaks[WHITE] - breaks[BLACK]);
 
     score +=  king<   WHITE>() - king<   BLACK>()
             + threats<WHITE>() - threats<BLACK>()

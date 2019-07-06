@@ -171,6 +171,15 @@ Entry* probe(const Position& pos) {
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
 
+  Bitboard b             = pos.pieces(BLACK, PAWN)
+                         & ~e->pawnAttacksSpan[BLACK]
+                         & shift<NORTH>(e->pawnAttacks[WHITE]);
+  e->pawnAttacks[WHITE] |= pos.pieces(WHITE, PAWN)
+                         & ~e->pawnAttacksSpan[WHITE]
+                         & shift<SOUTH>(e->pawnAttacks[BLACK]);
+  e->pawnAttacks[BLACK] |= b;
+
+
   return e;
 }
 
