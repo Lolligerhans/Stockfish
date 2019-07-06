@@ -562,7 +562,7 @@ namespace {
 
     // Bonus for safe pawn threats on the next move
     b = pawn_attacks_bb<Us>(b) & pos.pieces(Them);
-    score += ThreatByPawnPush * popcount(b);
+    score += ThreatByPawnPush * popcount(b | shift<Up>(b & pos.blockers_for_king(Them)));
 
     // Our safe or protected pawns
     b = pos.pieces(Us, PAWN) & safe;
