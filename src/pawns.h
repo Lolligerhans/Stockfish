@@ -42,7 +42,7 @@ struct Entry {
   template<Color Us>
   Score king_safety(const Position& pos) {
     return  kingSquares[Us] == pos.square<KING>(Us) && castlingRights[Us] == pos.castling_rights(Us)
-          ? kingSafety[Us] : (kingSafety[Us] = do_king_safety<Us>(pos));
+          ? kingSafety[Us] : (compute_outposts<Us>(pos), kingSafety[Us] = do_king_safety<Us>(pos));
   }
 
   template<Color Us>
@@ -63,6 +63,24 @@ struct Entry {
   Score kingSafety[COLOR_NB];
   int castlingRights[COLOR_NB];
 };
+
+template<Color Us>
+void Entry::compute_outposts(Position const& pos) &
+{
+    constexpr Color            Them = ~Us;
+    constexpr Direction        Down = (Us == WHITE ? SOUTH : NORTH);
+    constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
+                                                   : Rank5BB | Rank4BB | Rank3BB);
+
+    Bitboard span = pawn_attacks_bb<Them>(pos.pieces(Them, PAWN) &
+            ~pos.attacks_from<KING>(pos.square<KING>(Them)));
+
+    span = pawnAttacks[Them] | span | shift<Down>(span) | shift<Down+Down>(span);
+
+    outpostSquares[Us] = OutpostRanks
+                       & pawnAttacks[Us]
+                         & ~span;
+}
 
 typedef HashTable<Entry, 131072> Table;
 

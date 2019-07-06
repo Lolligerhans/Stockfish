@@ -168,8 +168,6 @@ Entry* probe(const Position& pos) {
   e->key = key;
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
-  e->compute_outposts<WHITE>(pos);
-  e->compute_outposts<BLACK>(pos);
 
   return e;
 }
@@ -242,22 +240,6 @@ Score Entry::do_king_safety(const Position& pos) {
       evaluate_shelter<Us>(pos, relative_square(Us, SQ_C1), shelter);
 
   return shelter - make_score(VALUE_ZERO, 16 * minPawnDist);
-}
-
-template<Color Us>
-void Entry::compute_outposts(Position const& pos) &
-{
-    constexpr Color            Them = ~Us;
-    constexpr Direction        Down = (Us == WHITE ? SOUTH : NORTH);
-    constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
-                                                   : Rank5BB | Rank4BB | Rank3BB);
-
-    Bitboard const& pat = pawnAttacks[Them];
-    Bitboard const atkSpanThem = pat | shift<Down>(pat) | shift<Down+Down>(pat);
-
-    outpostSquares[Us] = OutpostRanks
-                       & (pawnAttacks[Us] | shift<Down>(pos.pieces(Them, PAWN)))
-                       & ~atkSpanThem;
 }
 
 // Explicit template instantiation
