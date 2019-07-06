@@ -558,11 +558,12 @@ namespace {
     b |= shift<Up>(b & TRank3BB) & ~pos.pieces();
 
     // Keep only the squares which are relatively safe
-    b &= ~attackedBy[Them][PAWN] & safe;
+    b &= (~attackedBy[Them][PAWN] & safe)
+       | (shift<Up>(pos.blockers_for_king(Them)) & ~file_bb(pos.square<KING>(Them)));
 
     // Bonus for safe pawn threats on the next move
     b = pawn_attacks_bb<Us>(b) & pos.pieces(Them);
-    score += ThreatByPawnPush * popcount(b | shift<Up>(b & pos.blockers_for_king(Them)));
+    score += ThreatByPawnPush * popcount(b);
 
     // Our safe or protected pawns
     b = pos.pieces(Us, PAWN) & safe;
