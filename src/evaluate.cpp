@@ -173,6 +173,9 @@ namespace {
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
     template<Color Us> Score space() const;
+
+    template<Color Us> void init_pk_attacks();
+
     ScaleFactor scale_factor(Value eg) const;
     Score initiative(Value eg) const;
 
@@ -226,20 +229,12 @@ namespace {
 
     const Square ksq = pos.square<KING>(Us);
 
-    Bitboard dblAttackByPawn = pawn_double_attacks_bb<Us>(pos.pieces(Us, PAWN));
-
     // Find our pawns that are blocked or on the first two ranks
     Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
 
     // Squares occupied by those pawns, by our king or queen or controlled by
     // enemy pawns are excluded from the mobility area.
-    mobilityArea[Us] = ~(b | pos.pieces(Us, KING, QUEEN) | pe->pawn_attacks(Them));
-
-    // Initialize attackedBy[] for king and pawns
-    attackedBy[Us][KING] = pos.attacks_from<KING>(ksq);
-    attackedBy[Us][PAWN] = pe->pawn_attacks(Us);
-    attackedBy[Us][ALL_PIECES] = attackedBy[Us][KING] | attackedBy[Us][PAWN];
-    attackedBy2[Us] = dblAttackByPawn | (attackedBy[Us][KING] & attackedBy[Us][PAWN]);
+    mobilityArea[Us] = ~(b | pos.pieces(Us, KING, QUEEN) | attackedBy[Them][PAWN]);
 
     // Init our king safety tables
     kingRing[Us] = attackedBy[Us][KING];
@@ -252,13 +247,40 @@ namespace {
     else if (file_of(ksq) == FILE_A)
         kingRing[Us] |= shift<EAST>(kingRing[Us]);
 
-    kingAttackersCount[Them] = popcount(kingRing[Us] & pe->pawn_attacks(Them));
+    kingAttackersCount[Them] = popcount(kingRing[Us] & attackedBy[Them][PAWN]);
     kingAttacksCount[Them] = kingAttackersWeight[Them] = 0;
 
     // Remove from kingRing[] the squares defended by two pawns
-    kingRing[Us] &= ~dblAttackByPawn;
+    kingRing[Us] &= ~attackedBy2[Us]; // only pawns
+    attackedBy2[Us] |= attackedBy[Us][KING] & attackedBy[Us][PAWN];
   }
 
+  template<Tracing T> template<Color Us>
+  void Evaluation<T>::init_pk_attacks() {
+
+    const auto& ksq = pos.square<KING>(Us);
+
+    // These bb's are constructed to ONLY contain pawn-(attack)s by unpinned
+    // (resp. pinned) pawns.  This is required for correct computation of pawn
+    // double attacks, not for the computation of single pawn attacks.
+    Bitboard safePawns          = pos.pieces(Us, PAWN) & ~pos.blockers_for_king(Us);
+    Bitboard safeAttacks        = pawn_attacks_bb<Us>(safePawns);
+    Bitboard diagonalPawns      = pos.pieces(Us, PAWN) &
+                                  pos.blockers_for_king(Us) &
+                                  PseudoAttacks[BISHOP][ksq];
+    Bitboard diagonalAttacks    = pawn_attacks_bb<Us>(diagonalPawns) &
+                                  PseudoAttacks[BISHOP][ksq];
+    Bitboard trueAttacks        = safeAttacks | diagonalAttacks;
+
+    Bitboard trueDblAttack      = pawn_double_attacks_bb<Us>(safePawns)
+                                | (safeAttacks & diagonalAttacks);
+
+    // Initialize attackedBy[] for king and pawns
+    attackedBy[Us][KING] = pos.attacks_from<KING>(ksq);
+    attackedBy[Us][PAWN] = trueAttacks;
+    attackedBy[Us][ALL_PIECES] = attackedBy[Us][KING] | attackedBy[Us][PAWN];
+    attackedBy2[Us] = trueDblAttack; // only pawns for now
+  }
 
   // Evaluation::pieces() scores pieces of a given color and type
   template<Tracing T> template<Color Us, PieceType Pt>
@@ -810,6 +832,8 @@ namespace {
 
     // Main evaluation begins here
 
+    init_pk_attacks<WHITE>();
+    init_pk_attacks<BLACK>();
     initialize<WHITE>();
     initialize<BLACK>();
 
