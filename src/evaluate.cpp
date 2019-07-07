@@ -718,6 +718,8 @@ namespace {
   template<Tracing T>
   Score Evaluation<T>::initiative(Value eg) const {
 
+    int constexpr FullComplexity = 150;
+
     int outflanking =  distance<File>(pos.square<KING>(WHITE), pos.square<KING>(BLACK))
                      - distance<Rank>(pos.square<KING>(WHITE), pos.square<KING>(BLACK));
 
@@ -732,10 +734,14 @@ namespace {
                     + 49 * !pos.non_pawn_material()
                     -103 ;
 
+    int absEg = abs(eg);
+    if (absEg > FullComplexity)
+        complexity = complexity * absEg / FullComplexity;
+
     // Now apply the bonus: note that we find the attacking side by extracting
     // the sign of the endgame value, and that we carefully cap the bonus so
     // that the endgame score will never change sign after the bonus.
-    int v = ((eg > 0) - (eg < 0)) * std::max(complexity, -abs(eg));
+    int v = ((eg > 0) - (eg < 0)) * std::max(complexity, -absEg);
 
     if (T)
         Trace::add(INITIATIVE, make_score(0, v));
