@@ -648,12 +648,10 @@ namespace {
 
                 if (pos.pieces(Us) & bb)
                     defendedSquares &= ~t2
-                                     | u2
-                                     | um // & ~tmp
-                                     | (u[ALL] & ~tm);
+                                     | u[ALL];
                 else
-                    defendedSquares &= (u2 & (um | ~(t2 & tm)))
-                                     | (um & ~t2)
+                    defendedSquares &= (u2 & um)
+                                     | (um & ~(t2 & tm))
                                      | (u[ALL] & ~(t2 & tm & ~um));
 
                 if (!(pos.pieces(Them) & bb))
