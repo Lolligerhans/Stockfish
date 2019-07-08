@@ -641,8 +641,20 @@ namespace {
 
                 bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN);
 
-                if (!(pos.pieces(Us) & bb))
-                    defendedSquares &= attackedBy[Us][ALL_PIECES] & ~(attackedBy[Them][KING] & ~attackedBy2[Us]);
+                auto& a = attackedBy; auto ALL = ALL_PIECES;
+                auto& u = a[Us], &t = a[Them];
+                auto& u2 = attackedBy2[Us], &t2 = attackedBy2[Them];
+                auto  tm = t[KNIGHT] | t[BISHOP], um = u[KNIGHT] | u[BISHOP];
+
+                if (pos.pieces(Us) & bb)
+                    defendedSquares &= ~t2
+                                     | u2
+                                     | um // & ~tmp
+                                     | (u[ALL] & ~tm);
+                else
+                    defendedSquares &= (u2 & (um | ~(t2 & tm)))
+                                     | (um & ~t2)
+                                     | (u[ALL] & ~(t2 & tm & ~um));
 
                 if (!(pos.pieces(Them) & bb))
                     unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
