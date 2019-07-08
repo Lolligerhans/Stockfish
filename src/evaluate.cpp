@@ -652,7 +652,7 @@ namespace {
                 else
                     defendedSquares &= (u2 & um)
                                      | (um & ~(t2 & tm))
-                                     | (u[ALL] & ~(t2 & tm & ~um));
+                                     | (u[ALL] & ~(t2 | tm));
 
                 if (!(pos.pieces(Them) & bb))
                     unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
