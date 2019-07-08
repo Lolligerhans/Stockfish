@@ -658,7 +658,7 @@ namespace {
                 if (   attackedBy[Them][KNIGHT] & squaresToQueen
                     && !more_than_one(attackedBy[Them][ALL_PIECES] & squaresToQueen)
                     && !((pos.pieces(Them) | attackedBy2[Them]) & squaresToQueen))
-                    k += 5;
+                    k += 10;
 
                 // Assign a larger bonus if the block square is defended.
                 if (defendedSquares & blockSq)
