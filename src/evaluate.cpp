@@ -282,6 +282,9 @@ namespace {
           : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
                          : pos.attacks_from<Pt>(s);
 
+        int mob = popcount(b & mobilityArea[Us]);
+        mobility[Us] += MobilityBonus[Pt - 2][mob];
+
         if (pos.blockers_for_king(Us) & s)
             b &= LineBB[pos.square<KING>(Us)][s];
 
@@ -295,10 +298,6 @@ namespace {
             kingAttackersWeight[Us] += KingAttackWeights[Pt];
             kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
         }
-
-        int mob = popcount(b & mobilityArea[Us]);
-
-        mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
