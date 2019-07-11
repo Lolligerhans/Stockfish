@@ -82,7 +82,6 @@ namespace {
 
     e->passedPawns[Us] = e->pawnAttacksSpan[Us] = 0;
     e->kingSquares[Us] = SQ_NONE;
-    e->pawnAttacks[Us] = pawn_attacks_bb<Us>(ourPawns);
 
     // Unsupported enemy pawns attacked twice by us
     score += Attacked2Unsupported * popcount(  theirPawns

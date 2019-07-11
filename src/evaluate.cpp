@@ -226,20 +226,35 @@ namespace {
 
     const Square ksq = pos.square<KING>(Us);
 
-    Bitboard dblAttackByPawn = pawn_double_attacks_bb<Us>(pos.pieces(Us, PAWN));
+    // Initialize attackedBy[] for pawns
+    if (Us == WHITE)
+    {
+        // WHITE
+        Bitboard e = pos.pieces(Us, PAWN);
+        Bitboard w = shift<Up+WEST>(e);
+        e = shift<Up+EAST>(e);
+
+        attackedBy2[Us] = e & w;
+        attackedBy[Us][PAWN] = e | w;
+
+        // BLACK
+        e = pos.pieces(Them, PAWN);
+        w = shift<Down+WEST>(e);
+        e = shift<Down+EAST>(e);
+
+        attackedBy2[Them] = e & w;
+        attackedBy[Them][PAWN] = e | w;
+    }
 
     // Find our pawns that are blocked or on the first two ranks
     Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
 
     // Squares occupied by those pawns, by our king or queen or controlled by
     // enemy pawns are excluded from the mobility area.
-    mobilityArea[Us] = ~(b | pos.pieces(Us, KING, QUEEN) | pe->pawn_attacks(Them));
+    mobilityArea[Us] = ~(b | pos.pieces(Us, KING, QUEEN) | attackedBy[Them][PAWN]);
 
-    // Initialize attackedBy[] for king and pawns
+    // Initialize attackedBy[] for king
     attackedBy[Us][KING] = pos.attacks_from<KING>(ksq);
-    attackedBy[Us][PAWN] = pe->pawn_attacks(Us);
-    attackedBy[Us][ALL_PIECES] = attackedBy[Us][KING] | attackedBy[Us][PAWN];
-    attackedBy2[Us] = dblAttackByPawn | (attackedBy[Us][KING] & attackedBy[Us][PAWN]);
 
     // Init our king safety tables
     kingRing[Us] = attackedBy[Us][KING];
@@ -252,11 +267,15 @@ namespace {
     else if (file_of(ksq) == FILE_A)
         kingRing[Us] |= shift<EAST>(kingRing[Us]);
 
-    kingAttackersCount[Them] = popcount(kingRing[Us] & pe->pawn_attacks(Them));
+    kingAttackersCount[Them] = popcount(kingRing[Us] & attackedBy[Them][PAWN]);
     kingAttacksCount[Them] = kingAttackersWeight[Them] = 0;
 
     // Remove from kingRing[] the squares defended by two pawns
-    kingRing[Us] &= ~dblAttackByPawn;
+    kingRing[Us] &= ~attackedBy2[Us];
+
+    // Initialize attackedBy[] for pawns + king
+    attackedBy2[Us] |= attackedBy[Us][KING] & attackedBy[Us][PAWN];
+    attackedBy[Us][ALL_PIECES] = attackedBy[Us][KING] | attackedBy[Us][PAWN];
   }
 
 
