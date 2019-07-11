@@ -82,10 +82,12 @@ namespace {
 
     e->passedPawns[Us] = e->pawnAttacksSpan[Us] = 0;
     e->kingSquares[Us] = SQ_NONE;
+    e->pawnAttacks[Us] = pawn_attacks_bb<Us>(ourPawns);
 
     // Unsupported enemy pawns attacked twice by us
     score += Attacked2Unsupported * popcount(  theirPawns
-                                             & pawn_double_attacks_bb<Us>(ourPawns)
+//                                           & pawn_double_attacks_bb<Us>(ourPawns)
+                                             & e->pawnDoubleAttacks[Us]
                                              & ~pawn_attacks_bb<Them>(theirPawns));
 
     // Loop through all pawns of the current color and score each pawn
@@ -167,6 +169,8 @@ Entry* probe(const Position& pos) {
       return e;
 
   e->key = key;
+  e->pawnDoubleAttacks[WHITE] = pawn_double_attacks_bb<WHITE>(pos.pieces(WHITE, PAWN));
+  e->pawnDoubleAttacks[BLACK] = pawn_double_attacks_bb<BLACK>(pos.pieces(BLACK, PAWN));
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
 
