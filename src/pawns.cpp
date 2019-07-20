@@ -376,13 +376,12 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
     }
 
     this->smartSpan[Them] = iterSpan;
-    return;
 
 nospan:
     /* nothing */
 //    this->smartSpan[Them] = this->pawnAttacksSpan[Them];
-    return;
 
+    this->scores[Us] += make_score(0,10) * popcount(totalFix);
 }
 
 /// Entry::evaluate_shelter() calculates the shelter bonus and the storm
