@@ -587,7 +587,7 @@ namespace {
     }
 
     // attack fix pawns
-    score += MinorBehindPawn * popcount(((pos.pieces(Us))
+    score += make_score(10,5) * popcount(((pos.pieces(Us))
                                         |(attackedBy[Us][ALL_PIECES]))
                                        & pe->fix_pawns(Them));
 
