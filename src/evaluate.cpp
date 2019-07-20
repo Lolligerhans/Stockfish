@@ -587,7 +587,9 @@ namespace {
     }
 
     // attack fix pawns
-    score += Outpost * popcount(attackedBy[Us][ALL_PIECES] & pe->fix_pawns(Them));
+    score += MinorBehindPawn * popcount(((pos.pieces(Us))
+                                        |(attackedBy[Us][ALL_PIECES] & (attackedBy2[Us] | ~attackedBy[Us][PAWN])))
+                                       & pe->fix_pawns(Them));
 
     if (T)
         Trace::add(THREAT, Us, score);
