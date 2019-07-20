@@ -334,8 +334,8 @@ namespace {
             // Bonus if piece is on an outpost square or can reach one
             bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->fluent_span<Them>();
             if (bb & s)
-//                score += Outpost * (Pt == KNIGHT ? 2 : 1), ++outpostCount[Us];
-                score += Outpost * (Pt == KNIGHT ? 2 : 1);
+                score += Outpost * (Pt == KNIGHT ? 2 : 1), ++outpostCount[Us];
+//                score += Outpost * (Pt == KNIGHT ? 2 : 1);
 
             else if (bb & b & ~pos.pieces(Us))
 //                score += Outpost / (Pt == KNIGHT ? 1 : 2), ++outpostCount[Us];
@@ -447,16 +447,11 @@ namespace {
 //    const Bitboard pawns = pos.pieces(Us, PAWN) & ~pe->fluent_span<Them>() & orb;
     const Bitboard allPieces = pos.pieces(Us) & ~pe->fluent_span<Them>();
     const Bitboard pawns = pos.pieces(Us, PAWN) & ~pe->fluent_span<Them>();
-    if (allPieces)
-    {
-        const int safePieces = popcount(allPieces);
-        score += (gop) * (safePieces-outpostCount[Us]);
-    }
-    if (pawns)
-    {
-        const int safePawns  = popcount(pawns);
-        score += (gpp - gop) * (safePawns);
-    }
+
+    const int safePieces = popcount(allPieces);
+    score += (gop) * (safePieces-outpostCount[Us]);
+    const int safePawns  = popcount(pawns);
+    score += (gpp - gop) * (safePawns);
 
 
   }
