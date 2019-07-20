@@ -381,7 +381,7 @@ nospan:
     /* nothing */
 //    this->smartSpan[Them] = this->pawnAttacksSpan[Them];
 
-    this->scores[Us] += make_score(15,5) * popcount(totalFix);
+    this->scores[Us] += make_score(15,0) * popcount(totalFix);
 }
 
 /// Entry::evaluate_shelter() calculates the shelter bonus and the storm
