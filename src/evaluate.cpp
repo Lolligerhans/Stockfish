@@ -586,6 +586,9 @@ namespace {
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
     }
 
+    // attack fix pawns
+    score += Outpost * popcount(attackedBy[Us][ALL_PIECES] & pe->fix_pawns(Them));
+
     if (T)
         Trace::add(THREAT, Us, score);
 

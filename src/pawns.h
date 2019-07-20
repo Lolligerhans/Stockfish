@@ -36,6 +36,7 @@ struct Entry {
   Score pawn_score(Color c) const { return scores[c]; }
   Bitboard pawn_attacks(Color c) const { return pawnAttacks[c]; }
   Bitboard passed_pawns(Color c) const { return passedPawns[c]; }
+  Bitboard fix_pawns(Color c) const { return fixed[c]; }
   template<Color c> Bitboard fluent_span() const { return smartSpan[c]; }
   int passed_count() const { return popcount(passedPawns[WHITE] | passedPawns[BLACK]); }
 
@@ -56,6 +57,7 @@ struct Entry {
 
   Key key;
   Score scores[COLOR_NB];
+  Bitboard fixed[COLOR_NB];
   Bitboard passedPawns[COLOR_NB];
   Bitboard pawnAttacks[COLOR_NB];
   Bitboard smartSpan[COLOR_NB];

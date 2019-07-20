@@ -203,6 +203,7 @@ template<Color Us>
 void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
 {
     constexpr Color Them    = ~Us;
+    constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
 
     // inputs
     const Bitboard ourPawns     = pos.pieces(Us, PAWN);
@@ -381,7 +382,7 @@ nospan:
     /* nothing */
 //    this->smartSpan[Them] = this->pawnAttacksSpan[Them];
 
-    this->scores[Us] += make_score(15,0) * popcount(totalFix);
+    fixed[Them] = shift<Down>(theirPawns) & ~ (smartSpan[Them] | ourPawns);
 }
 
 /// Entry::evaluate_shelter() calculates the shelter bonus and the storm
