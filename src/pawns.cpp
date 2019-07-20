@@ -80,7 +80,7 @@ namespace {
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-    e->passedPawns[Us] = e->smartSpan[Us] = 0;
+    e->passedPawns[Us] = e->smartSpan[Us] = sp2 = 0;
     e->kingSquares[Us] = SQ_NONE;
     e->pawnAttacks[Us] = pawn_attacks_bb<Us>(ourPawns);
 
