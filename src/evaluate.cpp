@@ -159,6 +159,8 @@ namespace {
   // Evaluation class computes and stores attacks tables and other working data
   template<Tracing T>
   class Evaluation {
+    static constexpr Bitboard OutpostRanks[COLOR_NB] = {Rank4BB | Rank5BB | Rank6BB,
+                                                        Rank5BB | Rank4BB | Rank3BB};
 
   public:
     Evaluation() = delete;
@@ -266,8 +268,6 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
-    constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
-                                                   : Rank5BB | Rank4BB | Rank3BB);
     const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
@@ -303,7 +303,7 @@ namespace {
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
-            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
+            bb = OutpostRanks[Us] & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
             if (bb & s)
                 score += Outpost * (Pt == KNIGHT ? 4 : 2);
 
@@ -561,8 +561,13 @@ namespace {
     b &= ~attackedBy[Them][PAWN] & safe;
 
     // Bonus for safe pawn threats on the next move
-    b = pawn_attacks_bb<Us>(b) & nonPawnEnemies;
+    Bitboard bb = pawn_attacks_bb<Us>(b);
+    b = bb & nonPawnEnemies;
     score += ThreatByPawnPush * popcount(b);
+
+    // outposts
+    bb &= ~(attackedBy[Us][PAWN] | pe->pawn_attacks_span(Them)) & OutpostRanks[Us];
+    score += Outpost * popcount(bb & pos.pieces(Us, KNIGHT, BISHOP));
 
     // Our safe or protected pawns
     b = pos.pieces(Us, PAWN) & safe;
