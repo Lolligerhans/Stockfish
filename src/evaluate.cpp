@@ -587,9 +587,12 @@ namespace {
     }
 
     // attack fix pawns
-    score += make_score(10,5) * popcount(((pos.pieces(Us))
-                                        |(attackedBy[Us][ALL_PIECES]))
-                                       & pe->fix_pawns(Them));
+    score += make_score(15,15) * popcount(//attackedBy[Us][ALL_PIECES] &
+            /*shift<Up>*/(((pos.pieces(Us))
+//                    |(attackedBy[Us][ALL_PIECES])
+                      )
+                     & pe->fix_pawns(Them))
+            );
 
     if (T)
         Trace::add(THREAT, Us, score);
