@@ -588,7 +588,7 @@ namespace {
 
     // attack fix pawns
     score += MinorBehindPawn * popcount(((pos.pieces(Us))
-                                        |(attackedBy[Us][ALL_PIECES] & (attackedBy2[Us] | ~attackedBy[Us][PAWN])))
+                                        |(attackedBy[Us][ALL_PIECES]))
                                        & pe->fix_pawns(Them));
 
     if (T)
