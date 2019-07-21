@@ -587,7 +587,7 @@ namespace {
     }
 
     // attack fix pawns
-    score += make_score(15,15) * popcount(//attackedBy[Us][ALL_PIECES] &
+    score += make_score(15,10) * popcount(//attackedBy[Us][ALL_PIECES] &
             /*shift<Up>*/(((pos.pieces(Us))
 //                    |(attackedBy[Us][ALL_PIECES])
                       )
