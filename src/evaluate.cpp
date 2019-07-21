@@ -312,7 +312,7 @@ namespace {
                 score += Outpost * (Pt == KNIGHT ? 2 : 1);
 
             // Knight and Bishop bonus for being right behind a friendly pawn
-            bb = pos.pieces(PAWN) & (s-Down);
+            bb = pos.pieces(PAWN) & shift<-Down>(square_bb(s));
             if (pos.pieces(Us) & bb)
                 score += MinorBehindPawn;
 
