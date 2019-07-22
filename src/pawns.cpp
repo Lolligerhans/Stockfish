@@ -382,7 +382,8 @@ nospan:
     /* nothing */
 //    this->smartSpan[Them] = this->pawnAttacksSpan[Them];
 
-    fixed[Them] = shift<Down>(theirPawns) & ~ (smartSpan[Them] | ourPawns);
+    fixed[Them] = shift<Down>(theirPawns & ~passedPawns[Them]) & ~
+        (smartSpan[Them] | ourPawns);
 }
 
 /// Entry::evaluate_shelter() calculates the shelter bonus and the storm
