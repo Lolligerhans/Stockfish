@@ -547,8 +547,11 @@ namespace {
 
     score += RestrictedPiece * popcount(b);
 
+    const Bitboard pawnWithDuty = pawn_attacks_bb<Them>(pos.pieces(Us) &
+            attackedBy[Them][ALL_PIECES] & ~attackedBy2[Us]);
+
     // Find squares where our pawns can push on the next move
-    b  = shift<Up>(pos.pieces(Us, PAWN)) & ~pos.pieces();
+    b  = shift<Up>(pos.pieces(Us, PAWN) & ~pawnWithDuty) & ~pos.pieces();
     b |= shift<Up>(b & TRank3BB) & ~pos.pieces();
 
     // Keep only the squares which are relatively safe
