@@ -169,6 +169,7 @@ namespace {
     template<Color Us> Score space() const;
     ScaleFactor scale_factor(Value eg) const;
     Score initiative(Value eg) const;
+    template<Color Us> Bitboard weakDef() const;
 
     const Position& pos;
     Material::Entry* me;
@@ -373,6 +374,24 @@ namespace {
     return score;
   }
 
+  template<Tracing T> template<Color Us>
+  Bitboard Evaluation<T>::weakDef() const {
+
+      auto constexpr Them = ~Us;
+
+      auto& a = attackedBy; auto ALL = ALL_PIECES;
+      auto& u = a[Us], &t = a[Them];
+      auto& u2 = attackedBy2[Us], &t2 = attackedBy2[Them];
+      auto  tm = t[KNIGHT] | t[BISHOP], um = u[KNIGHT] | u[BISHOP];
+      auto& up = u[PAWN], &tp = t[PAWN];
+
+      auto b  = (up | ~tp)
+              & ( (u2 & (um | ~(t2 & tm)))
+                | (um & ~tm)
+                | (u[ALL] & ~(t2 | tm)));
+      return b | (up & ~tp) | ~t[ALL];
+  }
+
 
   // Evaluation::king() assigns bonuses and penalties to a king of a given color
   template<Tracing T> template<Color Us>
@@ -552,7 +571,7 @@ namespace {
     b |= shift<Up>(b & TRank3BB) & ~pos.pieces();
 
     // Keep only the squares which are relatively safe
-    b &= ~attackedBy[Them][PAWN] & safe;
+    b &= ~attackedBy[Them][PAWN] & weakDef<Us>();
 
     // Bonus for safe pawn threats on the next move
     b = pawn_attacks_bb<Us>(b) & nonPawnEnemies;
