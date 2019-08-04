@@ -151,9 +151,9 @@ namespace {
                                   & doubleAttackThem
                                   & ~e->pawnAttacks[Us]);
 
-    score += make_score(10,10) * popcount(
+    score -= make_score(10,10) * popcount(
             shift<Up>(pawn_attacks_bb<Them>(shift<Down>(theirPawns)
-                    & ~ourPawns) & ourPawns) & ~(theirPawns));
+                    & ~ourPawns) & ourPawns) & theirPawns);
 
     return score;
   }
