@@ -260,6 +260,7 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
+    constexpr auto      Up  = -Down;
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
     const Square* pl = pos.squares<Pt>(Us);
@@ -276,6 +277,24 @@ namespace {
           : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
                          : pos.attacks_from<Pt>(s);
 
+        // add attacks possible after a pawn push
+        int mob;
+        {
+            const auto p1 = pos.pieces();
+            const auto mvble = pos.pieces(Us, PAWN) & ~shift<Down>(p1);
+            const auto p2 = p1 ^ mvble ^ shift<Up>(mvble);
+
+            // Find attacked squares for movable pawns
+            Bitboard freeable = Pt == BISHOP ? attacks_bb<BISHOP>(s, p2 ^ pos.pieces(QUEEN))
+                : Pt ==   ROOK ? attacks_bb<  ROOK>(s, p2 ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
+                : pos.attacks_from<Pt>(s);
+
+            b |= freeable;
+
+            mob = popcount(b & mobilityArea[Us]);
+            mobility[Us] += MobilityBonus[Pt - 2][mob];
+        }
+
         if (pos.blockers_for_king(Us) & s)
             b &= LineBB[pos.square<KING>(Us)][s];
 
@@ -289,10 +308,6 @@ namespace {
             kingAttackersWeight[Us] += KingAttackWeights[Pt];
             kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
         }
-
-        int mob = popcount(b & mobilityArea[Us]);
-
-        mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
