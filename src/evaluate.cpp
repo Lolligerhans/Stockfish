@@ -278,7 +278,6 @@ namespace {
                          : pos.attacks_from<Pt>(s);
 
         // add attacks possible after a pawn push
-        int mob;
         {
             const auto p1 = pos.pieces();
             const auto mvble = pos.pieces(Us, PAWN) & ~shift<Down>(p1);
@@ -291,12 +290,13 @@ namespace {
 
             b |= freeable;
 
-            mob = popcount(b & mobilityArea[Us]);
-            mobility[Us] += MobilityBonus[Pt - 2][mob];
         }
 
         if (pos.blockers_for_king(Us) & s)
             b &= LineBB[pos.square<KING>(Us)][s];
+
+        int mob = popcount(b & mobilityArea[Us]);
+        mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
         attackedBy[Us][Pt] |= b;
