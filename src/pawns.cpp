@@ -69,6 +69,7 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
+    constexpr auto      Down = -Up;
 
     Bitboard neighbours, stoppers, doubled, support, phalanx;
     Bitboard lever, leverPush;
@@ -149,6 +150,10 @@ namespace {
     score -= WeakLever * popcount(  ourPawns
                                   & doubleAttackThem
                                   & ~e->pawnAttacks[Us]);
+
+    return make_score(10,10) * popcount(
+            shift<Up>(pawn_attacks_bb<Them>(shift<Down>(theirPawns) &
+                    ~ourPawns) & ourPawns) & ~(theirPawns));
 
     return score;
   }
