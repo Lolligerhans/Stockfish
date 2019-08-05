@@ -489,7 +489,9 @@ namespace {
 
     constexpr Color     Them     = (Us == WHITE ? BLACK   : WHITE);
     constexpr Direction Up       = (Us == WHITE ? NORTH   : SOUTH);
+    constexpr auto Down = -Up;
     constexpr Bitboard  TRank3BB = (Us == WHITE ? Rank3BB : Rank6BB);
+    constexpr Bitboard  TRank6BB = (Us == BLACK ? Rank3BB : Rank6BB);
 
     Bitboard b, weak, defended, nonPawnEnemies, stronglyProtected, safe;
     Score score = SCORE_ZERO;
@@ -540,12 +542,16 @@ namespace {
         score += Hanging * popcount(weak & b);
     }
 
+    // Find squares where their pawns can push on the next move
+    b  = shift<Down>(pos.pieces(Them, PAWN)) & ~pos.pieces();
+    b |= shift<Down>(b & TRank6BB) & ~pos.pieces();
+
     // Bonus for restricting their piece moves
-    b =   attackedBy[Them][ALL_PIECES]
+    Bitboard bb = (attackedBy[Them][ALL_PIECES] | b)
        & ~stronglyProtected
        &  attackedBy[Us][ALL_PIECES];
 
-    score += RestrictedPiece * popcount(b);
+    score += RestrictedPiece * popcount(bb);
 
     // Find squares where our pawns can push on the next move
     b  = shift<Up>(pos.pieces(Us, PAWN)) & ~pos.pieces();
