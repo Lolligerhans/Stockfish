@@ -735,7 +735,7 @@ namespace {
                     -103 ;
 
     int absEg = abs(eg);
-    if (absEg > FullComplexity)
+    if (absEg < FullComplexity)
         complexity = complexity * absEg / FullComplexity;
 
     // Now apply the bonus: note that we find the attacking side by extracting
