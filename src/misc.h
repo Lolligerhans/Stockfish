@@ -19,10 +19,15 @@
 #ifndef MISC_H_INCLUDED
 #define MISC_H_INCLUDED
 
+#include <atomic>
 #include <cassert>
 #include <chrono>
+#include <cmath>
+#include <iomanip>
+#include <iostream>
 #include <ostream>
 #include <string>
+#include <type_traits>
 #include <vector>
 #include <cstdint>
 
@@ -37,9 +42,23 @@ void std_aligned_free(void* ptr);
 void* aligned_large_pages_alloc(size_t size); // memory aligned by page size, min alignment: 4096 bytes
 void aligned_large_pages_free(void* mem); // nop if mem == nullptr
 
-void dbg_hit_on(bool b);
-void dbg_hit_on(bool c, bool b);
-void dbg_mean_of(int v);
+/// Debug functions used mainly to collect run-time statistics
+constexpr int DebugMax = 10;
+extern std::atomic<int64_t> hits[DebugMax][2];
+extern std::atomic<int64_t> means[DebugMax][2];
+extern std::atomic<double> dmeans[DebugMax];
+template<int N = 0,
+         typename = typename std::enable_if<(N < DebugMax)>::type>
+void dbg_hit_on(bool b, bool c = true) { hits[N][0] += c; hits[N][1] += b * c; }
+template<int N = 0,
+         typename = typename std::enable_if<(N < DebugMax)>::type>
+void dbg_mean_of(int v) {
+  double d;
+  if (means[N][0]) d = v - double(means[N][1])/means[N][0];
+  else             d = v;
+  ++means[N][0]; means[N][1] += v;
+  dmeans[N] = dmeans[N] + d * (v - double(means[N][1])/means[N][0]);
+}
 void dbg_print();
 
 typedef std::chrono::milliseconds::rep TimePoint; // A value in milliseconds
