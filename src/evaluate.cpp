@@ -300,7 +300,7 @@ namespace {
             bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
             if (bb & s)
                 score += Outpost * ((Pt == KNIGHT ? 4 : 2) + bool
-                        (PseudoAttacks[ROOK][s] & pos.pieces(Them, ROOK)));
+                        (PseudoAttacks[ROOK][s] & pos.pieces(Them, ROOK, QUEEN)));
 
             else if (bb & b & ~pos.pieces(Us))
                 score += Outpost * (Pt == KNIGHT ? 2 : 1);
