@@ -630,6 +630,12 @@ namespace {
                 squaresToQueen = forward_file_bb(Us, s);
                 unsafeSquares = passed_pawn_span(Us, s);
 
+                auto hasBishop = [&](Square sq) -> bool {
+                    const auto bi = pos.pieces(Us, BISHOP);
+                    return (DarkSquares & bi and  DarkSquares & sq) or
+                          (~DarkSquares & bi and ~DarkSquares & sq);
+                };
+
                 bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN);
 
                 if (!(pos.pieces(Them) & bb))
@@ -644,7 +650,7 @@ namespace {
                                                              0 ;
 
                 // Assign a larger bonus if the block square is defended
-                if ((pos.pieces(Us) & bb) || (attackedBy[Us][ALL_PIECES] & (~attackedBy2[Them] | attackedBy2[Us]) & blockSq))
+                if ((pos.pieces(Us) & bb) || hasBishop(s+Up) || (attackedBy[Us][ALL_PIECES] & blockSq))
                     k += 5;
 
                 bonus += make_score(k * w, k * w);
