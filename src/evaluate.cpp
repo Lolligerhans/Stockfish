@@ -263,7 +263,7 @@ namespace {
         this->outposts[Us] = atk(paw);
         paw = shift<Down>(paw) & ok, outposts[Us] |= atk(paw);
         paw = shift<Down>(paw) & ok, outposts[Us] |= atk(paw);
-        outposts[Us] = ~outposts[Us] & OutpostRanks & attackedBy[Us][PAWN]; // invert atk span first
+        outposts[Us] = ~outposts[Us] & OutpostRanks & attackedBy[Us][PAWN];
     }
   }
 
