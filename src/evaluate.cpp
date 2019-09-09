@@ -188,6 +188,7 @@ namespace {
     // kingRing[color] are the squares adjacent to the king plus some other
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
+    Bitboard outposts[COLOR_NB];
 
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
@@ -217,6 +218,8 @@ namespace {
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
     constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
     constexpr Bitboard LowRanks = (Us == WHITE ? Rank2BB | Rank3BB : Rank7BB | Rank6BB);
+    constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
+                                                   : Rank5BB | Rank4BB | Rank3BB);
 
     const Square ksq = pos.square<KING>(Us);
 
@@ -251,6 +254,17 @@ namespace {
 
     // Remove from kingRing[] the squares defended by two pawns
     kingRing[Us] &= ~dblAttackByPawn;
+
+    if (pos.count<BISHOP>(Us) || pos.count<KNIGHT>(Us))
+    {
+        const auto atk = pawn_attacks_bb<Them>;
+        const auto ok = ~(pos.pieces() | (attackedBy[Us][PAWN] & (attackedBy2[Us] | ~attackedBy2[Them])));
+        auto paw = pos.pieces(Them, PAWN);
+        this->outposts[Us] = atk(paw);
+        paw = shift<Down>(paw) & ok, outposts[Us] |= atk(paw);
+        paw = shift<Down>(paw) & ok, outposts[Us] |= atk(paw);
+        outposts[Us] = ~outposts[Us] & OutpostRanks & attackedBy[Us][PAWN]; // invert atk span first
+    }
   }
 
 
@@ -260,11 +274,9 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
-    constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
-                                                   : Rank5BB | Rank4BB | Rank3BB);
     const Square* pl = pos.squares<Pt>(Us);
 
-    Bitboard b, bb;
+    Bitboard b;
     Score score = SCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
@@ -297,12 +309,10 @@ namespace {
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
-            bb = attackedBy[Them][PAWN], bb |= shift<Down>(bb) | shift<2*Down>(bb), bb = ~bb;
-            bb &= OutpostRanks & attackedBy[Us][PAWN];
-            if (bb & s)
+            if (outposts[Us] & s)
                 score += Outpost * (Pt == KNIGHT ? 4 : 2);
 
-            else if (bb & b & ~pos.pieces(Us))
+            else if (outposts[Us] & b & ~pos.pieces(Us))
                 score += Outpost * (Pt == KNIGHT ? 2 : 1);
 
             // Knight and Bishop bonus for being right behind a pawn
