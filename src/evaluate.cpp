@@ -258,10 +258,11 @@ namespace {
     if (pos.count<BISHOP>(Us) || pos.count<KNIGHT>(Us))
     {
         const auto atk = pawn_attacks_bb<Them>;
+        const auto ok = ~(pos.pieces());
         auto paw = pos.pieces(Them, PAWN);
         this->outposts[Us] = atk(paw);
-        paw = shift<Down>(paw) , outposts[Us] |= atk(paw);
-        paw = shift<Down>(paw) , outposts[Us] |= atk(paw);
+        paw = shift<Down>(paw) & ok, outposts[Us] |= atk(paw);
+        paw = shift<Down>(paw) & ok, outposts[Us] |= atk(paw);
         outposts[Us] = ~outposts[Us] & OutpostRanks & attackedBy[Us][PAWN]; // invert atk span first
     }
   }
