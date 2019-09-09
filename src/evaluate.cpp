@@ -258,8 +258,8 @@ namespace {
     if (pos.count<BISHOP>(Us) || pos.count<KNIGHT>(Us))
     {
         const auto atk = pawn_attacks_bb<Them>;
-        const auto ok = ~(pos.pieces() | (attackedBy[Us][PAWN] & (attackedBy2[Us] | ~attackedBy2[Them])));
         auto paw = pos.pieces(Them, PAWN);
+        const auto ok = ~(pos.pieces() | (attackedBy[Us][PAWN] & (attackedBy2[Us] | ~atk(paw))));
         this->outposts[Us] = atk(paw);
         paw = shift<Down>(paw) & ok, outposts[Us] |= atk(paw);
         paw = shift<Down>(paw) & ok, outposts[Us] |= atk(paw);
