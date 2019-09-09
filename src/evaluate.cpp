@@ -128,6 +128,7 @@ namespace {
 
   // Assorted bonuses and penalties
   constexpr Score BishopPawns        = S(  3,  7);
+  constexpr Score BlowmobPenalty     = S(  5,  5);
   constexpr Score CorneredBishop     = S( 50, 50);
   constexpr Score FlankAttacks       = S(  8,  0);
   constexpr Score Hanging            = S( 69, 36);
@@ -175,6 +176,11 @@ namespace {
     Pawns::Entry* pe;
     Bitboard mobilityArea[COLOR_NB];
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
+    Bitboard blocked[COLOR_NB];
+    //Bitboard kingFlank[COLOR_NB];
+    Bitboard blowmobHardBlock[COLOR_NB];
+    Bitboard blowmobSoftBlock[COLOR_NB];
+    int blowmobFactor;
 
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
@@ -184,6 +190,7 @@ namespace {
     // attackedBy2[color] are the squares attacked by at least 2 units of a given
     // color, including x-rays. But diagonal x-rays through pawns are not computed.
     Bitboard attackedBy2[COLOR_NB];
+    Bitboard attackedBy2p[COLOR_NB];
 
     // kingRing[color] are the squares adjacent to the king plus some other
     // very near squares, depending on king position.
@@ -220,20 +227,45 @@ namespace {
 
     const Square ksq = pos.square<KING>(Us);
 
-    Bitboard dblAttackByPawn = pawn_double_attacks_bb<Us>(pos.pieces(Us, PAWN));
+    // NOTE Init part is non-functional!
+    if (Us == WHITE)
+    {
+        const Square ksqB = pos.square<KING>(BLACK);
+
+        attackedBy[WHITE][KING] = pos.attacks_from<KING>(ksq);
+        attackedBy[WHITE][PAWN] = pe->pawn_attacks(WHITE);
+        attackedBy[WHITE][ALL_PIECES] = attackedBy[WHITE][KING] | attackedBy[WHITE][PAWN];
+        attackedBy2p[WHITE] = pawn_double_attacks_bb<WHITE>(pos.pieces(WHITE, PAWN));
+        (attackedBy2[WHITE] = attackedBy[WHITE][KING] & attackedBy[WHITE][PAWN]) |= attackedBy2p[WHITE];
+
+        attackedBy[BLACK][KING] = pos.attacks_from<KING>(ksqB);
+        attackedBy[BLACK][PAWN] = pe->pawn_attacks(BLACK);
+        attackedBy[BLACK][ALL_PIECES] = attackedBy[BLACK][KING] | attackedBy[BLACK][PAWN];
+        attackedBy2p[BLACK] = pawn_double_attacks_bb<BLACK>(pos.pieces(BLACK, PAWN));
+        (attackedBy2[BLACK] = attackedBy[BLACK][KING] & attackedBy[BLACK][PAWN]) |= attackedBy2p[BLACK];
+
+        blowmobFactor = 0;
+    }
+
+    Bitboard qBlock2 = attackedBy2p [Them]       & ~attackedBy  [Us][PAWN];
+    Bitboard qBlock1 = (attackedBy2p[Them]       & ~attackedBy2p[Us])
+                     | (attackedBy  [Them][PAWN] & ~attackedBy  [Us][PAWN]);
+
+    Bitboard b = pos.pieces(Us, PAWN);
+    blocked[Us] = b & shift<Down>(pos.pieces());
+
+    Bitboard stronglyBlocked = b & shift<Down>(qBlock2);
+    Bitboard weaklyBlocked   = b & shift<Down>(qBlock1);
+    blowmobHardBlock[Us] = blocked[Us] | stronglyBlocked;
+    blowmobSoftBlock[Us] = (weaklyBlocked) & ~blowmobHardBlock[Us];
 
     // Find our pawns that are blocked or on the first two ranks
-    Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
+    b &= blocked[Us] | LowRanks; // TODO can be computed more efficiently?
+
 
     // Squares occupied by those pawns, by our king or queen or controlled by
     // enemy pawns are excluded from the mobility area.
     mobilityArea[Us] = ~(b | pos.pieces(Us, KING, QUEEN) | pe->pawn_attacks(Them));
-
-    // Initialize attackedBy[] for king and pawns
-    attackedBy[Us][KING] = pos.attacks_from<KING>(ksq);
-    attackedBy[Us][PAWN] = pe->pawn_attacks(Us);
-    attackedBy[Us][ALL_PIECES] = attackedBy[Us][KING] | attackedBy[Us][PAWN];
-    attackedBy2[Us] = dblAttackByPawn | (attackedBy[Us][KING] & attackedBy[Us][PAWN]);
 
     // Init our king safety tables
     kingRing[Us] = attackedBy[Us][KING];
@@ -250,7 +282,7 @@ namespace {
     kingAttacksCount[Them] = kingAttackersWeight[Them] = 0;
 
     // Remove from kingRing[] the squares defended by two pawns
-    kingRing[Us] &= ~dblAttackByPawn;
+    kingRing[Us] &= ~attackedBy2p[Us];
   }
 
 
@@ -315,10 +347,10 @@ namespace {
             {
                 // Penalty according to number of pawns on the same color square as the
                 // bishop, bigger when the center files are blocked with pawns.
-                Bitboard blocked = pos.pieces(Us, PAWN) & shift<Down>(pos.pieces());
+                //Bitboard blocked = pos.pieces(Us, PAWN) & shift<Down>(pos.pieces());
 
                 score -= BishopPawns * pos.pawns_on_same_color_squares(Us, s)
-                                     * (1 + popcount(blocked & CenterFiles));
+                                     * (1 + popcount(blocked[Us] & CenterFiles));
 
                 // Bonus for bishop on a long diagonal which can "see" both center squares
                 if (more_than_one(attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & Center))
@@ -366,6 +398,32 @@ namespace {
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
         }
+
+        // NOTE This is the functional part!
+        if (Pt == KNIGHT || Pt == BISHOP)
+        {
+            constexpr Bitboard Mid = FileDBB | FileEBB;
+            constexpr Bitboard Midblock[] =
+            {
+                FileBBB | FileCBB | Mid,
+                FileCBB | Mid,
+                Mid, Mid, Mid, Mid,
+                FileFBB | Mid,
+                FileFBB | FileGBB | Mid
+            };
+
+            const File      file    = file_of(s);
+            const Bitboard  bArea   = forward_ranks_bb(Us, s)
+                                    & (Midblock[file] | KingFlank[file_of(pos.square<KING>(Them))]);
+            const Bitboard  bMoves  = bArea & PseudoAttacks[Pt][s];
+            const auto      bh      = bMoves & blowmobHardBlock[Us];
+            const auto      bs      = bMoves & (blowmobSoftBlock[Us] | (Pt ==
+                        KNIGHT ? pos.pieces(Us, KNIGHT, BISHOP) : 0));
+            int factor = popcount(bs) + 2*popcount(bh);
+//            int factor = (bool(bs)+more_than_one(bs)+2*bool(bh)) * (1+more_than_one(bh));
+            blowmobFactor += (Us == WHITE ? factor : -factor);
+        }
+
     }
     if (T)
         Trace::add(Pt, Us, score);
@@ -813,6 +871,8 @@ namespace {
             + space<  WHITE>() - space<  BLACK>();
 
     score += initiative(eg_value(score));
+
+    score -= BlowmobPenalty * blowmobFactor;
 
     // Interpolate between a middlegame and a (scaled by 'sf') endgame score
     ScaleFactor sf = scale_factor(eg_value(score));
