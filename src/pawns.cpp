@@ -110,7 +110,7 @@ namespace {
         // the adjacent files and cannot safely advance. Phalanx and isolated
         // pawns will be excluded when the pawn is scored.
         backward =  !(neighbours & forward_ranks_bb(Them, s))
-                  && (stoppers & (leverPush | (s + Up)));
+                  && ((stoppers | ourPawns) & (leverPush | (s + Up)));
 
         // A pawn is passed if one of the three following conditions is true:
         // (a) there is no stoppers except some levers
