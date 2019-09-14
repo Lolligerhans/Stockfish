@@ -809,6 +809,13 @@ namespace {
     initialize<WHITE>();
     initialize<BLACK>();
 
+    constexpr Direction up[] = {[WHITE]=NORTH, [BLACK]=SOUTH};
+    mobilityArea[WHITE] |= shift<up[WHITE]>(pos.pieces(WHITE, PAWN)) & (~attackedBy2[~WHITE] |
+            attackedBy[WHITE][PAWN]) & ~pos.pieces();
+    mobilityArea[BLACK] |= shift<up[BLACK]>(pos.pieces(BLACK, PAWN)) & (~attackedBy2[~BLACK] |
+            attackedBy[BLACK][PAWN]) & ~pos.pieces();
+
+
     // Pieces should be evaluated first (populate attack tables)
     score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
             + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
