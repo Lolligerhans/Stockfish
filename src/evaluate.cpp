@@ -392,6 +392,9 @@ namespace {
     int kingDanger = 0;
     const Square ksq = pos.square<KING>(Us);
 
+    const auto minorThem = attackedBy[Them][KNIGHT] | attackedBy[Them][BISHOP];
+    const auto minorUs   = attackedBy[Us][KNIGHT] | attackedBy[Us][BISHOP];
+
     // Init the score with king shelter and enemy pawns storm
     Score score = pe->king_safety<Us>(pos);
 
@@ -399,16 +402,18 @@ namespace {
     weak =  attackedBy[Them][ALL_PIECES]
           & ~attackedBy2[Us]
           & (~attackedBy[Us][ALL_PIECES] | attackedBy[Us][KING] | attackedBy[Us][QUEEN]);
+    const auto majorweak = weak & (minorThem | ~minorUs);
 
     // Analyse the safe enemy's checks which are possible on next move
     safe  = ~pos.pieces(Them);
     safe &= ~attackedBy[Us][ALL_PIECES] | (weak & attackedBy2[Them]);
+    const auto majorsafe = ~pos.pieces(Them) & (~attackedBy[Us][ALL_PIECES] | (majorweak & attackedBy2[Them]));
 
     b1 = attacks_bb<ROOK  >(ksq, pos.pieces() ^ pos.pieces(Us, QUEEN));
     b2 = attacks_bb<BISHOP>(ksq, pos.pieces() ^ pos.pieces(Us, QUEEN));
 
     // Enemy rooks checks
-    rookChecks = b1 & safe & attackedBy[Them][ROOK];
+    rookChecks = b1 & majorsafe & attackedBy[Them][ROOK];
 
     if (rookChecks)
         kingDanger += RookSafeCheck;
@@ -419,7 +424,7 @@ namespace {
     // which we can't give a rook check, because rook checks are more valuable.
     queenChecks =  (b1 | b2)
                  & attackedBy[Them][QUEEN]
-                 & safe
+                 & majorsafe
                  & ~attackedBy[Us][QUEEN]
                  & ~rookChecks;
 
