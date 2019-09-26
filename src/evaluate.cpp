@@ -413,7 +413,7 @@ namespace {
     b2 = attacks_bb<BISHOP>(ksq, pos.pieces() ^ pos.pieces(Us, QUEEN));
 
     // Enemy rooks checks
-    rookChecks = b1 & majorsafe & attackedBy[Them][ROOK];
+    rookChecks = b1 & safe & attackedBy[Them][ROOK];
 
     if (rookChecks)
         kingDanger += RookSafeCheck;
