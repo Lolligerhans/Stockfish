@@ -402,12 +402,12 @@ namespace {
     weak =  attackedBy[Them][ALL_PIECES]
           & ~attackedBy2[Us]
           & (~attackedBy[Us][ALL_PIECES] | attackedBy[Us][KING] | attackedBy[Us][QUEEN]);
-    const auto majorweak = weak & (minorThem | ~minorUs);
+    //const auto majorweak = weak & (minorThem | ~minorUs);
 
     // Analyse the safe enemy's checks which are possible on next move
     safe  = ~pos.pieces(Them);
     safe &= ~attackedBy[Us][ALL_PIECES] | (weak & attackedBy2[Them]);
-    const auto majorsafe = ~pos.pieces(Them) & (~attackedBy[Us][ALL_PIECES] | (majorweak & attackedBy2[Them]));
+    //const auto majorsafe = ~pos.pieces(Them) & (~attackedBy[Us][ALL_PIECES] | (majorweak & attackedBy2[Them]));
 
     b1 = attacks_bb<ROOK  >(ksq, pos.pieces() ^ pos.pieces(Us, QUEEN));
     b2 = attacks_bb<BISHOP>(ksq, pos.pieces() ^ pos.pieces(Us, QUEEN));
@@ -424,7 +424,7 @@ namespace {
     // which we can't give a rook check, because rook checks are more valuable.
     queenChecks =  (b1 | b2)
                  & attackedBy[Them][QUEEN]
-                 & majorsafe
+                 & safe
                  & ~attackedBy[Us][QUEEN]
                  & ~rookChecks;
 
@@ -453,7 +453,7 @@ namespace {
 
     // Find the squares that opponent attacks in our king flank, and the squares
     // which are attacked twice in that flank.
-    b1 = attackedBy[Them][ALL_PIECES] & KingFlank[file_of(ksq)] & Camp;
+    b1 = attackedBy[Them][ALL_PIECES] & KingFlank[file_of(ksq)] & Camp & (minorThem | ~minorUs);
     b2 = b1 & attackedBy2[Them];
 
     int kingFlankAttacks = popcount(b1) + popcount(b2);
