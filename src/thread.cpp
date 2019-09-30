@@ -52,6 +52,15 @@ Thread::~Thread() {
   stdThread.join();
 }
 
+/// Thread::bestMoveCount(Move move) return best move counter for the given root move
+
+int Thread::best_move_count(Move move) {
+
+  auto rm = std::find(rootMoves.begin() + pvIdx,
+                      rootMoves.begin() + pvLast, move);
+
+  return rm != rootMoves.begin() + pvLast ? rm->bestMoveCount : 0;
+}
 
 /// Thread::clear() reset histories, usually before a new game
 
@@ -72,7 +81,7 @@ void Thread::clear() {
 
 void Thread::start_searching() {
 
-  std::lock_guard<Mutex> lk(mutex);
+  std::lock_guard<std::mutex> lk(mutex);
   searching = true;
   cv.notify_one(); // Wake up the thread in idle_loop()
 }
@@ -83,7 +92,7 @@ void Thread::start_searching() {
 
 void Thread::wait_for_search_finished() {
 
-  std::unique_lock<Mutex> lk(mutex);
+  std::unique_lock<std::mutex> lk(mutex);
   cv.wait(lk, [&]{ return !searching; });
 }
 
@@ -103,7 +112,7 @@ void Thread::idle_loop() {
 
   while (true)
   {
-      std::unique_lock<Mutex> lk(mutex);
+      std::unique_lock<std::mutex> lk(mutex);
       searching = false;
       cv.notify_one(); // Wake up anyone waiting for search finished
       cv.wait(lk, [&]{ return searching; });

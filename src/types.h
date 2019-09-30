@@ -43,6 +43,7 @@
 #include <climits>
 #include <cstdint>
 #include <cstdlib>
+#include <algorithm>
 
 #if defined(_MSC_VER)
 // Disable some silly and noisy warning from MSVC compiler
@@ -131,19 +132,17 @@ enum Color {
   WHITE, BLACK, COLOR_NB = 2
 };
 
-enum CastlingSide {
-  KING_SIDE, QUEEN_SIDE, CASTLING_SIDE_NB = 2
-};
-
-enum CastlingRight {
+enum CastlingRights {
   NO_CASTLING,
   WHITE_OO,
   WHITE_OOO = WHITE_OO << 1,
   BLACK_OO  = WHITE_OO << 2,
   BLACK_OOO = WHITE_OO << 3,
 
-  WHITE_CASTLING = WHITE_OO | WHITE_OOO,
-  BLACK_CASTLING = BLACK_OO | BLACK_OOO,
+  KING_SIDE      = WHITE_OO  | BLACK_OO,
+  QUEEN_SIDE     = WHITE_OOO | BLACK_OOO,
+  WHITE_CASTLING = WHITE_OO  | WHITE_OOO,
+  BLACK_CASTLING = BLACK_OO  | BLACK_OOO,
   ANY_CASTLING   = WHITE_CASTLING | BLACK_CASTLING,
 
   CASTLING_RIGHT_NB = 16
@@ -347,6 +346,11 @@ inline Score operator*(Score s, int i) {
   return result;
 }
 
+/// Multiplication of a Score by an boolean
+inline Score operator*(Score s, bool b) {
+  return Score(int(s) * int(b));
+}
+
 constexpr Color operator~(Color c) {
   return Color(c ^ BLACK); // Toggle color
 }
@@ -355,16 +359,16 @@ constexpr Square operator~(Square s) {
   return Square(s ^ SQ_A8); // Vertical flip SQ_A1 -> SQ_A8
 }
 
-constexpr File operator~(File f) {
-  return File(f ^ FILE_H); // Horizontal flip FILE_A -> FILE_H
-}
-
 constexpr Piece operator~(Piece pc) {
   return Piece(pc ^ 8); // Swap color of piece B_KNIGHT -> W_KNIGHT
 }
 
-constexpr CastlingRight operator|(Color c, CastlingSide s) {
-  return CastlingRight(WHITE_OO << ((s == QUEEN_SIDE) + 2 * c));
+inline File map_to_queenside(File f) {
+  return std::min(f, File(FILE_H - f)); // Map files ABCDEFGH to files ABCDDCBA
+}
+
+constexpr CastlingRights operator&(Color c, CastlingRights cr) {
+  return CastlingRights((c == WHITE ? WHITE_CASTLING : BLACK_CASTLING) & cr);
 }
 
 constexpr Value mate_in(int ply) {
@@ -442,6 +446,10 @@ constexpr PieceType promotion_type(Move m) {
 
 constexpr Move make_move(Square from, Square to) {
   return Move((from << 6) + to);
+}
+
+constexpr Move reverse_move(Move m) {
+  return make_move(to_sq(m), from_sq(m));
 }
 
 template<MoveType T>
