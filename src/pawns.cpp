@@ -83,9 +83,9 @@ namespace {
 
     Bitboard doubleAttackThem = pawn_double_attacks_bb<Them>(theirPawns);
 
-    e->passedPawns[Us]   = 0;
-    e->kingSquares[Us]   = SQ_NONE;
-    e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
+    e->passedPawns[Us] = 0;
+    e->kingSquares[Us] = SQ_NONE;
+    e->pawnAttacks[Us] = pawn_attacks_bb<Us>(ourPawns);
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -256,12 +256,11 @@ void Entry::compute_outposts(Position const& pos) &
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
     constexpr auto Them = ~Us;
-//    const Bitboard ourPawns   = pos.pieces(  Us, PAWN);
+    const Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     const Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-//    const auto blockers = ourPawns /*& ~pawnAttacks[Them]*/;
-    const auto blockers = pawnAttacks[Us];
-    const Bitboard& pat = pawn_attacks_bb<Them>(theirPawns & ~shift<Up>(blockers));
+    const auto blockers = ourPawns & ~pawnAttacks[Them];
+    const Bitboard pat = pawn_attacks_bb<Them>(theirPawns & ~shift<Up>(blockers));
 
     const Bitboard atkSpanThem = pawnAttacks[Them] | shift<Down>(pat) | shift<Down+Down>(pat);
 
