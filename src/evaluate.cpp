@@ -588,8 +588,6 @@ namespace {
     Score score = SCORE_ZERO;
 
     b = pe->passed_pawns(Us);
-    if (pos.side_to_move() == Them)
-        b &= attackedBy[Us][ALL_PIECES] | ~attackedBy[Them][ALL_PIECES];
 
     while (b)
     {
@@ -616,7 +614,7 @@ namespace {
                 bonus -= make_score(0, king_proximity(Us, blockSq + Up) * w);
 
             // If the pawn is free to advance, then increase the bonus
-            if (pos.empty(blockSq))
+            if (pos.empty(blockSq) && (pos.side_to_move() == Us || (attackedBy[Us][ALL_PIECES] | ~attackedBy[Them][ALL_PIECES]) & s))
             {
                 squaresToQueen = forward_file_bb(Us, s);
                 unsafeSquares = passed_pawn_span(Us, s);
