@@ -588,6 +588,8 @@ namespace {
     Score score = SCORE_ZERO;
 
     b = pe->passed_pawns(Us);
+    if (pos.side_to_move() == Them)
+        b &= attackedBy[Us][ALL_PIECES] | ~attackedBy[Them][ALL_PIECES];
 
     while (b)
     {
