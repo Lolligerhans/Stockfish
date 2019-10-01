@@ -252,37 +252,17 @@ template<Color Us>
 void Entry::compute_outposts(Position const& pos) &
 {
     constexpr Direction        Down = (Us == WHITE ? SOUTH : NORTH);
+    constexpr auto Up = -Down;
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
     constexpr auto Them = ~Us;
-//    const Bitboard ourPawns   = pos.pieces(  Us, PAWN);
+    const Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     const Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-    const Bitboard& pat = pawnAttacks[Them];
+    const auto blockers = ourPawns /*& ~pawnAttacks[Them]*/;
+    const Bitboard& pat = pawn_attacks_bb<Them>(theirPawns & ~shift<Up>(blockers));
 
-    // --------- (1)
-    // | o . . | o  their pawns
-    // | . o . |
-    // | . . . |
-    // ---------
-    // --------- (2)
-    // | o . o |
-    // | . o . |
-    // | . . . |
-    // ---------
-    //
-    // 1: The upper  pawn does not produce a longer attack span because moving it leaves the middle pawn unprotected.
-    //    The middle pawn does     produce a longer attack span because it has no liability to protect other pawns.
-    // 2: All pawns produce pawn attack span because the middle pawn is overprotected.
-
-    // The mobile attacks where "mobile" is a pawn which produces a pawn attack span following the above rules:
-    // Pawn attacks, but pawns whom are the only defenders of friendly pawns do not attack.
-    const Bitboard mat = pawn_attacks_bb<Them>(theirPawns & ~pawn_attacks_bb<Us>(
-                theirPawns & ~pawn_double_attacks_bb<Them>(theirPawns) // their loose (not overprotected) pawns
-                ));
-
-    // pawn attack span = pawn attacks from all pawns + attack span from mobile pawns
-    const Bitboard atkSpanThem = pat | shift<Down>(mat) | shift<Down+Down>(mat);
+    const Bitboard atkSpanThem = pawnAttacks[Them] | shift<Down>(pat) | shift<Down+Down>(pat);
 
     outpostSquares[Us] = OutpostRanks & pawnAttacks[Us] & ~atkSpanThem;
 }
