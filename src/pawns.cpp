@@ -71,10 +71,10 @@ namespace {
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
 
-    Bitboard neighbours, stoppers, support, phalanx;
+    Bitboard neighbours, stoppers, support, phalanx, opposed;
     Bitboard lever, leverPush;
     Square s;
-    bool opposed, backward, passed, doubled;
+    bool backward, passed, doubled;
     Score score = SCORE_ZERO;
     const Square* pl = pos.squares<PAWN>(Us);
 
@@ -97,7 +97,6 @@ namespace {
         const Bitboard span = pawn_attack_span(Us, s);
         sp2 |= e->smartSpan[Us] & span;
         e->smartSpan[Us] |= span;
-
 
         // Flag the pawn
         opposed    = theirPawns & forward_file_bb(Us, s);
@@ -133,17 +132,19 @@ namespace {
         // Score this pawn
         if (support | phalanx)
         {
-            int v =  Connected[r] * (2 + bool(phalanx) - opposed)
+            int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed))
                    + 21 * popcount(support);
 
             score += make_score(v, v * (r - 2) / 4);
         }
 
         else if (!neighbours)
-            score -= Isolated + WeakUnopposed * !opposed;
+            score -=   Isolated
+                     + WeakUnopposed * !opposed;
 
         else if (backward)
-            score -= Backward + WeakUnopposed * !opposed;
+            score -=   Backward
+                     + WeakUnopposed * !opposed;
 
         if (!support)
             score -=   Doubled * doubled
