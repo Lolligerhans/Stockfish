@@ -296,10 +296,13 @@ namespace {
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
+            constexpr Bitboard QueenSide_   = FileABB | FileBBB | FileCBB;
+            constexpr Bitboard KingSide_    = FileFBB | FileGBB | FileHBB;
+
             // Bonus if piece is on an outpost square or can reach one
             if (Pt == BISHOP)
-                bb = shift<Up+EAST>(pos.pieces(Us, PAWN) & QueenSide)
-                   | shift<Up+WEST>(pos.pieces(Us, PAWN) & KingSide);
+                bb = shift<Up+EAST>(pos.pieces(Us, PAWN) & QueenSide_)
+                   | shift<Up+WEST>(pos.pieces(Us, PAWN) & KingSide_);
             if (Pt == KNIGHT)
                 bb = attackedBy[Us][PAWN];
             bb = OutpostRanks & bb & ~pe->pawn_attacks_span(Them);
