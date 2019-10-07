@@ -259,6 +259,7 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
+    constexpr Direction Up   = -Down;
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
     const Square* pl = pos.squares<Pt>(Us);
@@ -296,7 +297,13 @@ namespace {
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
-            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
+            if (Pt == BISHOP)
+                bb = shift<Up+EAST>(pos.pieces(Us, PAWN) & QueenSide)
+                   | shift<Up+WEST>(pos.pieces(Us, PAWN) & KingSide);
+            if (Pt == KNIGHT)
+                bb = attackedBy[Us][PAWN];
+            bb = OutpostRanks & bb & ~pe->pawn_attacks_span(Them);
+
             if (bb & s)
                 score += Outpost * (Pt == KNIGHT ? 4 : 2);
 
