@@ -135,7 +135,7 @@ namespace {
   constexpr Score KnightOnQueen      = S( 16, 12);
   constexpr Score LongDiagonalBishop = S( 45,  0);
   constexpr Score MinorBehindPawn    = S( 18,  3);
-  constexpr Score Outpost            = S( 16,  5);
+  constexpr Score Outpost            = S( 18,  6);
   constexpr Score PassedFile         = S( 11,  8);
   constexpr Score PawnlessFlank      = S( 17, 95);
   constexpr Score RestrictedPiece    = S(  7,  7);
@@ -296,8 +296,8 @@ namespace {
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
-            constexpr Bitboard QueenSide_   = FileABB | FileBBB | FileCBB | FileDBB | FileEBB;
-            constexpr Bitboard KingSide_    = FileDBB | FileEBB | FileFBB | FileGBB | FileHBB;
+            constexpr Bitboard QueenSide_   = FileABB | FileBBB | FileCBB;
+            constexpr Bitboard KingSide_    = FileFBB | FileGBB | FileHBB;
 
             // Bonus if piece is on an outpost square or can reach one
             if (Pt == BISHOP)
