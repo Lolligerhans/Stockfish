@@ -296,8 +296,8 @@ namespace {
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
-            constexpr Bitboard QueenSide_   = FileABB | FileBBB | FileCBB;
-            constexpr Bitboard KingSide_    = FileFBB | FileGBB | FileHBB;
+            constexpr Bitboard QueenSide_   = FileABB | FileBBB | FileCBB | FileDBB | FileEBB;
+            constexpr Bitboard KingSide_    = FileDBB | FileEBB | FileFBB | FileGBB | FileHBB;
 
             // Bonus if piece is on an outpost square or can reach one
             if (Pt == BISHOP)
