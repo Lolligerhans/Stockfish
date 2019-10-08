@@ -586,10 +586,9 @@ namespace {
 
     Bitboard b, bb, squaresToQueen, unsafeSquares;
     Score score = SCORE_ZERO;
+    int factor = 17;
 
-    b = pe->passed_pawns(Us);
-
-    while (b)
+    for (b = pe->passed_pawns(Us); b; --factor)
     {
         Square s = pop_lsb(&b);
 
@@ -648,6 +647,8 @@ namespace {
 
         score += bonus - PassedFile * map_to_queenside(f);
     }
+
+    score = score * factor/16;
 
     if (T)
         Trace::add(PASSED, Us, score);
