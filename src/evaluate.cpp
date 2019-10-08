@@ -586,9 +586,9 @@ namespace {
 
     Bitboard b, bb, squaresToQueen, unsafeSquares;
     Score score = SCORE_ZERO;
-    int factor = 17;
+    int factor = 15;
 
-    for (b = pe->passed_pawns(Us); b; --factor)
+    for (b = pe->passed_pawns(Us); b; ++factor)
     {
         Square s = pop_lsb(&b);
 
