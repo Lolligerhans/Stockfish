@@ -222,7 +222,8 @@ namespace {
     Bitboard dblAttackByPawn = pawn_double_attacks_bb<Us>(pos.pieces(Us, PAWN));
 
     // Find our pawns that are blocked or on the first two ranks
-    Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
+    Bitboard b = pos.pieces(Us, PAWN) & ((shift<Down>(pos.pieces()) &
+                ~pawn_attacks_bb<Them>(pos.pieces(Them))) | LowRanks);
     Bitboard bb = pawn_attacks_bb<Them>(pos.pieces(Them, PAWN) &
             (pe->pawn_attacks(Them) | ~pe->pawn_attacks(Us)));
 
