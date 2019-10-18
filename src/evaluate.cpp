@@ -528,6 +528,9 @@ namespace {
        & ~stronglyProtected
        &  attackedBy[Us][ALL_PIECES];
 
+    b |= (attackedBy[Them][ROOK] | attackedBy[Them][QUEEN]) &
+         (attackedBy[Us][KNIGHT] | attackedBy[Us][BISHOP]);
+
     score += RestrictedPiece * popcount(b);
 
     // Protected or unattacked squares
