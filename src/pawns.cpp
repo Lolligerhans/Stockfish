@@ -238,12 +238,16 @@ Score Entry::do_king_safety(const Position& pos) {
 
   // In endgame we like to bring our king near our closest pawn
   Bitboard pawns = pos.pieces(Us, PAWN);
-  int minPawnDist = pawns ? 8 : 0;
+  int minPawnDist;
+  if (pawns)
+  {
+      Bitboard ring = PseudoAttacks[KING][ksq];
 
-  if (pawns & PseudoAttacks[KING][ksq])
-      minPawnDist = 1;
-  else while (pawns)
-      minPawnDist = std::min(minPawnDist, distance(ksq, pop_lsb(&pawns)));
+      for (minPawnDist = 1; !(pawns & ring); ++minPawnDist)
+          ring = shift<Direction(2)>(ring);
+  }
+  else
+      minPawnDist = 0;
 
   return shelter - make_score(0, 16 * minPawnDist);
 }
