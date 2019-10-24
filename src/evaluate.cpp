@@ -296,7 +296,7 @@ namespace {
 
         int mob = popcount(b & mobilityArea[Us]);
 
-        mobility[Us] += (MobilityBonus[Pt - 2][mob] + MobilityBonus[Pt-2][bmob]) /2;
+        mobility[Us] += MobilityBonus[Pt-2][bmob];
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
