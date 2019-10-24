@@ -275,6 +275,11 @@ namespace {
           : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
                          : pos.attacks_from<Pt>(s);
 
+        auto xrayatk = Pt == BISHOP ? attacks_bb<BISHOP>(s, (pos.pieces() ^ pos.pieces(QUEEN))                            & ~(pos.pieces(Us) & mobilityArea[Us]))
+                     : Pt ==   ROOK ? attacks_bb<  ROOK>(s, (pos.pieces() ^ pos.pieces(QUEEN) /*^ pos.pieces(Us, ROOK)*/) & ~(pos.pieces(Us) & mobilityArea[Us]))
+                     :                attacks_bb<    Pt>(s, pos.pieces()                                                  & ~(pos.pieces(Us) & mobilityArea[Us]));
+        auto xmob = popcount(xrayatk & mobilityArea[Us]);
+
         if (pos.blockers_for_king(Us) & s)
             b &= LineBB[pos.square<KING>(Us)][s];
 
@@ -291,7 +296,7 @@ namespace {
 
         int mob = popcount(b & mobilityArea[Us]);
 
-        mobility[Us] += MobilityBonus[Pt - 2][mob];
+        mobility[Us] += MobilityBonus[Pt-2][xmob];
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
