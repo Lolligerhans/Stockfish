@@ -275,6 +275,11 @@ namespace {
           : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
                          : pos.attacks_from<Pt>(s);
 
+        auto backmob = Pt == BISHOP ? attacks_bb<BISHOP>(s, (pos.pieces() ^ pos.pieces(QUEEN)) & ~forward_ranks_bb(Them, s))
+                     : Pt ==   ROOK ? attacks_bb<  ROOK>(s, (pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK)) & ~forward_ranks_bb(Them, s))
+                     :                attacks_bb<    Pt>(s, pos.pieces() & ~forward_ranks_bb(Them, s));
+        auto bmob = popcount(backmob & mobilityArea[Us]);
+
         if (pos.blockers_for_king(Us) & s)
             b &= LineBB[pos.square<KING>(Us)][s];
 
@@ -291,7 +296,7 @@ namespace {
 
         int mob = popcount(b & mobilityArea[Us]);
 
-        mobility[Us] += MobilityBonus[Pt - 2][mob];
+        mobility[Us] += (MobilityBonus[Pt - 2][mob] + MobilityBonus[Pt-2][bmob]) /2;
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
