@@ -209,6 +209,7 @@ namespace {
     // a white knight on g5 and black's king is on g8, this white knight adds 2
     // to kingAttacksCount[WHITE].
     int kingAttacksCount[COLOR_NB];
+    mutable int count = 0;
   };
 
 
@@ -614,6 +615,7 @@ namespace {
             // If the pawn is free to advance, then increase the bonus
             if (pos.empty(blockSq))
             {
+                ++count;
                 squaresToQueen = forward_file_bb(Us, s);
                 unsafeSquares = passed_pawn_span(Us, s);
 
@@ -715,7 +717,7 @@ namespace {
                            && !pawnsOnBothFlanks;
 
     // Compute the initiative bonus for the attacking side
-    int complexity =   9 * pe->passed_count()
+    int complexity =  16 * count
                     + 11 * pos.count<PAWN>()
                     +  9 * outflanking
                     + 21 * pawnsOnBothFlanks
