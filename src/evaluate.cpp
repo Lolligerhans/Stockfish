@@ -178,6 +178,7 @@ namespace {
     Material::Entry* me;
     Pawns::Entry* pe;
     Bitboard mobilityArea[COLOR_NB];
+    Bitboard frontBlock[COLOR_NB];
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
 
     // attackedBy[color][piece type] is a bitboard representing all squares
@@ -231,7 +232,8 @@ namespace {
 
     // Squares occupied by those pawns, by our king or queen or controlled by
     // enemy pawns are excluded from the mobility area.
-    mobilityArea[Us] = ~(b | pos.pieces(Us, KING, QUEEN) | pe->pawn_attacks(Them));
+    frontBlock[Us] = b;
+    mobilityArea[Us] = ~(pos.pieces(Us, KING, QUEEN) | pe->pawn_attacks(Them));
 
     // Initialize attackedBy[] for king and pawns
     attackedBy[Us][KING] = pos.attacks_from<KING>(ksq);
@@ -288,7 +290,7 @@ namespace {
             kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
         }
 
-        int mob = popcount(b & mobilityArea[Us]);
+        int mob = popcount(b & mobilityArea[Us] & ~(frontBlock[Us] & forward_ranks_bb(Us, s)));
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
