@@ -209,6 +209,8 @@ namespace {
     // a white knight on g5 and black's king is on g8, this white knight adds 2
     // to kingAttacksCount[WHITE].
     int kingAttacksCount[COLOR_NB];
+
+    mutable int passedCount = 0;
   };
 
 
@@ -589,9 +591,7 @@ namespace {
     Bitboard b, bb, squaresToQueen, unsafeSquares;
     Score score = SCORE_ZERO;
 
-    b = pe->passed_pawns(Us);
-
-    while (b)
+    for (b = pe->passed_pawns(Us); b; ++passedCount)
     {
         Square s = pop_lsb(&b);
 
@@ -713,12 +713,12 @@ namespace {
     bool pawnsOnBothFlanks =   (pos.pieces(PAWN) & QueenSide)
                             && (pos.pieces(PAWN) & KingSide);
 
-    bool almostUnwinnable =   !pe->passed_count()
+    bool almostUnwinnable =   !passedCount
                            &&  outflanking < 0
                            && !pawnsOnBothFlanks;
 
     // Compute the initiative bonus for the attacking side
-    int complexity =   9 * pe->passed_count()
+    int complexity =   9 * passedCount
                     + 11 * pos.count<PAWN>()
                     +  9 * outflanking
                     + 21 * pawnsOnBothFlanks
@@ -752,7 +752,7 @@ namespace {
     {
         if (   pos.opposite_bishops()
             && pos.non_pawn_material() == 2 * BishopValueMg)
-            sf = 16 + 4 * pe->passed_count();
+            sf = 16 + 4 * passedCount;
         else
             sf = std::min(sf, 36 + (pos.opposite_bishops() ? 2 : 7) * pos.count<PAWN>(strongSide));
 
