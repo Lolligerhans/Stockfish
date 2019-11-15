@@ -27,7 +27,7 @@ Value PieceValue[PHASE_NB][PIECE_NB] = {
   { VALUE_ZERO, PawnValueEg, KnightValueEg, BishopValueEg, RookValueEg, QueenValueEg }
 };
 
-namespace PSQT {
+namespace {
 
 #define S(mg, eg) make_score(mg, eg)
 
@@ -87,7 +87,11 @@ constexpr Score BonusRaw[][RANK_NB][int(FILE_NB) / 2] = {
    { S( 59, 11), S( 89, 59), S( 45, 73), S( -1, 78) }
   }
 };
-constexpr Score const (* const Bonus)[RANK_NB][int(FILE_NB) / 2] = BonusRaw - 2;
+
+constexpr Score bonus(PieceType pt, Rank r, File f)
+{
+    return (BonusRaw-2)[int(pt)][int(r)][int(f)];
+}
 
 constexpr Score PBonus[RANK_NB][FILE_NB] =
   { // Pawn (asymmetric distribution)
@@ -101,6 +105,10 @@ constexpr Score PBonus[RANK_NB][FILE_NB] =
   };
 
 #undef S
+
+}
+
+namespace PSQT {
 
 Score psq[PIECE_NB][SQUARE_NB];
 
@@ -120,7 +128,7 @@ void init() {
       {
           File f = map_to_queenside(file_of(s));
           psq[ pc][ s] = score + (type_of(pc) == PAWN ? PBonus[rank_of(s)][file_of(s)]
-                                                      : Bonus[pc][rank_of(s)][f]);
+                                                      : bonus(PieceType(pc), rank_of(s), f));
           psq[~pc][~s] = -psq[pc][s];
       }
   }
