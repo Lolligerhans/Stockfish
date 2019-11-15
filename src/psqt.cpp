@@ -27,7 +27,7 @@ Value PieceValue[PHASE_NB][PIECE_NB] = {
   { VALUE_ZERO, PawnValueEg, KnightValueEg, BishopValueEg, RookValueEg, QueenValueEg }
 };
 
-namespace PSQT {
+namespace {
 
 #define S(mg, eg) make_score(mg, eg)
 
@@ -102,6 +102,10 @@ constexpr Score PBonus[RANK_NB][FILE_NB] =
   };
 
 #undef S
+
+}
+
+namespace PSQT {
 
 Score psq[PIECE_NB][SQUARE_NB];
 
