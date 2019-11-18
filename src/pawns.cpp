@@ -96,7 +96,7 @@ namespace {
 
         // Flag the pawn
         opposed    = theirPawns & forward_file_bb(Us, s);
-        blocked    = theirPawns & ((s + Up) | doubleAttackThem);
+        blocked    = theirPawns & ((s + Up) | (doubleAttackThem & ~e->pawnAttacks[Us]));
         stoppers   = theirPawns & passed_pawn_span(Us, s);
         lever      = theirPawns & PawnAttacks[Us][s];
         leverPush  = theirPawns & PawnAttacks[Us][s + Up];
