@@ -88,7 +88,7 @@ constexpr Score BonusRaw[][RANK_NB][int(FILE_NB) / 2] = {
   }
 };
 
-constexpr Score bonus(PieceType pt, Rank r, File f)
+inline constexpr Score bonus(PieceType pt, Rank r, File f)
 {
     return (BonusRaw-2)[int(pt)][int(r)][int(f)];
 }
