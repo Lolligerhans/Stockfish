@@ -158,7 +158,7 @@ namespace {
     Evaluation() = delete;
     explicit Evaluation(const Position& p) : pos(p) {}
     Evaluation& operator=(const Evaluation&) = delete;
-    Value value();
+    Value value(Value& diff);
 
   private:
     template<Color Us> void initialize();
@@ -763,7 +763,7 @@ namespace {
   // of view of the side to move.
 
   template<Tracing T>
-  Value Evaluation<T>::value() {
+  Value Evaluation<T>::value(Value& diff) {
 
     assert(!pos.checkers());
 
@@ -785,9 +785,10 @@ namespace {
     score += pe->pawn_score(WHITE) - pe->pawn_score(BLACK);
 
     // Early exit if score is high
-    Value v = (mg_value(score) + eg_value(score)) / 2;
+    Value mg = mg_value(score), eg = eg_value(score);
+    Value v = (mg + eg) / 2;
     if (abs(v) > LazyThreshold + pos.non_pawn_material() / 64)
-       return pos.side_to_move() == WHITE ? v : -v;
+       return diff = eg - mg, pos.side_to_move() == WHITE ? v : -v;
 
     // Main evaluation begins here
 
@@ -811,8 +812,9 @@ namespace {
 
     // Interpolate between a middlegame and a (scaled by 'sf') endgame score
     ScaleFactor sf = scale_factor(eg_value(score));
-    v =  mg_value(score) * int(me->game_phase())
-       + eg_value(score) * int(PHASE_MIDGAME - me->game_phase()) * sf / SCALE_FACTOR_NORMAL;
+    mg = mg_value(score), eg = eg_value(score), diff = eg - mg;
+    v =  mg * int(me->game_phase())
+       + eg * int(PHASE_MIDGAME - me->game_phase()) * sf / SCALE_FACTOR_NORMAL;
 
     v /= PHASE_MIDGAME;
 
@@ -836,8 +838,8 @@ namespace {
 /// evaluate() is the evaluator for the outer world. It returns a static
 /// evaluation of the position from the point of view of the side to move.
 
-Value Eval::evaluate(const Position& pos) {
-  return Evaluation<NO_TRACE>(pos).value();
+Value Eval::evaluate(const Position& pos, Value& diff) {
+  return Evaluation<NO_TRACE>(pos).value(diff);
 }
 
 
@@ -851,7 +853,8 @@ std::string Eval::trace(const Position& pos) {
 
   pos.this_thread()->contempt = SCORE_ZERO; // Reset any dynamic contempt
 
-  Value v = Evaluation<TRACE>(pos).value();
+  Value diff;
+  Value v = Evaluation<TRACE>(pos).value(diff);
 
   v = pos.side_to_move() == WHITE ? v : -v; // Trace scores are from white's point of view
 
