@@ -788,7 +788,7 @@ namespace {
     Value vmg = mg_value(score),
           veg = eg_value(score),
           v;
-    if (abs(vmg) > LazyThreshold + pos.non_pawn_material() / 64 ||
+    if (abs(vmg) > LazyThreshold + pos.non_pawn_material() / 64 &&
         abs(veg) > LazyThreshold + pos.non_pawn_material() / 64)
        return v = (vmg+veg)/2, pos.side_to_move() == WHITE ? v : -v;
 
