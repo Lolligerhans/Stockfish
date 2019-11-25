@@ -1134,13 +1134,7 @@ moves_loop: // When in check, search starts from here
 
           const auto absDiff = std::abs(ss->diff); // nullmoves can result in -32004 values
 
-          const bool failed   = absDiff >= VALUE_NONE;
-          const bool suppress = absDiff == VALUE_NONE +2 ||     // specialized endgame
-                                absDiff == VALUE_NONE +4 ||     // in check
-                                absDiff == VALUE_NONE +8;       // in check
-          const bool legit    = !failed && !suppress;
-
-          if (legit)
+          if (absDiff < VALUE_NONE)
           {
               // dbg_mean_of(absDiff); // Samples 31400305 Mean 266.649 o 300.091
               // if (absDiff < 64) ++r; // 20%
