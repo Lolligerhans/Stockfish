@@ -1125,12 +1125,26 @@ moves_loop: // When in check, search starts from here
           if (singularLMR)
               r -= 2;
 
-          assert(ss->diff <  VALLUE_NONE ||
+          /*
+          assert(ss->diff <  VALUE_NONE    ||
                  ss->diff == VALUE_NONE +2 ||   // specialized endgame
-                 ss->diff == VALUE_NONE +4);    // in check
-          if (ss->diff < VALUE_NONE)
-              if (std::abs(ss->diff) > 512)
+                 ss->diff == VALUE_NONE +4 ||   // in check
+                 ss->diff == VALUE_NONE +8);    // in check
+          */
+
+          const auto absDiff = std::abs(ss->diff);
+          const bool failed   = absDiff >= VALUE_NONE;
+          const bool suppress = absDiff == VALUE_NONE +2 ||     // specialized endgame
+                                absDiff == VALUE_NONE +4 ||     // in check
+                                absDiff == VALUE_NONE +8;       // in check
+          const bool legit    = !failed && !suppress;
+
+          if (legit)
+          {
+              dbg_mean_of(absDiff);
+              if (absDiff > 512)
                   r--;
+          }
 
           if (!captureOrPromotion)
           {
