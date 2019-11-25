@@ -916,6 +916,7 @@ namespace {
 
         tte = TT.probe(posKey, ttHit);
         ttValue = ttHit ? value_from_tt(tte->value(), ss->ply, pos.rule50_count()) : VALUE_NONE;
+        ttDiff = ttHit ? tte->diff() : VALUE_NONE+7;
         ttMove = ttHit ? tte->move() : MOVE_NONE;
     }
 
@@ -1318,7 +1319,7 @@ moves_loop: // When in check, search starts from here
         tte->save(posKey, value_to_tt(bestValue, ss->ply), ttPv,
                   bestValue >= beta ? BOUND_LOWER :
                   PvNode && bestMove ? BOUND_EXACT : BOUND_UPPER,
-                  depth, bestMove, ss->staticEval, diff);
+                  depth, bestMove, ss->staticEval, ss->diff);
 
     assert(bestValue > -VALUE_INFINITE && bestValue < VALUE_INFINITE);
 
@@ -1391,6 +1392,7 @@ moves_loop: // When in check, search starts from here
     if (inCheck)
     {
         ss->staticEval = VALUE_NONE;
+        ss->diff = VALUE_NONE+8;
         bestValue = futilityBase = -VALUE_INFINITE;
     }
     else
@@ -1398,8 +1400,9 @@ moves_loop: // When in check, search starts from here
         if (ttHit)
         {
             // Never assume anything about values stored in TT
-            if ((ss->staticEval = bestValue = tte->eval()) == VALUE_NONE)
-                ss->staticEval = bestValue = evaluate(pos, diff);
+            if ((ss->diff = tte->diff(), ss->staticEval = bestValue = tte->eval()) == VALUE_NONE)
+                ss->staticEval = bestValue = evaluate(pos, diff),
+                ss->diff = diff;
 
             // Can ttValue be used as a better position evaluation?
             if (    ttValue != VALUE_NONE
@@ -1409,14 +1412,17 @@ moves_loop: // When in check, search starts from here
         else
             ss->staticEval = bestValue =
             (ss-1)->currentMove != MOVE_NULL ? evaluate(pos, diff)
-                                             : -(ss-1)->staticEval + 2 * Eval::Tempo;
+                                             : -(ss-1)->staticEval + 2 * Eval::Tempo,
+            ss->diff =
+            (ss-1)->currentMove != MOVE_NULL ? diff
+                                             : -(ss-1)->diff;
 
         // Stand pat. Return immediately if static value is at least beta
         if (bestValue >= beta)
         {
             if (!ttHit)
                 tte->save(posKey, value_to_tt(bestValue, ss->ply), pvHit, BOUND_LOWER,
-                          DEPTH_NONE, MOVE_NONE, ss->staticEval, diff);
+                          DEPTH_NONE, MOVE_NONE, ss->staticEval, ss->diff);
 
             return bestValue;
         }
@@ -1536,7 +1542,7 @@ moves_loop: // When in check, search starts from here
     tte->save(posKey, value_to_tt(bestValue, ss->ply), pvHit,
               bestValue >= beta ? BOUND_LOWER :
               PvNode && bestValue > oldAlpha  ? BOUND_EXACT : BOUND_UPPER,
-              ttDepth, bestMove, ss->staticEval, diff);
+              ttDepth, bestMove, ss->staticEval, ss->diff);
 
     assert(bestValue > -VALUE_INFINITE && bestValue < VALUE_INFINITE);
 
