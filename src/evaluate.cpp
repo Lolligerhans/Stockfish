@@ -30,6 +30,8 @@
 #include "pawns.h"
 #include "thread.h"
 
+#define Score CScore
+
 namespace Trace {
 
   enum Tracing { NO_TRACE, TRACE };
@@ -880,3 +882,5 @@ std::string Eval::trace(const Position& pos) {
 
   return ss.str();
 }
+
+#undef Score

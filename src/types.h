@@ -456,4 +456,24 @@ constexpr bool is_ok(Move m) {
   return from_sq(m) != to_sq(m); // Catch MOVE_NULL and MOVE_NONE
 }
 
+class CScore
+{
+public:
+    using extra_t = int_fast32_t;
+private:
+    Score   s;
+    extra_t e;
+public:
+    constexpr CScore()        : s(SCORE_ZERO), e{0} {}
+    constexpr CScore(Score a) : s(a), e(0) {}
+    constexpr CScore(Score a, extra_t b) : s(a), e(b) {}
+
+    operator Score() const { return s; }
+    operator Score&() { return s; }
+
+
+    CScore operator-(const CScore& cs) const { return CScore(s-cs.s, e-cs.e); }
+    CScore operator*(int i) const { return CScore(s*i, e*i); }
+};
+
 #endif // #ifndef TYPES_H_INCLUDED
