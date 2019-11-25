@@ -598,7 +598,7 @@ namespace {
     Key posKey;
     Move ttMove, move, excludedMove, bestMove;
     Depth extension, newDepth;
-    Value bestValue, value, ttValue, eval, maxValue, diff = VALUE_NONE;
+    Value bestValue, value, ttValue, eval, maxValue, diff = VALUE_NONE, ttDiff = VALUE_NONE;
     bool ttHit, ttPv, inCheck, givesCheck, improving, didLMR, priorCapture;
     bool captureOrPromotion, doFullDepthSearch, moveCountPruning, ttCapture, singularLMR;
     Piece movedPiece;
@@ -666,6 +666,7 @@ namespace {
     posKey = pos.key() ^ Key(excludedMove << 16); // Isn't a very good hash
     tte = TT.probe(posKey, ttHit);
     ttValue = ttHit ? value_from_tt(tte->value(), ss->ply, pos.rule50_count()) : VALUE_NONE;
+    ttDiff = ttHit ? tte->diff() : VALUE_NONE+1;
     ttMove =  rootNode ? thisThread->rootMoves[thisThread->pvIdx].pv[0]
             : ttHit    ? tte->move() : MOVE_NONE;
     ttPv = PvNode || (ttHit && tte->is_pv());
@@ -739,7 +740,7 @@ namespace {
                 {
                     tte->save(posKey, value_to_tt(value, ss->ply), ttPv, b,
                               std::min(MAX_PLY - 1, depth + 6),
-                              MOVE_NONE, VALUE_NONE, VALUE_NONE);
+                              MOVE_NONE, VALUE_NONE, VALUE_NONE+3);
 
                     return value;
                 }
@@ -759,7 +760,7 @@ namespace {
     if (inCheck)
     {
         ss->staticEval = eval = VALUE_NONE;
-        ss->diff = diff = VALUE_NONE;
+        ss->diff = diff = VALUE_NONE+4;
         improving = false;
         goto moves_loop;  // Skip early pruning when in check
     }
@@ -767,9 +768,12 @@ namespace {
     {
         // Never assume anything about values stored in TT
         ss->staticEval = eval = tte->eval();
-        ss->diff = tte->diff();
+        ss->diff = diff = tte->diff();
         if (eval == VALUE_NONE)
-            ss->staticEval = eval = evaluate(pos, ss->diff);
+        {
+            ss->staticEval = eval = evaluate(pos, diff);
+            ss->diff = diff;
+        }
 
         if (eval == VALUE_DRAW)
             eval = value_draw(thisThread);
@@ -777,6 +781,7 @@ namespace {
         // Can ttValue be used as a better position evaluation?
         if (    ttValue != VALUE_NONE
             && (tte->bound() & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER)))
+            diff = ttDiff,
             eval = ttValue;
     }
     else
@@ -789,7 +794,7 @@ namespace {
             ss->diff = diff;
         }
         else
-            ss->diff = -(ss-1)->diff,
+            ss->diff = diff = -(ss-1)->diff,
             ss->staticEval = eval = -(ss-1)->staticEval + 2 * Eval::Tempo;
 
         tte->save(posKey, VALUE_NONE, ttPv, BOUND_NONE, DEPTH_NONE, MOVE_NONE, eval, diff);
@@ -1119,8 +1124,14 @@ moves_loop: // When in check, search starts from here
           if (singularLMR)
               r -= 2;
 
-          assert(ss->diff != VALUE_NONE);
-          if (std::abs(ss->diff) < 64) r++;
+          assert(ss->diff <  VALLUE_NONE ||
+                 ss->diff == VALUE_NONE +2 ||   // specialized endgame
+                 ss->diff == VALUE_NONE +4);    // in check
+          if (ss->diff < VALUE_NONE)
+          {
+              if (std::abs(ss->diff) > 256)
+                  r--;
+          }
 
           if (!captureOrPromotion)
           {
