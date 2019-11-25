@@ -1069,6 +1069,13 @@ moves_loop: // When in check, search starts from here
       if (type_of(move) == CASTLING)
           extension = 1;
 
+          const auto absDiff = std::abs(ss->diff); // nullmoves can result in -32004 values
+
+          if (absDiff < VALUE_NONE)
+          {
+              if (absDiff > 3096) extension = 1;
+          }
+
       // Add extension to new depth
       newDepth += extension;
 
@@ -1130,7 +1137,6 @@ moves_loop: // When in check, search starts from here
                  ss->diff == VALUE_NONE +2 ||   // specialized endgame
                  ss->diff == VALUE_NONE +4 ||   // in check
                  ss->diff == VALUE_NONE +8);    // in check
-          */
 
           const auto absDiff = std::abs(ss->diff); // nullmoves can result in -32004 values
 
@@ -1141,6 +1147,7 @@ moves_loop: // When in check, search starts from here
               // if (absDiff > 512) --r; // 14%
               if (absDiff > 768) --r; // %5
           }
+          */
 
           if (!captureOrPromotion)
           {
