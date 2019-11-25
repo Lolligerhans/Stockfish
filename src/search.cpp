@@ -1142,9 +1142,10 @@ moves_loop: // When in check, search starts from here
 
           if (legit)
           {
-              dbg_mean_of(absDiff); // Samples 31400305 Mean 266.649 o 300.091
-              if (absDiff > 512)
-                  r--;
+              // dbg_mean_of(absDiff); // Samples 31400305 Mean 266.649 o 300.091
+//              if (absDiff < 64) ++r; // 20%
+//              else if (absDiff > 512) --r; // 14%
+              r += (absDiff+128)/256 -1;
           }
 
           if (!captureOrPromotion)
