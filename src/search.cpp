@@ -1122,10 +1122,8 @@ moves_loop: // When in check, search starts from here
                  ss->diff == VALUE_NONE +2 ||   // specialized endgame
                  ss->diff == VALUE_NONE +4);    // in check
           if (ss->diff < VALUE_NONE)
-          {
-              if (std::abs(ss->diff) > 256)
+              if (std::abs(ss->diff) > 512)
                   r--;
-          }
 
           if (!captureOrPromotion)
           {
