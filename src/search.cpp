@@ -1062,6 +1062,14 @@ moves_loop: // When in check, search starts from here
       if (type_of(move) == CASTLING)
           extension = 1;
 
+          assert(ss->diff <  VALLUE_NONE ||
+                 ss->diff == VALUE_NONE +2 ||   // specialized endgame
+                 ss->diff == VALUE_NONE +4);    // in check
+          if (ss->diff < VALUE_NONE)
+              if (std::abs(ss->diff) > 2048)
+                  extension = 1;
+
+
       // Add extension to new depth
       newDepth += extension;
 
@@ -1117,13 +1125,6 @@ moves_loop: // When in check, search starts from here
           // Decrease reduction if ttMove has been singularly extended
           if (singularLMR)
               r -= 2;
-
-          assert(ss->diff <  VALLUE_NONE ||
-                 ss->diff == VALUE_NONE +2 ||   // specialized endgame
-                 ss->diff == VALUE_NONE +4);    // in check
-          if (ss->diff < VALUE_NONE)
-              if (std::abs(ss->diff) > 512)
-                  r--;
 
           if (!captureOrPromotion)
           {
