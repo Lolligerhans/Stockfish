@@ -34,6 +34,9 @@
 #include "uci.h"
 #include "syzygy/tbprobe.h"
 
+#define Score CScore<>
+#define Value CValue<>
+
 using std::string;
 
 namespace Zobrist {
@@ -1312,3 +1315,6 @@ bool Position::pos_is_ok() const {
 
   return true;
 }
+
+#undef Value
+#undef Score

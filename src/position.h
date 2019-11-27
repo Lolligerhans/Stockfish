@@ -29,6 +29,9 @@
 #include "bitboard.h"
 #include "types.h"
 
+#define Score CScore<>
+#define Value CValue<>
+
 
 /// StateInfo struct stores information needed to restore a Position object to
 /// its previous state when we retract a move. Whenever a move is made on the
@@ -444,5 +447,8 @@ inline void Position::move_piece(Piece pc, Square from, Square to) {
 inline void Position::do_move(Move m, StateInfo& newSt) {
   do_move(m, newSt, gives_check(m));
 }
+
+#undef Value
+#undef Score
 
 #endif // #ifndef POSITION_H_INCLUDED

@@ -37,6 +37,9 @@
 #include "uci.h"
 #include "syzygy/tbprobe.h"
 
+#define Score CScore<>
+#define Value CValue<>
+
 namespace Search {
 
   LimitsType Limits;
@@ -282,7 +285,7 @@ void MainThread::search() {
 
       // Find out minimum score
       for (Thread* th: Threads)
-          minScore = std::min(minScore, th->rootMoves[0].score);
+          minScore = std::min<Value>(minScore, th->rootMoves[0].score);
 
       // Vote according to score and depth, and select the best thread
       for (Thread* th : Threads)
@@ -815,7 +818,7 @@ namespace {
         &&  eval >= ss->staticEval
         &&  ss->staticEval >= beta - 33 * depth + 299 - improving * 30
         && !excludedMove
-        &&  pos.non_pawn_material(us)
+        &&  static_cast<bool>(pos.non_pawn_material(us))
         && (ss->ply >= thisThread->nmpMinPly || us != thisThread->nmpColor))
     {
         assert(eval - beta >= 0);
@@ -1843,3 +1846,6 @@ void Tablebases::rank_root_moves(Position& pos, Search::RootMoves& rootMoves) {
             m.tbRank = 0;
     }
 }
+
+#undef Value
+#undef Score

@@ -30,6 +30,9 @@
 #include "position.h"
 #include "types.h"
 
+#define Score CScore<>
+#define Value CValue<>
+
 
 /// EndgameCode lists all supported endgame functions by corresponding codes
 
@@ -123,5 +126,8 @@ namespace Endgames {
     return it != map<T>().end() ? it->second.get() : nullptr;
   }
 }
+
+#undef Score
+#undef Value
 
 #endif // #ifndef ENDGAME_H_INCLUDED

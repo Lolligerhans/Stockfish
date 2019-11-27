@@ -24,6 +24,9 @@
 #include "endgame.h"
 #include "movegen.h"
 
+#define Score CScore<>
+#define Value CValue<>
+
 using std::string;
 
 namespace {
@@ -137,7 +140,7 @@ Value Endgame<KXK>::operator()(const Position& pos) const {
       ||(pos.count<BISHOP>(strongSide) && pos.count<KNIGHT>(strongSide))
       || (   (pos.pieces(strongSide, BISHOP) & ~DarkSquares)
           && (pos.pieces(strongSide, BISHOP) &  DarkSquares)))
-      result = std::min(result + VALUE_KNOWN_WIN, VALUE_MATE_IN_MAX_PLY - 1);
+      result = std::min<Value>(result + VALUE_KNOWN_WIN, VALUE_MATE_IN_MAX_PLY - 1);
 
   return strongSide == pos.side_to_move() ? result : -result;
 }
@@ -804,3 +807,6 @@ ScaleFactor Endgame<KPKP>::operator()(const Position& pos) const {
   // it's probably at least a draw even with the pawn.
   return Bitbases::probe(wksq, psq, bksq, us) ? SCALE_FACTOR_NONE : SCALE_FACTOR_DRAW;
 }
+
+#undef Score
+#undef Value

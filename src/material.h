@@ -26,6 +26,9 @@
 #include "position.h"
 #include "types.h"
 
+#define Score CScore<>
+#define Value CValue<>
+
 namespace Material {
 
 /// Material::Entry contains various information about a material configuration.
@@ -69,5 +72,8 @@ typedef HashTable<Entry, 8192> Table;
 Entry* probe(const Position& pos);
 
 } // namespace Material
+
+#undef Value
+#undef Score
 
 #endif // #ifndef MATERIAL_H_INCLUDED
