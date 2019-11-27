@@ -299,6 +299,7 @@ namespace {
                 score += ReachableOutpost;
 
             // Knight and Bishop bonus for being right behind a pawn
+            if (pos.count<QUEEN>(Them) || pos.count<ROOK>(Them))
             if (shift<Down>(pos.pieces(PAWN)) & s)
                 score += MinorBehindPawn;
 
