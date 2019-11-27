@@ -30,7 +30,8 @@
 #include "pawns.h"
 #include "thread.h"
 
-#define Score CScore
+#define Score CScore<>
+#define Value CValue<>
 
 namespace Trace {
 
@@ -883,4 +884,5 @@ std::string Eval::trace(const Position& pos) {
   return ss.str();
 }
 
+#undef Value
 #undef Score

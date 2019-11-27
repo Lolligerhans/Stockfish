@@ -263,6 +263,8 @@ constexpr Score make_score(int mg, int eg) {
 /// Extracting the signed lower and upper 16 bits is not so trivial because
 /// according to the standard a simple cast to short is implementation defined
 /// and so is a right shift of a signed integer.
+// bros the undefined thing is whether the int is flled with 1s or 0s from the
+// left, not what the shifted 16 bit will be
 inline Value eg_value(Score s) {
   union { uint16_t u; int16_t s; } eg = { uint16_t(unsigned(s + 0x8000) >> 16) };
   return Value(eg.s);
@@ -456,24 +458,56 @@ constexpr bool is_ok(Move m) {
   return from_sq(m) != to_sq(m); // Catch MOVE_NULL and MOVE_NONE
 }
 
+template<class Extra = uint32_t>
 class CScore
 {
-public:
-    using extra_t = int_fast32_t;
 private:
-    Score   s;
-    extra_t e;
+    Score s;
+    Extra e;
 public:
-    constexpr CScore()        : s(SCORE_ZERO), e{0} {}
-    constexpr CScore(Score a) : s(a), e(0) {}
-    constexpr CScore(Score a, extra_t b) : s(a), e(b) {}
+    constexpr CScore() : s(SCORE_ZERO), e{0} {}
+    constexpr CScore(Score a) : s(a), e{0} {}
+    constexpr CScore(Score a, Extra const& b) : s(a), e{b} {}
 
-    operator Score() const { return s; }
-    operator Score&() { return s; }
+    explicit operator Score() const { return s; }
 
-
-    CScore operator-(const CScore& cs) const { return CScore(s-cs.s, e-cs.e); }
-    CScore operator*(int i) const { return CScore(s*i, e*i); }
+    CScore operator-(const CScore& cs) const { return CScore{s-cs.s, e-cs.e}; }
+    CScore operator*(int i) const { return CScore{s*i, e*i}; }
+    // rephrasing expressions to contian += is better
+    CScore operator/(int i) const { return CScore{s/i, e/i}; }
 };
+
+template<class Extra = uint32_t>
+class CValue
+{
+private:
+    Value v;
+    Extra e;
+public:
+    constexpr CValue() : v(VALUE_NONE), e{0} {}
+    constexpr CValue(Value a) : v(a), e{0} {}
+    constexpr CValue(Value a, Extra const& b) : v(a), e{b} {}
+
+    constexpr CValue(int i) : CValue{Value(i)} {}
+
+    explicit operator Value() const { return v; }
+    explicit operator double() const { return static_cast<double>(v); }
+
+    CValue operator+(const CValue& cv) const { return CValue{v+cv.v, e+cv.e}; };
+    CValue operator-(const CValue& cv) const { return CValue{v-cv.v, e-cv.e}; };
+    CValue operator-() const { return CValue{-v, -e}; }
+};
+
+template<class S>
+inline Value eg_value(CScore<S> s) {
+  union { uint16_t u; int16_t s; } eg = { uint16_t(unsigned(Score(s) + 0x8000) >> 16) };
+  return Value(eg.s);
+}
+
+template<class S>
+inline Value mg_value(CScore<S> s) {
+  union { uint16_t u; int16_t s; } mg = { uint16_t(unsigned(Score(s))) };
+  return Value(mg.s);
+}
 
 #endif // #ifndef TYPES_H_INCLUDED
