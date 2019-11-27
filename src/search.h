@@ -27,6 +27,9 @@
 #include "movepick.h"
 #include "types.h"
 
+#define Score CScore<>
+#define Value CValue<>
+
 class Position;
 
 namespace Search {
@@ -105,5 +108,8 @@ void init();
 void clear();
 
 } // namespace Search
+
+#undef Value
+#undef Score
 
 #endif // #ifndef SEARCH_H_INCLUDED

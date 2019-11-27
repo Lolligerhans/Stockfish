@@ -24,6 +24,9 @@
 #include "misc.h"
 #include "types.h"
 
+#define Score CScore<>
+#define Value CValue<>
+
 /// TTEntry struct is the 10 bytes transposition table entry, defined as below:
 ///
 /// key        16 bit
@@ -39,8 +42,7 @@ struct TTEntry {
 
   Move  move()  const { return (Move )move16; }
   Value value() const { return (Value)value16; }
-  Value eval()  const { return (Value)eval16; }
-  int extra()   const { return (int)extra16; }
+  Value eval()  const { return (Value)Value{eval16, extra16}; }
   Depth depth() const { return (Depth)depth8 + DEPTH_OFFSET; }
   bool is_pv() const { return (bool)(genBound8 & 0x4); }
   Bound bound() const { return (Bound)(genBound8 & 0x3); }
@@ -101,5 +103,8 @@ private:
 };
 
 extern TranspositionTable TT;
+
+#undef Value
+#undef Score
 
 #endif // #ifndef TT_H_INCLUDED

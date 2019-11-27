@@ -22,6 +22,9 @@
 
 #include "movepick.h"
 
+#define Score CScore<>
+#define Value CValue<>
+
 namespace {
 
   enum Stages {
@@ -269,3 +272,6 @@ top:
   assert(false);
   return MOVE_NONE; // Silence warning
 }
+
+#undef Value
+#undef Score

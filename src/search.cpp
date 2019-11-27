@@ -291,7 +291,7 @@ void MainThread::search() {
       for (Thread* th : Threads)
       {
           votes[th->rootMoves[0].pv[0]] +=
-              (th->rootMoves[0].score - minScore + 14) * int(th->completedDepth);
+              ((th->rootMoves[0].score - minScore + 14) * int(th->completedDepth)).value();
 
           if (bestThread->rootMoves[0].score >= VALUE_MATE_IN_MAX_PLY)
           {
@@ -421,11 +421,11 @@ void Thread::search() {
           {
               Value previousScore = rootMoves[pvIdx].previousScore;
               delta = Value(21 + abs(previousScore) / 128);
-              alpha = std::max(previousScore - delta,-VALUE_INFINITE);
-              beta  = std::min(previousScore + delta, VALUE_INFINITE);
+              alpha = std::max<Value>(previousScore - delta,-VALUE_INFINITE);
+              beta  = std::min<Value>(previousScore + delta, VALUE_INFINITE);
 
               // Adjust contempt based on root move's previousScore (dynamic contempt)
-              int dct = ct + (111 - ct / 2) * previousScore / (abs(previousScore) + 176);
+              int dct = ct + ((111 - ct / 2) * previousScore / (abs(previousScore) + 176)).value();
 
               contempt = (us == WHITE ?  make_score(dct, dct / 2)
                                       : -make_score(dct, dct / 2));
@@ -460,14 +460,14 @@ void Thread::search() {
                   && multiPV == 1
                   && (bestValue <= alpha || bestValue >= beta)
                   && Time.elapsed() > 3000)
-                  sync_cout << UCI::pv(rootPos, rootDepth, alpha, beta) << sync_endl;
+                  sync_cout << UCI::pv(rootPos, rootDepth, alpha.value(), beta.value()) << sync_endl;
 
               // In case of failing low/high increase aspiration window and
               // re-search, otherwise exit the loop.
               if (bestValue <= alpha)
               {
                   beta = (alpha + beta) / 2;
-                  alpha = std::max(bestValue - delta, -VALUE_INFINITE);
+                  alpha = std::max<Value>(bestValue - delta, -VALUE_INFINITE);
 
                   failedHighCnt = 0;
                   if (mainThread)
@@ -475,7 +475,7 @@ void Thread::search() {
               }
               else if (bestValue >= beta)
               {
-                  beta = std::min(bestValue + delta, VALUE_INFINITE);
+                  beta = std::min<Value>(bestValue + delta, VALUE_INFINITE);
                   ++failedHighCnt;
               }
               else
@@ -494,7 +494,7 @@ void Thread::search() {
 
           if (    mainThread
               && (Threads.stop || pvIdx + 1 == multiPV || Time.elapsed() > 3000))
-              sync_cout << UCI::pv(rootPos, rootDepth, alpha, beta) << sync_endl;
+              sync_cout << UCI::pv(rootPos, rootDepth, alpha.value(), beta.value()) << sync_endl;
       }
 
       if (!Threads.stop)
@@ -523,7 +523,7 @@ void Thread::search() {
           && !Threads.stop
           && !mainThread->stopOnPonderhit)
       {
-          double fallingEval = (354 + 10 * (mainThread->previousScore - bestValue)) / 692.0;
+          double fallingEval = double((Value)354 + 10 * (mainThread->previousScore - bestValue)) / 692.0;
           fallingEval = clamp(fallingEval, 0.5, 1.5);
 
           // If the bestMove is stable over several iterations, reduce time accordingly
@@ -639,8 +639,8 @@ namespace {
         // because we will never beat the current alpha. Same logic but with reversed
         // signs applies also in the opposite condition of being mated instead of giving
         // mate. In this case return a fail-high score.
-        alpha = std::max(mated_in(ss->ply), alpha);
-        beta = std::min(mate_in(ss->ply+1), beta);
+        alpha = std::max<Value>(mated_in(ss->ply), alpha);
+        beta = std::min<Value>(mate_in(ss->ply+1), beta);
         if (alpha >= beta)
             return alpha;
     }
@@ -824,7 +824,7 @@ namespace {
         assert(eval - beta >= 0);
 
         // Null move dynamic reduction based on depth and value
-        Depth R = (835 + 70 * depth) / 256 + std::min(int(eval - beta) / 185, 3);
+        Depth R = (835 + 70 * depth) / 256 + std::min(int((eval - beta).value()) / 185, 3);
 
         ss->currentMove = MOVE_NULL;
         ss->continuationHistory = &thisThread->continuationHistory[0][0][NO_PIECE][0];
@@ -867,7 +867,7 @@ namespace {
         &&  depth >= 5
         &&  abs(beta) < VALUE_MATE_IN_MAX_PLY)
     {
-        Value raisedBeta = std::min(beta + 191 - 46 * improving, VALUE_INFINITE);
+        Value raisedBeta = std::min<Value>(beta + 191 - 46 * improving, VALUE_INFINITE);
         MovePicker mp(pos, ttMove, raisedBeta - ss->staticEval, &thisThread->captureHistory);
         int probCutCount = 0;
 
@@ -1657,7 +1657,7 @@ moves_loop: // When in check, search starts from here
 
     // RootMoves are already sorted by score in descending order
     Value topScore = rootMoves[0].score;
-    int delta = std::min(topScore - rootMoves[multiPV - 1].score, PawnValueMg);
+    int delta = std::min<Value>(topScore - rootMoves[multiPV - 1].score, PawnValueMg).value();
     int weakness = 120 - 2 * level;
     int maxScore = -VALUE_INFINITE;
 
@@ -1667,12 +1667,12 @@ moves_loop: // When in check, search starts from here
     for (size_t i = 0; i < multiPV; ++i)
     {
         // This is our magic formula
-        int push = (  weakness * int(topScore - rootMoves[i].score)
+        int push = (  weakness * int((topScore - rootMoves[i].score).value())
                     + delta * (rng.rand<unsigned>() % weakness)) / 128;
 
         if (rootMoves[i].score + push >= maxScore)
         {
-            maxScore = rootMoves[i].score + push;
+            maxScore = (rootMoves[i].score + push).value();
             best = rootMoves[i].pv[0];
         }
     }
@@ -1718,7 +1718,7 @@ void MainThread::check_time() {
 /// UCI::pv() formats PV information according to the UCI protocol. UCI requires
 /// that all (if any) unsearched PV lines are sent using a previous search score.
 
-string UCI::pv(const Position& pos, Depth depth, Value alpha, Value beta) {
+string UCI::pv(const Position& pos, Depth depth, decltype(Value().value()) alpha, decltype(Value().value()) beta) {
 
   std::stringstream ss;
   TimePoint elapsed = Time.elapsed() + 1;
@@ -1736,10 +1736,10 @@ string UCI::pv(const Position& pos, Depth depth, Value alpha, Value beta) {
           continue;
 
       Depth d = updated ? depth : depth - 1;
-      Value v = updated ? rootMoves[i].score : rootMoves[i].previousScore;
+      decltype(Value().value()) v = updated ? rootMoves[i].score.value() : rootMoves[i].previousScore.value();
 
       bool tb = TB::RootInTB && abs(v) < VALUE_MATE - MAX_PLY;
-      v = tb ? rootMoves[i].tbScore : v;
+      v = tb ? rootMoves[i].tbScore.value() : v;
 
       if (ss.rdbuf()->in_avail()) // Not at first line
           ss << "\n";

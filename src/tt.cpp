@@ -28,12 +28,15 @@
 #include "tt.h"
 #include "uci.h"
 
+#define Score CScore<>
+#define Value CValue<>
+
 TranspositionTable TT; // Our global transposition table
 
 /// TTEntry::save populates the TTEntry with a new node's data, possibly
 /// overwriting an old position. Update is not atomic and can be racy.
 
-void TTEntry::save(Key k, Value v, bool pv, Bound b, Depth d, Move m, Value ev, int extra) {
+void TTEntry::save(Key k, Value v, bool pv, Bound b, Depth d, Move m, Value ev) {
 
   // Preserve any existing move for the same position
   if (m || (k >> 48) != key16)
@@ -47,9 +50,9 @@ void TTEntry::save(Key k, Value v, bool pv, Bound b, Depth d, Move m, Value ev, 
       assert(d >= DEPTH_OFFSET);
 
       key16     = (uint16_t)(k >> 48);
-      value16   = (int16_t)v;
-      eval16    = (int16_t)ev;
-      extra16   = (int16_t)extra;
+      value16   = (int16_t)v.value();
+      eval16    = (int16_t)ev.value(); // save value and
+      extra16   = (int16_t)ev.extra(); // save extra separately
       genBound8 = (uint8_t)(TT.generation8 | uint8_t(pv) << 2 | b);
       depth8    = (uint8_t)(d - DEPTH_OFFSET);
   }
@@ -157,3 +160,6 @@ int TranspositionTable::hashfull() const {
 
   return cnt * 1000 / (ClusterSize * (1000 / ClusterSize));
 }
+
+#undef Value
+#undef Score
