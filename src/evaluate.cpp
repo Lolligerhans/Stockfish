@@ -299,7 +299,8 @@ namespace {
                 score += ReachableOutpost;
 
             // Knight and Bishop bonus for being right behind a pawn
-            if (shift<Down>(pos.pieces(PAWN)) & s)
+            constexpr Bitboard lo = Rank1BB | Rank8BB;
+            if (shift<Down>(pos.pieces(PAWN)) & ~lo & s)
                 score += MinorBehindPawn;
 
             // Penalty if the piece is far from the king
