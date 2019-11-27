@@ -581,7 +581,7 @@ namespace {
       return std::min(distance(pos.square<KING>(c), s), 5);
     };
 
-    Bitboard b, bb, squaresToQueen, unsafeSquares;
+    Bitboard b, bb, squaresToQueen, unsafeSquares, goodDef;
     Score score = SCORE_ZERO;
 
     b = pe->passed_pawns(Us);
@@ -613,20 +613,37 @@ namespace {
             if (pos.empty(blockSq))
             {
                 squaresToQueen = forward_file_bb(Us, s);
-                unsafeSquares = passed_pawn_span(Us, s);
+                unsafeSquares = goodDef = passed_pawn_span(Us, s);
 
                 bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN);
 
                 if (!(pos.pieces(Them) & bb))
+                {
                     unsafeSquares &= attackedBy[Them][ALL_PIECES];
+                    goodDef &= attackedBy[Them][ALL_PIECES] & (attackedBy2[Them] | ~attackedBy[Them][KNIGHT]);
+                }
 
                 // If there are no enemy attacks on passed pawn span, assign a big bonus.
                 // Otherwise assign a smaller bonus if the path to queen is not attacked
                 // and even smaller bonus if it is attacked but block square is not.
+                /*
                 int k = !unsafeSquares                    ? 35 :
                         !(unsafeSquares & squaresToQueen) ? 20 :
                         !(unsafeSquares & blockSq)        ?  9 :
                                                              0 ;
+                */
+                // defense by opponent from i=0 (weak) to i=3 (strong)
+                int i = bool(unsafeSquares)
+                      + bool(unsafeSquares & squaresToQueen)
+                      + bool(unsafeSquares & blockSq);
+                // GOOD defense by opponent (using pieces OTHER than knight)
+                int j = bool(goodDef)
+                      + bool(goodDef & squaresToQueen)
+                      + bool(goodDef & blockSq);
+
+                constexpr int unsafeBonus[2][4] = {{35, 20, 9, 0},
+                                                   { 4,  2, 1, 0}};
+                int k = unsafeBonus[0][i] + unsafeBonus[1][j];
 
                 // Assign a larger bonus if the block square is defended
                 if ((pos.pieces(Us) & bb) || (attackedBy[Us][ALL_PIECES] & blockSq))
