@@ -361,6 +361,14 @@ namespace {
                 score -= WeakQueen;
         }
     }
+
+    if (Pt == KNIGHT)
+    {
+        constexpr Score ClumsyKnight = make_score(5,10);
+        if (pos.pieces(Us, KNIGHT) & attackedBy[Us][KNIGHT])
+            score -= ClumsyKnight;
+    }
+
     if (T)
         Trace::add(Pt, Us, score);
 
