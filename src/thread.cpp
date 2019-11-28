@@ -28,9 +28,6 @@
 #include "syzygy/tbprobe.h"
 #include "tt.h"
 
-#define Score CScore<>
-#define Value CValue<>
-
 ThreadPool Threads; // Global object
 
 
@@ -220,6 +217,3 @@ void ThreadPool::start_thinking(Position& pos, StateListPtr& states,
 
   main()->start_searching();
 }
-
-#undef Value
-#undef Score
