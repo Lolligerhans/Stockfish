@@ -201,7 +201,9 @@ enum Piece {
   PIECE_NB = 16
 };
 
-extern Value PieceValue[PHASE_NB][PIECE_NB];
+template<class Extern = int32_t> class CValue;
+
+extern CValue<> PieceValue[PHASE_NB][PIECE_NB];
 
 typedef int Depth;
 
@@ -336,6 +338,7 @@ inline Score operator*(Score s, int i) {
 
   Score result = Score(int(s) * i);
 
+  // dividing max value by i and comparing to value seems more logical?
   assert(eg_value(result) == (i * eg_value(s)));
   assert(mg_value(result) == (i * mg_value(s)));
   assert((i == 0) || (result / i) == s);
@@ -471,21 +474,22 @@ public:
 
     explicit operator Score() const { return s; }
 
+    CScore operator-() const { return CScore{-s, -e}; }
+
     CScore operator+(CScore const& cs) const { return CScore{s+cs.s, e+cs.e}; }
     CScore operator-(CScore const& cs) const { return CScore{s-cs.s, e-cs.e}; }
     CScore operator*(int i) const { return CScore{s*i, e*i}; }
-    // rephrasing expressions to contian += is better
     CScore operator/(int i) const { return CScore{s/i, e/i}; }
 
     CScore& operator+=(CScore const& cs) { s+=cs.s; e+=cs.e; return *this; }
     CScore& operator-=(CScore const& cs) { s-=cs.s; e-=cs.e; return *this; }
 };
 
-template<class Extra = int32_t>
+template<class Extra>
 class CValue
 {
 private:
-    Value v;
+    int v;
     Extra e;
 public:
     constexpr CValue() : v(VALUE_NONE), e{0} {}
@@ -497,19 +501,20 @@ public:
     constexpr CValue(int i) : CValue{Value(i)} {}
     constexpr CValue(int i, int j) : CValue{Value(i), Extra{j}} {}
 
-    Value value() const { return v; }
+    Value value() const { return Value(v); }
     Extra extra() const { return e; }
     explicit operator double() const { return static_cast<double>(v); }
     explicit operator Phase() const { return static_cast<Phase>(v); }
     explicit operator bool() const { return static_cast<bool>(v); }
 
-    CValue operator-() const { return CValue{-v, -e}; }
+    CValue operator-() const { return CValue(-v, -e); }
     CValue operator+(CValue const& cv) const { return CValue{v+cv.v, e+cv.e}; };
     CValue operator-(CValue const& cv) const { return CValue{v-cv.v, e-cv.e}; };
     constexpr CValue operator*(int i) const { return CValue{v*i, e*i}; }
     CValue operator/(int i) const { return CValue{v/i, e/i}; }
 
     CValue& operator+=(CValue const& cv) { v+=cv.v; e+=cv.e; return *this; }
+    CValue& operator-=(CValue const& cv) { v-=cv.v; e-=cv.e; return *this; }
     CValue& operator/=(int i) { v/=i; e/=i; return *this; }
 
     bool operator!() const { return !v; }

@@ -110,7 +110,7 @@ void MovePicker::score() {
 
   for (auto& m : *this)
       if (Type == CAPTURES)
-          m.value =  int(PieceValue[MG][pos.piece_on(to_sq(m))]) * 6
+          m.value =  int(PieceValue[MG][pos.piece_on(to_sq(m))].value()) * 6
                    + (*captureHistory)[pos.moved_piece(m)][to_sq(m)][type_of(pos.piece_on(to_sq(m)))];
 
       else if (Type == QUIETS)
@@ -123,8 +123,8 @@ void MovePicker::score() {
       else // Type == EVASIONS
       {
           if (pos.capture(m))
-              m.value =  PieceValue[MG][pos.piece_on(to_sq(m))]
-                       - Value(type_of(pos.moved_piece(m)));
+              m.value =  (PieceValue[MG][pos.piece_on(to_sq(m))]
+                       - Value(type_of(pos.moved_piece(m)))).value();
           else
               m.value =  (*mainHistory)[pos.side_to_move()][from_to(m)]
                        + (*continuationHistory[0])[pos.moved_piece(m)][to_sq(m)]
