@@ -25,6 +25,9 @@
 #include "position.h"
 #include "types.h"
 
+#define Score CScore<>
+#define Value CValue<>
+
 namespace Pawns {
 
 /// Pawns::Entry contains various information about a pawn structure. A lookup
@@ -66,5 +69,8 @@ typedef HashTable<Entry, 131072> Table;
 Entry* probe(const Position& pos);
 
 } // namespace Pawns
+
+#undef Value
+#undef Score
 
 #endif // #ifndef PAWNS_H_INCLUDED

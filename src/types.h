@@ -168,7 +168,7 @@ enum Bound {
   BOUND_EXACT = BOUND_UPPER | BOUND_LOWER
 };
 
-enum Value : int {
+enum EValue : int {
   VALUE_ZERO      = 0,
   VALUE_DRAW      = 0,
   VALUE_KNOWN_WIN = 10000,
@@ -187,6 +187,8 @@ enum Value : int {
 
   MidgameLimit  = 15258, EndgameLimit  = 3915
 };
+
+#define Value EValue
 
 enum PieceType {
   NO_PIECE_TYPE, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
@@ -461,6 +463,8 @@ constexpr bool is_ok(Move m) {
   return from_sq(m) != to_sq(m); // Catch MOVE_NULL and MOVE_NONE
 }
 
+#undef Value // EValue
+
 template<class Extra = int32_t>
 class CScore
 {
@@ -492,6 +496,7 @@ template<class Extra>
 class CValue
 {
 private:
+    using Value = EValue;
     int v;
     Extra e;
 public:
@@ -541,6 +546,7 @@ public:
     CValue& operator-=(Value a) { v -= a; return *this; }
 };
 
+#define Value EValue
 template<class Extra> CValue<Extra> operator+(Value v, CValue<Extra> const& cv) { return  cv + v; }
 template<class Extra> CValue<Extra> operator-(Value v, CValue<Extra> const& cv) { return -cv + v; }
 template<class Extra> constexpr CValue<Extra> operator*(int v, CValue<Extra> const& cv) { return  cv * v; }
@@ -565,5 +571,7 @@ inline Value mg_value(CScore<S> s) {
 
 template<class Extra>
 int abs(CValue<Extra> const& cv) { return std::abs(cv.value()); }
+
+#undef Value // EValue
 
 #endif // #ifndef TYPES_H_INCLUDED

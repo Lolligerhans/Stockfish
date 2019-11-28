@@ -26,6 +26,9 @@
 #include "position.h"
 #include "thread.h"
 
+#define Score CScore<>
+#define Value CValue<>
+
 namespace {
 
   #define V Value
@@ -203,12 +206,12 @@ Score Entry::evaluate_shelter(const Position& pos, Square ksq) {
       int theirRank = b ? relative_rank(Us, frontmost_sq(Them, b)) : 0;
 
       File d = map_to_queenside(f);
-      bonus += make_score(ShelterStrength[d][ourRank], 0);
+      bonus += make_score(ShelterStrength[d][ourRank].value(), 0);
 
       if (ourRank && (ourRank == theirRank - 1))
           bonus -= BlockedStorm * int(theirRank == RANK_3);
       else
-          bonus -= make_score(UnblockedStorm[d][theirRank], 0);
+          bonus -= make_score(UnblockedStorm[d][theirRank].value(), 0);
   }
 
   return bonus;
@@ -253,3 +256,6 @@ template Score Entry::do_king_safety<WHITE>(const Position& pos);
 template Score Entry::do_king_safety<BLACK>(const Position& pos);
 
 } // namespace Pawns
+
+#undef Value
+#undef Score

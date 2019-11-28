@@ -33,6 +33,9 @@
 #include "uci.h"
 #include "syzygy/tbprobe.h"
 
+#define Score CScore<>
+#define Value CValue<>
+
 using namespace std;
 
 extern vector<string> setup_bench(const Position&, istream&);
@@ -255,9 +258,9 @@ string UCI::value(Value v) {
   stringstream ss;
 
   if (abs(v) < VALUE_MATE - MAX_PLY)
-      ss << "cp " << v * 100 / PawnValueEg;
+      ss << "cp " << (v * 100 / PawnValueEg).value();
   else
-      ss << "mate " << (v > 0 ? VALUE_MATE - v + 1 : -VALUE_MATE - v) / 2;
+      ss << "mate " << ((v > 0 ? VALUE_MATE - v + 1 : -VALUE_MATE - v) / 2).value();
 
   return ss.str();
 }
@@ -312,3 +315,6 @@ Move UCI::to_move(const Position& pos, string& str) {
 
   return MOVE_NONE;
 }
+
+#undef Value
+#undef Score

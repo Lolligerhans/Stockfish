@@ -51,6 +51,8 @@
 #include <windows.h>
 #endif
 
+#define Value EValue
+
 using namespace Tablebases;
 
 int Tablebases::MaxCardinality;
@@ -1600,3 +1602,5 @@ bool Tablebases::root_probe_wdl(Position& pos, Search::RootMoves& rootMoves) {
 
     return true;
 }
+
+#undef Value
