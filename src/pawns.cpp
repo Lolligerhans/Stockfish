@@ -26,28 +26,25 @@
 #include "position.h"
 #include "thread.h"
 
-#define Score CScore<>
-#define Value CValue<>
-
 namespace {
 
-  #define V Value
+  #define V Value<>
   #define S(mg, eg) make_score(mg, eg)
 
   // Pawn penalties
-  constexpr Score Backward      = S( 9, 24);
-  constexpr Score BlockedStorm  = S(82, 82);
-  constexpr Score Doubled       = S(11, 56);
-  constexpr Score Isolated      = S( 5, 15);
-  constexpr Score WeakLever     = S( 0, 56);
-  constexpr Score WeakUnopposed = S(13, 27);
+  constexpr Score<> Backward      = S( 9, 24);
+  constexpr Score<> BlockedStorm  = S(82, 82);
+  constexpr Score<> Doubled       = S(11, 56);
+  constexpr Score<> Isolated      = S( 5, 15);
+  constexpr Score<> WeakLever     = S( 0, 56);
+  constexpr Score<> WeakUnopposed = S(13, 27);
 
   // Connected pawn bonus
   constexpr int Connected[RANK_NB] = { 0, 7, 8, 12, 29, 48, 86 };
 
   // Strength of pawn shelter for our king by [distance from edge][rank].
   // RANK_1 = 0 is used for files where we have no pawn, or pawn is behind our king.
-  constexpr Value ShelterStrength[int(FILE_NB) / 2][RANK_NB] = {
+  constexpr Value<> ShelterStrength[int(FILE_NB) / 2][RANK_NB] = {
     { V( -6), V( 81), V( 93), V( 58), V( 39), V( 18), V(  25) },
     { V(-43), V( 61), V( 35), V(-49), V(-29), V(-11), V( -63) },
     { V(-10), V( 75), V( 23), V( -2), V( 32), V(  3), V( -45) },
@@ -58,7 +55,7 @@ namespace {
   // RANK_1 = 0 is used for files where the enemy has no pawn, or their pawn
   // is behind our king. Note that UnblockedStorm[0][1-2] accommodate opponent pawn
   // on edge, likely blocked by our king.
-  constexpr Value UnblockedStorm[int(FILE_NB) / 2][RANK_NB] = {
+  constexpr Value<> UnblockedStorm[int(FILE_NB) / 2][RANK_NB] = {
     { V( 89), V(-285), V(-185), V(93), V(57), V( 45), V( 51) },
     { V( 44), V( -18), V( 123), V(46), V(39), V( -7), V( 23) },
     { V(  4), V(  52), V( 162), V(37), V( 7), V(-14), V( -2) },
@@ -69,7 +66,7 @@ namespace {
   #undef V
 
   template<Color Us>
-  Score evaluate(const Position& pos, Pawns::Entry* e) {
+  Score<> evaluate(const Position& pos, Pawns::Entry* e) {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = pawn_push(Us);
@@ -78,7 +75,7 @@ namespace {
     Bitboard lever, leverPush, blocked;
     Square s;
     bool backward, passed, doubled;
-    Score score = SCORE_ZERO;
+    Score<> score = SCORE_ZERO;
     const Square* pl = pos.squares<PAWN>(Us);
 
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
@@ -132,7 +129,7 @@ namespace {
         if (passed)
             e->passedPawns[Us] |= s;
 
-        // Score this pawn
+        // Score<> this pawn
         if (support | phalanx)
         {
             int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed))
@@ -186,7 +183,7 @@ Entry* probe(const Position& pos) {
 /// penalty for a king, looking at the king file and the two closest files.
 
 template<Color Us>
-Score Entry::evaluate_shelter(const Position& pos, Square ksq) {
+Score<> Entry::evaluate_shelter(const Position& pos, Square ksq) {
 
   constexpr Color Them = (Us == WHITE ? BLACK : WHITE);
 
@@ -194,7 +191,7 @@ Score Entry::evaluate_shelter(const Position& pos, Square ksq) {
   Bitboard ourPawns = b & pos.pieces(Us);
   Bitboard theirPawns = b & pos.pieces(Them);
 
-  Score bonus = make_score(5, 5);
+  Score<> bonus = make_score(5, 5);
 
   File center = clamp(file_of(ksq), FILE_B, FILE_G);
   for (File f = File(center - 1); f <= File(center + 1); ++f)
@@ -222,14 +219,14 @@ Score Entry::evaluate_shelter(const Position& pos, Square ksq) {
 /// when king square changes, which is about 20% of total king_safety() calls.
 
 template<Color Us>
-Score Entry::do_king_safety(const Position& pos) {
+Score<> Entry::do_king_safety(const Position& pos) {
 
   Square ksq = pos.square<KING>(Us);
   kingSquares[Us] = ksq;
   castlingRights[Us] = pos.castling_rights(Us);
-  auto compare = [](Score a, Score b) { return mg_value(a) < mg_value(b); };
+  auto compare = [](Score<> a, Score<> b) { return mg_value(a) < mg_value(b); };
 
-  Score shelter = evaluate_shelter<Us>(pos, ksq);
+  Score<> shelter = evaluate_shelter<Us>(pos, ksq);
 
   // If we can castle use the bonus after castling if it is bigger
 
@@ -252,10 +249,7 @@ Score Entry::do_king_safety(const Position& pos) {
 }
 
 // Explicit template instantiation
-template Score Entry::do_king_safety<WHITE>(const Position& pos);
-template Score Entry::do_king_safety<BLACK>(const Position& pos);
+template Score<> Entry::do_king_safety<WHITE>(const Position& pos);
+template Score<> Entry::do_king_safety<BLACK>(const Position& pos);
 
 } // namespace Pawns
-
-#undef Value
-#undef Score

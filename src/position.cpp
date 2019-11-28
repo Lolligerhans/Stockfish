@@ -34,9 +34,6 @@
 #include "uci.h"
 #include "syzygy/tbprobe.h"
 
-#define Score CScore<>
-#define Value CValue<>
-
 using std::string;
 
 namespace Zobrist {
@@ -1047,7 +1044,7 @@ Key Position::key_after(Move m) const {
 /// SEE value of move is greater or equal to the given threshold. We'll use an
 /// algorithm similar to alpha-beta pruning with a null window.
 
-bool Position::see_ge(Move m, Value threshold) const {
+bool Position::see_ge(Move m, Value<> threshold) const {
 
   assert(is_ok(m));
 
@@ -1060,7 +1057,7 @@ bool Position::see_ge(Move m, Value threshold) const {
   PieceType nextVictim = type_of(piece_on(from));
   Color us = color_of(piece_on(from));
   Color stm = ~us; // First consider opponent's move
-  Value balance;   // Values of the pieces taken by us minus opponent's ones
+  Value<> balance;   // Values of the pieces taken by us minus opponent's ones
 
   // The opponent may be able to recapture so this is the best result
   // we can hope for.
@@ -1315,6 +1312,3 @@ bool Position::pos_is_ok() const {
 
   return true;
 }
-
-#undef Value
-#undef Score

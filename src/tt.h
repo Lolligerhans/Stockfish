@@ -24,9 +24,6 @@
 #include "misc.h"
 #include "types.h"
 
-#define Score CScore<>
-#define Value CValue<>
-
 /// TTEntry struct is the 10 bytes transposition table entry, defined as below:
 ///
 /// key        16 bit
@@ -41,12 +38,12 @@
 struct TTEntry {
 
   Move  move()  const { return (Move )move16; }
-  Value value() const { return (Value)value16; }
-  Value eval()  const { return (Value)Value{eval16, extra16}; }
+  Value<> value() const { return (Value<>)value16; }
+  Value<> eval()  const { return Value<>{eval16, extra16}; }
   Depth depth() const { return (Depth)depth8 + DEPTH_OFFSET; }
   bool is_pv() const { return (bool)(genBound8 & 0x4); }
   Bound bound() const { return (Bound)(genBound8 & 0x3); }
-  void save(Key k, Value v, bool pv, Bound b, Depth d, Move m, Value ev);
+  void save(Key k, Value<> v, bool pv, Bound b, Depth d, Move m, Value<> ev);
 
 private:
   friend class TranspositionTable;
@@ -70,12 +67,14 @@ private:
 
 class TranspositionTable {
 
+  static constexpr int EntrySize = sizeof(TTEntry);
   static constexpr int CacheLineSize = 64;
-  static constexpr int ClusterSize = 5;
+  static constexpr int ClusterSize = CacheLineSize/EntrySize;
+  static constexpr int ClusterPaddingSize = CacheLineSize - (EntrySize * ClusterSize);
 
   struct Cluster {
     TTEntry entry[ClusterSize];
-    char padding[4]; // Align to a divisor of the cache line size
+    char padding[ClusterPaddingSize]; // Align to a divisor of the cache line size
   };
 
   static_assert(CacheLineSize % sizeof(Cluster) == 0, "Cluster size incorrect");
@@ -103,8 +102,5 @@ private:
 };
 
 extern TranspositionTable TT;
-
-#undef Value
-#undef Score
 
 #endif // #ifndef TT_H_INCLUDED

@@ -33,9 +33,6 @@
 #include "uci.h"
 #include "syzygy/tbprobe.h"
 
-#define Score CScore<>
-#define Value CValue<>
-
 using namespace std;
 
 extern vector<string> setup_bench(const Position&, istream&);
@@ -244,14 +241,14 @@ void UCI::loop(int argc, char* argv[]) {
 }
 
 
-/// UCI::value() converts a Value to a string suitable for use with the UCI
+/// UCI::value() converts a Value<> to a string suitable for use with the UCI
 /// protocol specification:
 ///
 /// cp <x>    The score from the engine's point of view in centipawns.
 /// mate <y>  Mate in y moves, not plies. If the engine is getting mated
 ///           use negative values for y.
 
-string UCI::value(Value v) {
+string UCI::value(Value<> v) {
 
   assert(-VALUE_INFINITE < v && v < VALUE_INFINITE);
 
@@ -315,6 +312,3 @@ Move UCI::to_move(const Position& pos, string& str) {
 
   return MOVE_NONE;
 }
-
-#undef Value
-#undef Score

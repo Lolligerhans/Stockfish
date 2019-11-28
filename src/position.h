@@ -29,9 +29,6 @@
 #include "bitboard.h"
 #include "types.h"
 
-#define Score CScore<>
-#define Value CValue<>
-
 
 /// StateInfo struct stores information needed to restore a Position object to
 /// its previous state when we retract a move. Whenever a move is made on the
@@ -42,7 +39,7 @@ struct StateInfo {
   // Copied when making a move
   Key    pawnKey;
   Key    materialKey;
-  Value  nonPawnMaterial[COLOR_NB];
+  Value<>  nonPawnMaterial[COLOR_NB];
   int    castlingRights;
   int    rule50;
   int    pliesFromNull;
@@ -144,7 +141,7 @@ public:
   void undo_null_move();
 
   // Static Exchange Evaluation
-  bool see_ge(Move m, Value threshold = VALUE_ZERO) const;
+  bool see_ge(Move m, Value<> threshold = VALUE_ZERO) const;
 
   // Accessing hash keys
   Key key() const;
@@ -161,9 +158,9 @@ public:
   bool has_game_cycle(int ply) const;
   bool has_repeated() const;
   int rule50_count() const;
-  Score psq_score() const;
-  Value non_pawn_material(Color c) const;
-  Value non_pawn_material() const;
+  Score<> psq_score() const;
+  Value<> non_pawn_material(Color c) const;
+  Value<> non_pawn_material() const;
 
   // Position consistency check, for debugging
   bool pos_is_ok() const;
@@ -194,14 +191,14 @@ private:
   Bitboard castlingPath[CASTLING_RIGHT_NB];
   int gamePly;
   Color sideToMove;
-  Score psq;
+  Score<> psq;
   Thread* thisThread;
   StateInfo* st;
   bool chess960;
 };
 
 namespace PSQT {
-  extern Score psq[PIECE_NB][SQUARE_NB];
+  extern Score<> psq[PIECE_NB][SQUARE_NB];
 }
 
 extern std::ostream& operator<<(std::ostream& os, const Position& pos);
@@ -350,15 +347,15 @@ inline Key Position::material_key() const {
   return st->materialKey;
 }
 
-inline Score Position::psq_score() const {
+inline Score<> Position::psq_score() const {
   return psq;
 }
 
-inline Value Position::non_pawn_material(Color c) const {
+inline Value<> Position::non_pawn_material(Color c) const {
   return st->nonPawnMaterial[c];
 }
 
-inline Value Position::non_pawn_material() const {
+inline Value<> Position::non_pawn_material() const {
   return st->nonPawnMaterial[WHITE] + st->nonPawnMaterial[BLACK];
 }
 
@@ -447,8 +444,5 @@ inline void Position::move_piece(Piece pc, Square from, Square to) {
 inline void Position::do_move(Move m, StateInfo& newSt) {
   do_move(m, newSt, gives_check(m));
 }
-
-#undef Value
-#undef Score
 
 #endif // #ifndef POSITION_H_INCLUDED

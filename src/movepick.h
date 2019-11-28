@@ -29,10 +29,6 @@
 #include "position.h"
 #include "types.h"
 
-#define Score CScore<>
-#define Value CValue<>
-
-
 /// StatsEntry stores the stat table value. It is usually a number but could
 /// be a move or even a nested history. We use a class instead of naked value
 /// to directly call history update operator<<() on the entry so to use stats
@@ -121,7 +117,7 @@ class MovePicker {
 public:
   MovePicker(const MovePicker&) = delete;
   MovePicker& operator=(const MovePicker&) = delete;
-  MovePicker(const Position&, Move, Value, const CapturePieceToHistory*);
+  MovePicker(const Position&, Move, Value<>, const CapturePieceToHistory*);
   MovePicker(const Position&, Move, Depth, const ButterflyHistory*,
                                            const CapturePieceToHistory*,
                                            const PieceToHistory**,
@@ -147,12 +143,9 @@ private:
   ExtMove refutations[3], *cur, *endMoves, *endBadCaptures;
   int stage;
   Square recaptureSquare;
-  Value threshold;
+  Value<> threshold;
   Depth depth;
   ExtMove moves[MAX_MOVES];
 };
-
-#undef Value
-#undef Score
 
 #endif // #ifndef MOVEPICK_H_INCLUDED

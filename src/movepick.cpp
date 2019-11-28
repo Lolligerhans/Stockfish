@@ -22,9 +22,6 @@
 
 #include "movepick.h"
 
-#define Score CScore<>
-#define Value CValue<>
-
 namespace {
 
   enum Stages {
@@ -87,7 +84,7 @@ MovePicker::MovePicker(const Position& p, Move ttm, Depth d, const ButterflyHist
 
 /// MovePicker constructor for ProbCut: we generate captures with SEE greater
 /// than or equal to the given threshold.
-MovePicker::MovePicker(const Position& p, Move ttm, Value th, const CapturePieceToHistory* cph)
+MovePicker::MovePicker(const Position& p, Move ttm, Value<> th, const CapturePieceToHistory* cph)
            : pos(p), captureHistory(cph), threshold(th) {
 
   assert(!pos.checkers());
@@ -124,7 +121,7 @@ void MovePicker::score() {
       {
           if (pos.capture(m))
               m.value =  (PieceValue[MG][pos.piece_on(to_sq(m))]
-                       - Value(type_of(pos.moved_piece(m)))).value();
+                       - Value<>(type_of(pos.moved_piece(m)))).value();
           else
               m.value =  (*mainHistory)[pos.side_to_move()][from_to(m)]
                        + (*continuationHistory[0])[pos.moved_piece(m)][to_sq(m)]
@@ -177,7 +174,7 @@ top:
 
   case GOOD_CAPTURE:
       if (select<Best>([&](){
-                       return pos.see_ge(*cur, Value(-55 * cur->value / 1024)) ?
+                       return pos.see_ge(*cur, Value<>(-55 * cur->value / 1024)) ?
                               // Move losing capture to endBadCaptures to be tried later
                               true : (*endBadCaptures++ = *cur, false); }))
           return *(cur - 1);
@@ -272,6 +269,3 @@ top:
   assert(false);
   return MOVE_NONE; // Silence warning
 }
-
-#undef Value
-#undef Score

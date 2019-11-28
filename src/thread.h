@@ -34,10 +34,6 @@
 #include "search.h"
 #include "thread_win32_osx.h"
 
-#define Score CScore<>
-#define Value CValue<>
-
-
 /// Thread class keeps together all the thread-related stuff. We use
 /// per-thread pawn and material hash tables so that once we get a
 /// pointer to an entry its life time is unlimited and we don't have
@@ -76,7 +72,7 @@ public:
   ButterflyHistory mainHistory;
   CapturePieceToHistory captureHistory;
   ContinuationHistory continuationHistory[2][2];
-  Score contempt;
+  Score<> contempt;
 };
 
 
@@ -90,7 +86,7 @@ struct MainThread : public Thread {
   void check_time();
 
   double previousTimeReduction;
-  Value previousScore;
+  Value<> previousScore;
   int callsCnt;
   bool stopOnPonderhit;
   std::atomic_bool ponder;
@@ -126,8 +122,5 @@ private:
 };
 
 extern ThreadPool Threads;
-
-#undef Value
-#undef Score
 
 #endif // #ifndef THREAD_H_INCLUDED

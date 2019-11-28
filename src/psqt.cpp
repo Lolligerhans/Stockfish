@@ -22,10 +22,7 @@
 
 #include "types.h"
 
-#define Score CScore<>
-#define Value CValue<>
-
-Value PieceValue[PHASE_NB][PIECE_NB] = {
+Value<> PieceValue[PHASE_NB][PIECE_NB] = {
   { VALUE_ZERO, PawnValueMg, KnightValueMg, BishopValueMg, RookValueMg, QueenValueMg },
   { VALUE_ZERO, PawnValueEg, KnightValueEg, BishopValueEg, RookValueEg, QueenValueEg }
 };
@@ -38,7 +35,7 @@ namespace PSQT {
 // type on a given square a (middlegame, endgame) score pair is assigned. Table
 // is defined for files A..D and white side: it is symmetric for black side and
 // second half of the files.
-constexpr Score Bonus[][RANK_NB][int(FILE_NB) / 2] = {
+constexpr Score<> Bonus[][RANK_NB][int(FILE_NB) / 2] = {
   { },
   { },
   { // Knight
@@ -93,7 +90,7 @@ constexpr Score Bonus[][RANK_NB][int(FILE_NB) / 2] = {
   }
 };
 
-constexpr Score PBonus[RANK_NB][FILE_NB] =
+constexpr Score<> PBonus[RANK_NB][FILE_NB] =
   { // Pawn (asymmetric distribution)
    { },
    { S(  3,-10), S(  3, -6), S( 10, 10), S( 19,  0), S( 16, 14), S( 19,  7), S(  7, -5), S( -5,-19) },
@@ -106,7 +103,7 @@ constexpr Score PBonus[RANK_NB][FILE_NB] =
 
 #undef S
 
-Score psq[PIECE_NB][SQUARE_NB];
+Score<> psq[PIECE_NB][SQUARE_NB];
 
 // init() initializes piece-square tables: the white halves of the tables are
 // copied from Bonus[] adding the piece value, then the black halves of the
@@ -118,7 +115,7 @@ void init() {
       PieceValue[MG][~pc] = PieceValue[MG][pc];
       PieceValue[EG][~pc] = PieceValue[EG][pc];
 
-      Score score = make_score(PieceValue[MG][pc].value(), PieceValue[EG][pc].value());
+      Score<> score = make_score(PieceValue[MG][pc].value(), PieceValue[EG][pc].value());
 
       for (Square s = SQ_A1; s <= SQ_H8; ++s)
       {
@@ -129,9 +126,5 @@ void init() {
       }
   }
 }
-
-#undef Value
-#undef Score
-
 
 } // namespace PSQT

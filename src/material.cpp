@@ -24,9 +24,6 @@
 #include "material.h"
 #include "thread.h"
 
-#define Score CScore<>
-#define Value CValue<>
-
 using namespace std;
 
 namespace {
@@ -130,9 +127,9 @@ Entry* probe(const Position& pos) {
   e->key = key;
   e->factor[WHITE] = e->factor[BLACK] = (uint8_t)SCALE_FACTOR_NORMAL;
 
-  Value npm_w = pos.non_pawn_material(WHITE);
-  Value npm_b = pos.non_pawn_material(BLACK);
-  Value npm   = clamp((npm_w + npm_b).value(), EndgameLimit, MidgameLimit);
+  Value<> npm_w = pos.non_pawn_material(WHITE);
+  Value<> npm_b = pos.non_pawn_material(BLACK);
+  Value<> npm   = clamp((npm_w + npm_b).value(), EndgameLimit, MidgameLimit);
 
   // Map total non-pawn material into [PHASE_ENDGAME, PHASE_MIDGAME]
   e->gamePhase = Phase(((npm - EndgameLimit) * PHASE_MIDGAME) / (MidgameLimit - EndgameLimit));
@@ -140,7 +137,7 @@ Entry* probe(const Position& pos) {
   // Let's look if we have a specialized evaluation function for this particular
   // material configuration. Firstly we look for a fixed configuration one, then
   // for a generic one if the previous search failed.
-  if ((e->evaluationFunction = Endgames::probe<Value>(key)) != nullptr)
+  if ((e->evaluationFunction = Endgames::probe<Value<>>(key)) != nullptr)
       return e;
 
   for (Color c : { WHITE, BLACK })
@@ -218,8 +215,5 @@ Entry* probe(const Position& pos) {
   e->value = int16_t((imbalance<WHITE>(pieceCount) - imbalance<BLACK>(pieceCount)) / 16);
   return e;
 }
-
-#undef Value
-#undef Score
 
 } // namespace Material

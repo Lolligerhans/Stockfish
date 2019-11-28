@@ -26,9 +26,6 @@
 
 #include "types.h"
 
-#define Score CScore<>
-#define Value CValue<>
-
 class Position;
 
 namespace UCI {
@@ -72,7 +69,7 @@ private:
 
 void init(OptionsMap&);
 void loop(int argc, char* argv[]);
-std::string value(Value v);
+std::string value(Value<> v);
 std::string square(Square s);
 std::string move(Move m, bool chess960);
 std::string pv(const Position& pos, Depth depth, EValue alpha, EValue beta);
@@ -81,8 +78,5 @@ Move to_move(const Position& pos, std::string& str);
 } // namespace UCI
 
 extern UCI::OptionsMap Options;
-
-#undef Value
-#undef Score
 
 #endif // #ifndef UCI_H_INCLUDED

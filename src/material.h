@@ -26,9 +26,6 @@
 #include "position.h"
 #include "types.h"
 
-#define Score CScore<>
-#define Value CValue<>
-
 namespace Material {
 
 /// Material::Entry contains various information about a material configuration.
@@ -42,10 +39,10 @@ namespace Material {
 
 struct Entry {
 
-  Score imbalance() const { return make_score(value, value); }
+  Score<> imbalance() const { return make_score(value, value); }
   Phase game_phase() const { return gamePhase; }
   bool specialized_eval_exists() const { return evaluationFunction != nullptr; }
-  Value evaluate(const Position& pos) const { return (*evaluationFunction)(pos); }
+  Value<> evaluate(const Position& pos) const { return (*evaluationFunction)(pos); }
 
   // scale_factor takes a position and a color as input and returns a scale factor
   // for the given color. We have to provide the position in addition to the color
@@ -59,7 +56,7 @@ struct Entry {
   }
 
   Key key;
-  const EndgameBase<Value>* evaluationFunction;
+  const EndgameBase<Value<>>* evaluationFunction;
   const EndgameBase<ScaleFactor>* scalingFunction[COLOR_NB]; // Could be one for each
                                                              // side (e.g. KPKP, KBPsK)
   int16_t value;
@@ -72,8 +69,5 @@ typedef HashTable<Entry, 8192> Table;
 Entry* probe(const Position& pos);
 
 } // namespace Material
-
-#undef Value
-#undef Score
 
 #endif // #ifndef MATERIAL_H_INCLUDED
