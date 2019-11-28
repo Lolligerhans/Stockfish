@@ -469,6 +469,7 @@ private:
     Extra e;
 public:
     constexpr CScore() : s(SCORE_ZERO), e{0} {}
+    constexpr CScore(CScore const&) = default;
     constexpr CScore(Score a) : s(a), e{0} {}
     constexpr CScore(Score a, Extra const& b) : s(a), e{b} {}
 
@@ -480,6 +481,8 @@ public:
     CScore operator-(CScore const& cs) const { return CScore{s-cs.s, e-cs.e}; }
     CScore operator*(int i) const { return CScore{s*i, e*i}; }
     CScore operator/(int i) const { return CScore{s/i, e/i}; }
+
+    CScore& operator=(CScore const&) = default;
 
     CScore& operator+=(CScore const& cs) { s+=cs.s; e+=cs.e; return *this; }
     CScore& operator-=(CScore const& cs) { s-=cs.s; e-=cs.e; return *this; }
@@ -520,8 +523,8 @@ public:
     bool operator!() const { return !v; }
     bool operator<(CValue const& cv) const { return v < cv.v; }
     bool operator>(CValue const& cv) const { return cv.v < v; }
-    bool operator<=(CValue const& cv) const { return !(cv > *this); }
-    bool operator>=(CValue const& cv) const { return !(cv < *this); }
+    bool operator<=(CValue const& cv) const { return !(*this > cv); }
+    bool operator>=(CValue const& cv) const { return !(*this < cv); }
     bool operator==(CValue const& cv) const { return v == cv.v; }
     bool operator!=(CValue const& cv) const { return !(v == cv.v); }
     bool operator<(int i) const { return v < i; }
