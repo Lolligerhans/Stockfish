@@ -45,6 +45,8 @@
 #include <cstdlib>
 #include <algorithm>
 
+#include <iostream>
+
 #if defined(_MSC_VER)
 // Disable some silly and noisy warning from MSVC compiler
 #pragma warning(disable: 4127) // Conditional expression is constant
@@ -188,8 +190,6 @@ enum EValue : int {
   MidgameLimit  = 15258, EndgameLimit  = 3915
 };
 
-#define Value EValue
-
 enum PieceType {
   NO_PIECE_TYPE, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
   ALL_PIECES = 0,
@@ -258,10 +258,10 @@ enum Rank : int {
 /// The least significant 16 bits are used to store the middlegame value and the
 /// upper 16 bits are used to store the endgame value. We have to take care to
 /// avoid left-shifting a signed int to avoid undefined behavior.
-enum Score : int { SCORE_ZERO };
+enum EScore : int { SCORE_ZERO };
 
-constexpr Score make_score(int mg, int eg) {
-  return Score((int)((unsigned int)eg << 16) + mg);
+constexpr EScore make_score(int mg, int eg) {
+  return EScore((int)((unsigned int)eg << 16) + mg);
 }
 
 /// Extracting the signed lower and upper 16 bits is not so trivial because
@@ -269,14 +269,14 @@ constexpr Score make_score(int mg, int eg) {
 /// and so is a right shift of a signed integer.
 // bros the undefined thing is whether the int is flled with 1s or 0s from the
 // left, not what the shifted 16 bit will be
-inline Value eg_value(Score s) {
+inline EValue eg_value(EScore s) {
   union { uint16_t u; int16_t s; } eg = { uint16_t(unsigned(s + 0x8000) >> 16) };
-  return Value(eg.s);
+  return EValue(eg.s);
 }
 
-inline Value mg_value(Score s) {
+inline EValue mg_value(EScore s) {
   union { uint16_t u; int16_t s; } mg = { uint16_t(unsigned(s)) };
-  return Value(mg.s);
+  return EValue(mg.s);
 }
 
 #define ENABLE_BASE_OPERATORS_ON(T)                                \
@@ -299,7 +299,7 @@ constexpr int operator/(T d1, T d2) { return int(d1) / int(d2); }  \
 inline T& operator*=(T& d, int i) { return d = T(int(d) * i); }    \
 inline T& operator/=(T& d, int i) { return d = T(int(d) / i); }
 
-ENABLE_FULL_OPERATORS_ON(Value)
+ENABLE_FULL_OPERATORS_ON(EValue)
 ENABLE_FULL_OPERATORS_ON(Direction)
 
 ENABLE_INCR_OPERATORS_ON(PieceType)
@@ -308,17 +308,17 @@ ENABLE_INCR_OPERATORS_ON(Square)
 ENABLE_INCR_OPERATORS_ON(File)
 ENABLE_INCR_OPERATORS_ON(Rank)
 
-ENABLE_BASE_OPERATORS_ON(Score)
+ENABLE_BASE_OPERATORS_ON(EScore)
 
 #undef ENABLE_FULL_OPERATORS_ON
 #undef ENABLE_INCR_OPERATORS_ON
 #undef ENABLE_BASE_OPERATORS_ON
 
 /// Additional operators to add integers to a Value
-constexpr Value operator+(Value v, int i) { return Value(int(v) + i); }
-constexpr Value operator-(Value v, int i) { return Value(int(v) - i); }
-inline Value& operator+=(Value& v, int i) { return v = v + i; }
-inline Value& operator-=(Value& v, int i) { return v = v - i; }
+constexpr EValue operator+(EValue v, int i) { return EValue(int(v) + i); }
+constexpr EValue operator-(EValue v, int i) { return EValue(int(v) - i); }
+inline EValue& operator+=(EValue& v, int i) { return v = v + i; }
+inline EValue& operator-=(EValue& v, int i) { return v = v - i; }
 
 /// Additional operators to add a Direction to a Square
 constexpr Square operator+(Square s, Direction d) { return Square(int(s) + int(d)); }
@@ -328,17 +328,17 @@ inline Square& operator-=(Square& s, Direction d) { return s = s - d; }
 
 /// Only declared but not defined. We don't want to multiply two scores due to
 /// a very high risk of overflow. So user should explicitly convert to integer.
-Score operator*(Score, Score) = delete;
+EScore operator*(EScore, EScore) = delete;
 
-/// Division of a Score must be handled separately for each term
-inline Score operator/(Score s, int i) {
+/// Division of a EScore must be handled separately for each term
+inline EScore operator/(EScore s, int i) {
   return make_score(mg_value(s) / i, eg_value(s) / i);
 }
 
-/// Multiplication of a Score by an integer. We check for overflow in debug mode.
-inline Score operator*(Score s, int i) {
+/// Multiplication of a EScore by an integer. We check for overflow in debug mode.
+inline EScore operator*(EScore s, int i) {
 
-  Score result = Score(int(s) * i);
+  EScore result = EScore(int(s) * i);
 
   // dividing max value by i and comparing to value seems more logical?
   assert(eg_value(result) == (i * eg_value(s)));
@@ -349,8 +349,8 @@ inline Score operator*(Score s, int i) {
 }
 
 /// Multiplication of a Score by a boolean
-inline Score operator*(Score s, bool b) {
-  return Score(int(s) * int(b));
+inline EScore operator*(EScore s, bool b) {
+  return EScore(int(s) * int(b));
 }
 
 constexpr Color operator~(Color c) {
@@ -373,11 +373,11 @@ constexpr CastlingRights operator&(Color c, CastlingRights cr) {
   return CastlingRights((c == WHITE ? WHITE_CASTLING : BLACK_CASTLING) & cr);
 }
 
-constexpr Value mate_in(int ply) {
+constexpr EValue mate_in(int ply) {
   return VALUE_MATE - ply;
 }
 
-constexpr Value mated_in(int ply) {
+constexpr EValue mated_in(int ply) {
   return -VALUE_MATE + ply;
 }
 
@@ -463,33 +463,35 @@ constexpr bool is_ok(Move m) {
   return from_sq(m) != to_sq(m); // Catch MOVE_NULL and MOVE_NONE
 }
 
-#undef Value // EValue
+//#define LOG(x) std::cerr<<"LOG " << x << std::endl;
+#define LOG(x)
 
 template<class Extra = int32_t>
 class CScore
 {
 private:
-    Score s;
+    EScore s;
     Extra e;
 public:
+static int i;
     constexpr CScore() : s(SCORE_ZERO), e{0} {}
     constexpr CScore(CScore const&) = default;
-    constexpr CScore(Score a) : s(a), e{0} {}
-    constexpr CScore(Score a, Extra const& b) : s(a), e{b} {}
+    constexpr CScore(EScore a) : s(a), e{0} {}
+    constexpr CScore(EScore a, Extra const& b) : s(a), e{b} {}
 
-    explicit operator Score() const { return s; }
+    explicit operator EScore() const { LOG(101) return s; }
 
-    CScore operator-() const { return CScore{-s, -e}; }
+    CScore operator-() const { LOG(102) return CScore{-s, -e}; }
 
-    CScore operator+(CScore const& cs) const { return CScore{s+cs.s, e+cs.e}; }
-    CScore operator-(CScore const& cs) const { return CScore{s-cs.s, e-cs.e}; }
-    CScore operator*(int i) const { return CScore{s*i, e*i}; }
-    CScore operator/(int i) const { return CScore{s/i, e/i}; }
+    CScore operator+(CScore const& cs) const { LOG(103) return CScore{s+cs.s, e+cs.e}; }
+    CScore operator-(CScore const& cs) const { LOG(104) return CScore{s-cs.s, e-cs.e}; }
+    CScore operator*(int i) const { LOG(105) return CScore{s*i, e*i}; }
+    CScore operator/(int i) const { LOG(106) return CScore{s/i, e/i}; }
 
     CScore& operator=(CScore const&) = default;
 
-    CScore& operator+=(CScore const& cs) { s+=cs.s; e+=cs.e; return *this; }
-    CScore& operator-=(CScore const& cs) { s-=cs.s; e-=cs.e; return *this; }
+    CScore& operator+=(CScore const& cs) { LOG(107) s+=cs.s; e+=cs.e; return *this; }
+    CScore& operator-=(CScore const& cs) { LOG(108) s-=cs.s; e-=cs.e; return *this; }
 };
 
 template<class Extra>
@@ -509,69 +511,66 @@ public:
     constexpr CValue(int i) : CValue{Value(i)} {}
     constexpr CValue(int i, int j) : CValue{Value(i), Extra{j}} {}
 
-    Value value() const { return Value(v); }
-    Extra extra() const { return e; }
-    explicit operator double() const { return static_cast<double>(v); }
-    explicit operator Phase() const { return static_cast<Phase>(v); }
-    explicit operator bool() const { return static_cast<bool>(v); }
+    Value value() const { LOG(1) return Value(v); }
+    Extra extra() const { LOG(2) return e; }
+    explicit operator double() const { LOG(3) return static_cast<double>(v); }
+    explicit operator Phase() const { LOG(4) return static_cast<Phase>(v); }
+    explicit operator bool() const { LOG(5) return static_cast<bool>(v); }
 
-    CValue operator-() const { return CValue(-v, -e); }
-    CValue operator+(CValue const& cv) const { return CValue{v+cv.v, e+cv.e}; };
-    CValue operator-(CValue const& cv) const { return CValue{v-cv.v, e-cv.e}; };
-    constexpr CValue operator*(int i) const { return CValue{v*i, e*i}; }
-    CValue operator/(int i) const { return CValue{v/i, e/i}; }
+    CValue operator-() const { LOG(6) return CValue(-v, -e); }
+    CValue operator+(CValue const& cv) const { LOG(7) return CValue{v+cv.v, e+cv.e}; };
+    CValue operator-(CValue const& cv) const { LOG(8) return CValue{v-cv.v, e-cv.e}; };
+    CValue operator*(int i) const { LOG(9) return CValue{v*i, e*i}; }
+    CValue operator/(int i) const { LOG(10) return CValue{v/i, e/i}; }
 
-    CValue& operator+=(CValue const& cv) { v+=cv.v; e+=cv.e; return *this; }
-    CValue& operator-=(CValue const& cv) { v-=cv.v; e-=cv.e; return *this; }
-    CValue& operator/=(int i) { v/=i; e/=i; return *this; }
+    CValue& operator+=(CValue const& cv) { LOG(11) v+=cv.v; e+=cv.e; return *this; }
+    CValue& operator-=(CValue const& cv) { LOG(12) v-=cv.v; e-=cv.e; return *this; }
+    CValue& operator/=(int i) { LOG(13) v/=i; e/=i; return *this; }
 
-    bool operator!() const { return !v; }
-    bool operator<(CValue const& cv) const { return v < cv.v; }
-    bool operator>(CValue const& cv) const { return cv.v < v; }
-    bool operator<=(CValue const& cv) const { return !(*this > cv); }
-    bool operator>=(CValue const& cv) const { return !(*this < cv); }
-    bool operator==(CValue const& cv) const { return v == cv.v; }
-    bool operator!=(CValue const& cv) const { return !(v == cv.v); }
-    bool operator<(int i) const { return v < i; }
-    bool operator>(int i) const { return i < v; }
-    bool operator<=(int i) const { return !(v > i); }
-    bool operator>=(int i) const { return !(v < i); }
-    bool operator==(int i) const { return v == i; }
-    bool operator!=(int i) const { return !(*this == i); }
+    bool operator!() const { LOG(14) return !v; }
+    bool operator<(CValue const& cv) const { LOG(15) return v < cv.v; }
+    bool operator>(CValue const& cv) const { LOG(16) return cv.v < v; }
+    bool operator<=(CValue const& cv) const { LOG(17) return !(*this > cv); }
+    bool operator>=(CValue const& cv) const { LOG(18) return !(*this < cv); }
+    bool operator==(CValue const& cv) const { LOG(19) return v == cv.v; }
+    bool operator!=(CValue const& cv) const { LOG(20) return !(v == cv.v); }
+    bool operator<(int i) const { LOG(21) return v < i; }
+    bool operator>(int i) const { LOG(22) return i < v; }
+    bool operator<=(int i) const { LOG(23) return !(v > i); }
+    bool operator>=(int i) const { LOG(24) return !(v < i); }
+    bool operator==(int i) const { LOG(25) return v == i; }
+    bool operator!=(int i) const { LOG(26) return !(*this == i); }
 
     CValue& operator=(CValue const&) = default;
 
     // plain Values only affect the Value component
-    CValue& operator+=(Value a) { v += a; return *this; }
-    CValue& operator-=(Value a) { v -= a; return *this; }
+    CValue& operator+=(EValue a) { LOG(27) v += a; return *this; }
+    CValue& operator-=(EValue a) { LOG(28) v -= a; return *this; }
 };
 
-#define Value EValue
-template<class Extra> CValue<Extra> operator+(Value v, CValue<Extra> const& cv) { return  cv + v; }
-template<class Extra> CValue<Extra> operator-(Value v, CValue<Extra> const& cv) { return -cv + v; }
-template<class Extra> constexpr CValue<Extra> operator*(int v, CValue<Extra> const& cv) { return  cv * v; }
-template<class Extra> bool operator>=(Value v, CValue<Extra> const& cv) { return cv <= v; }
-template<class Extra> bool operator<(Value v, CValue<Extra> const& cv) { return cv > v; }
-template<class Extra> bool operator<=(Value v, CValue<Extra> const& cv) { return cv >= v; }
+template<class Extra> CValue<Extra> operator+(EValue v, CValue<Extra> const& cv) { LOG(29) return  cv + v; }
+template<class Extra> CValue<Extra> operator-(EValue v, CValue<Extra> const& cv) { LOG(30) return -cv + v; }
+template<class Extra> CValue<Extra> operator*(int v, CValue<Extra> const& cv) { LOG(31) return  cv * v; }
+template<class Extra> bool operator>=(EValue v, CValue<Extra> const& cv) { LOG(32) return cv <= v; }
+template<class Extra> bool operator<(EValue v, CValue<Extra> const& cv) { LOG(33) return cv > v; }
+template<class Extra> bool operator<=(EValue v, CValue<Extra> const& cv) { LOG(34) return cv >= v; }
 
 template<class Extra>
-bool operator>(int i, CValue<Extra> const& cv) { return cv < i; }
+bool operator>(int i, CValue<Extra> const& cv) { LOG(35) return cv < i; }
 
 template<class S>
-inline Value eg_value(CScore<S> s) {
-  union { uint16_t u; int16_t s; } eg = { uint16_t(unsigned(Score(s) + 0x8000) >> 16) };
-  return Value(eg.s);
+inline EValue eg_value(CScore<S> s) {
+  union { uint16_t u; int16_t s; } eg = { uint16_t(unsigned(EScore(s) + 0x8000) >> 16) };
+  return EValue(eg.s);
 }
 
 template<class S>
-inline Value mg_value(CScore<S> s) {
-  union { uint16_t u; int16_t s; } mg = { uint16_t(unsigned(Score(s))) };
-  return Value(mg.s);
+inline EValue mg_value(CScore<S> s) {
+  union { uint16_t u; int16_t s; } mg = { uint16_t(unsigned(EScore(s))) };
+  return EValue(mg.s);
 }
 
 template<class Extra>
-int abs(CValue<Extra> const& cv) { return std::abs(cv.value()); }
-
-#undef Value // EValue
+int abs(CValue<Extra> const& cv) { LOG(36) return std::abs(cv.value()); }
 
 #endif // #ifndef TYPES_H_INCLUDED
