@@ -121,7 +121,7 @@ TTEntry* TranspositionTable::probe(const Key key, bool& found) const {
   TTEntry* const tte = first_entry(key);
   const uint16_t key16 = key >> 48;  // Use the high 16 bits as key inside the cluster
 
-  for (int i = 0; i < ClusterSize; ++i)
+  for (int i = 0; i < Cluster::Size; ++i)
       if (!tte[i].key16 || tte[i].key16 == key16)
       {
           tte[i].genBound8 = uint8_t(generation8 | (tte[i].genBound8 & 0x7)); // Refresh
@@ -131,7 +131,7 @@ TTEntry* TranspositionTable::probe(const Key key, bool& found) const {
 
   // Find an entry to be replaced according to the replacement strategy
   TTEntry* replace = tte;
-  for (int i = 1; i < ClusterSize; ++i)
+  for (int i = 1; i < Cluster::Size; ++i)
       // Due to our packed storage format for generation and its cyclic
       // nature we add 263 (256 is the modulus plus 7 to keep the unrelated
       // lowest three bits from affecting the result) to calculate the entry
@@ -150,9 +150,9 @@ TTEntry* TranspositionTable::probe(const Key key, bool& found) const {
 int TranspositionTable::hashfull() const {
 
   int cnt = 0;
-  for (int i = 0; i < 1000 / ClusterSize; ++i)
-      for (int j = 0; j < ClusterSize; ++j)
+  for (int i = 0; i < 1000 / Cluster::Size; ++i)
+      for (int j = 0; j < Cluster::Size; ++j)
           cnt += (table[i].entry[j].genBound8 & 0xF8) == generation8;
 
-  return cnt * 1000 / (ClusterSize * (1000 / ClusterSize));
+  return cnt * 1000 / (Cluster::Size * (1000 / Cluster::Size));
 }

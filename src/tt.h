@@ -67,14 +67,25 @@ private:
 class TranspositionTable {
 
   static constexpr int CacheLineSize = 64;
-  static constexpr int ClusterSize = 3;
 
+  // Align Entries: All bytes of an Entry are in the same cache line.
   struct Cluster {
-    TTEntry entry[ClusterSize];
-    char padding[2]; // Align to a divisor of the cache line size
+
+
+    using Entry = TTEntry;
+
+    static constexpr int          EntrySize = sizeof(Entry);
+    static constexpr int               Size = CacheLineSize/EntrySize;
+    static constexpr int PaddingSize = CacheLineSize - (EntrySize * Size);
+
+    static_assert(EntrySize > 0, "empty entries");
+    static_assert(CacheLineSize >= EntrySize, "entries too large");
+
+    Entry entry[Size];
+    char padding[PaddingSize]; // Align to a divisor of the cache line size
   };
 
-  static_assert(CacheLineSize % sizeof(Cluster) == 0, "Cluster size incorrect");
+    static_assert(CacheLineSize % sizeof(Cluster) == 0, "Cluster size incorrect");
 
 public:
  ~TranspositionTable() { free(mem); }
