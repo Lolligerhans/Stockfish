@@ -74,8 +74,8 @@ class TranspositionTable {
 
     using Entry = TTEntry;
 
-    static constexpr int          EntrySize = sizeof(Entry);
-    static constexpr int               Size = CacheLineSize/EntrySize;
+    static constexpr int   EntrySize = sizeof(Entry);
+    static constexpr int        Size = CacheLineSize/EntrySize;
     static constexpr int PaddingSize = CacheLineSize - (EntrySize * Size);
 
     static_assert(EntrySize > 0, "empty entries");
@@ -85,7 +85,7 @@ class TranspositionTable {
     char padding[PaddingSize]; // Align to a divisor of the cache line size
   };
 
-    static_assert(CacheLineSize % sizeof(Cluster) == 0, "Cluster size incorrect");
+  static_assert(CacheLineSize % sizeof(Cluster) == 0, "Cluster size incorrect");
 
 public:
  ~TranspositionTable() { free(mem); }
