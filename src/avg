@@ -1,1 +1,0 @@
-./do && ./stockfish bench 1 1 13 pos1000.fen
