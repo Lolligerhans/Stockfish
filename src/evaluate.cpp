@@ -364,7 +364,7 @@ namespace {
 
     if (Pt == KNIGHT)
     {
-        constexpr Score ClumsyKnight = make_score(10,15);
+        constexpr Score ClumsyKnight = make_score(10,10);
         if (pos.pieces(Us, KNIGHT) & attackedBy[Us][KNIGHT])
             score -= ClumsyKnight;
     }
