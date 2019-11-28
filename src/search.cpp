@@ -282,13 +282,13 @@ void MainThread::search() {
 
       // Find out minimum score
       for (Thread* th: Threads)
-          minScore = std::min<Value<>>(minScore, th->rootMoves[0].score);
+          minScore = std::min<>(minScore, th->rootMoves[0].score);
 
       // Vote according to score and depth, and select the best thread
       for (Thread* th : Threads)
       {
           votes[th->rootMoves[0].pv[0]] +=
-              ((th->rootMoves[0].score - minScore + 14) * int(th->completedDepth)).value();
+              int64_t((th->rootMoves[0].score - minScore + 14) * int(th->completedDepth));
 
           if (bestThread->rootMoves[0].score >= VALUE_MATE_IN_MAX_PLY)
           {
@@ -422,7 +422,7 @@ void Thread::search() {
               beta  = std::min<Value<>>(previousScore + delta, VALUE_INFINITE);
 
               // Adjust contempt based on root move's previousScore (dynamic contempt)
-              int dct = ct + ((111 - ct / 2) * previousScore / (abs(previousScore) + 176)).value();
+              int dct = ct + int((111 - ct / 2) * previousScore / (abs(previousScore) + 176));
 
               contempt = (us == WHITE ?  make_score(dct, dct / 2)
                                       : -make_score(dct, dct / 2));
@@ -821,7 +821,7 @@ namespace {
         assert(eval - beta >= 0);
 
         // Null move dynamic reduction based on depth and value
-        Depth R = (835 + 70 * depth) / 256 + std::min(int((eval - beta).value()) / 185, 3);
+        Depth R = (835 + 70 * depth) / 256 + std::min(int((eval - beta)) / 185, 3);
 
         ss->currentMove = MOVE_NULL;
         ss->continuationHistory = &thisThread->continuationHistory[0][0][NO_PIECE][0];
@@ -1654,7 +1654,7 @@ moves_loop: // When in check, search starts from here
 
     // RootMoves are already sorted by score in descending order
     Value<> topScore = rootMoves[0].score;
-    int delta = std::min<Value<>>(topScore - rootMoves[multiPV - 1].score, PawnValueMg).value();
+    int delta = std::min<>((topScore - rootMoves[multiPV - 1].score).value(), PawnValueMg);
     int weakness = 120 - 2 * level;
     int maxScore = -VALUE_INFINITE;
 
@@ -1664,12 +1664,12 @@ moves_loop: // When in check, search starts from here
     for (size_t i = 0; i < multiPV; ++i)
     {
         // This is our magic formula
-        int push = (  weakness * int((topScore - rootMoves[i].score).value())
+        int push = (  weakness * int((topScore - rootMoves[i].score))
                     + delta * (rng.rand<unsigned>() % weakness)) / 128;
 
         if (rootMoves[i].score + push >= maxScore)
         {
-            maxScore = (rootMoves[i].score + push).value();
+            maxScore = int(rootMoves[i].score + push);
             best = rootMoves[i].pv[0];
         }
     }
@@ -1715,7 +1715,7 @@ void MainThread::check_time() {
 /// UCI::pv() formats PV information according to the UCI protocol. UCI requires
 /// that all (if any) unsearched PV lines are sent using a previous search score.
 
-string UCI::pv(const Position& pos, Depth depth, decltype(Value<>().value()) alpha, decltype(Value<>().value()) beta) {
+string UCI::pv(const Position& pos, Depth depth, EValue alpha, EValue beta) {
 
   std::stringstream ss;
   TimePoint elapsed = Time.elapsed() + 1;
@@ -1733,7 +1733,7 @@ string UCI::pv(const Position& pos, Depth depth, decltype(Value<>().value()) alp
           continue;
 
       Depth d = updated ? depth : depth - 1;
-      decltype(Value<>().value()) v = updated ? rootMoves[i].score.value() : rootMoves[i].previousScore.value();
+      EValue v = updated ? rootMoves[i].score.value() : rootMoves[i].previousScore.value();
 
       bool tb = TB::RootInTB && abs(v) < VALUE_MATE - MAX_PLY;
       v = tb ? rootMoves[i].tbScore.value() : v;

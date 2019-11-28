@@ -511,7 +511,10 @@ public:
     constexpr Value(int i, int j) : Value{EValue(i), Extra{j}} {}
 
     EValue value() const { LOG(1) return EValue(v); }
+    explicit operator EValue() const { return this->value(); }
     Extra extra() const { LOG(2) return e; }
+    explicit operator int() const { LOG(-1) return static_cast<int>(v); }
+    explicit operator int64_t() const { LOG(-1) return static_cast<int64_t>(v); }
     explicit operator double() const { LOG(3) return static_cast<double>(v); }
     explicit operator Phase() const { LOG(4) return static_cast<Phase>(v); }
     explicit operator bool() const { LOG(5) return static_cast<bool>(v); }
