@@ -511,7 +511,6 @@ public:
     constexpr Value(int i, int j) : Value{EValue(i), Extra{j}} {}
 
     EValue value() const { LOG(1) return EValue(v); }
-    explicit operator EValue() const { return this->value(); }
     Extra extra() const { LOG(2) return e; }
     explicit operator int() const { LOG(-1) return static_cast<int>(v); }
     explicit operator int64_t() const { LOG(-1) return static_cast<int64_t>(v); }
@@ -519,7 +518,7 @@ public:
     explicit operator Phase() const { LOG(4) return static_cast<Phase>(v); }
     explicit operator bool() const { LOG(5) return static_cast<bool>(v); }
 
-    Value operator-() const { LOG(6) return Value(-v, -e); }
+    Value operator-() const { LOG(6) return Value{-v, -e}; }
     Value operator+(Value const& cv) const { LOG(7) return Value{v+cv.v, e+cv.e}; };
     Value operator-(Value const& cv) const { LOG(8) return Value{v-cv.v, e-cv.e}; };
     Value operator*(int i) const { LOG(9) return Value{v*i, e*i}; }
@@ -555,10 +554,8 @@ template<class Extra> Value<Extra> operator-(EValue v, Value<Extra> const& cv) {
 template<class Extra> Value<Extra> operator*(int v, Value<Extra> const& cv) { LOG(31) return  cv * v; }
 template<class Extra> bool operator>=(EValue v, Value<Extra> const& cv) { LOG(32) return cv <= v; }
 template<class Extra> bool operator<(EValue v, Value<Extra> const& cv) { LOG(33) return cv > v; }
+template<class Extra> bool operator>(int i, Value<Extra> const& cv) { LOG(35) return cv < i; }
 template<class Extra> bool operator<=(EValue v, Value<Extra> const& cv) { LOG(34) return cv >= v; }
-
-template<class Extra>
-bool operator>(int i, Value<Extra> const& cv) { LOG(35) return cv < i; }
 
 template<class S>
 inline EValue eg_value(Score<S> s) {
