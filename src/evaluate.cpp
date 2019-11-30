@@ -108,7 +108,7 @@ namespace {
 
   // RookOnFile[semiopen/open] contains bonuses for each rook when there is
   // no (friendly) pawn on the rook file.
-  constexpr Score RookOnFile[] = { S(21, 4), S(47, 25) };
+  constexpr Score RookOnFile[] = { make_score(21, 4, 2, -2), make_score(47, 25, 5, -5) };
 
   // ThreatByMinor/ByRook[attacked PieceType] contains bonuses according to
   // which piece type attacks which one. Attacks on lesser pieces which are
@@ -127,26 +127,26 @@ namespace {
   };
 
   // Assorted bonuses and penalties
-  constexpr Score BishopPawns        = S(  3,  7);
-  constexpr Score CorneredBishop     = S( 50, 50);
-  constexpr Score FlankAttacks       = S(  8,  0);
-  constexpr Score Hanging            = S( 69, 36);
-  constexpr Score KingProtector      = S(  7,  8);
-  constexpr Score KnightOnQueen      = S( 16, 12);
-  constexpr Score LongDiagonalBishop = S( 45,  0);
-  constexpr Score MinorBehindPawn    = S( 18,  3);
-  constexpr Score Outpost            = S( 30, 21);
-  constexpr Score PassedFile         = S( 11,  8);
-  constexpr Score PawnlessFlank      = S( 17, 95);
-  constexpr Score RestrictedPiece    = S(  7,  7);
-  constexpr Score ReachableOutpost   = S( 32, 10);
-  constexpr Score RookOnQueenFile    = S(  7,  6);
-  constexpr Score SliderOnQueen      = S( 59, 18);
-  constexpr Score ThreatByKing       = S( 24, 89);
-  constexpr Score ThreatByPawnPush   = S( 48, 39);
-  constexpr Score ThreatBySafePawn   = S(173, 94);
-  constexpr Score TrappedRook        = S( 47,  4);
-  constexpr Score WeakQueen          = S( 49, 15);
+  constexpr Score BishopPawns        = make_score(  3,  7, 1, -1);
+  constexpr Score CorneredBishop     = make_score( 50, 50);
+  constexpr Score FlankAttacks       = make_score(  8,  0);
+  constexpr Score Hanging            = make_score( 69, 36, 5, -5);
+  constexpr Score KingProtector      = make_score(  7,  8, -1, 1);
+  constexpr Score KnightOnQueen      = make_score( 16, 12, 5, -5);
+  constexpr Score LongDiagonalBishop = make_score( 45,  0);
+  constexpr Score MinorBehindPawn    = make_score( 18,  3, 1, -1);
+  constexpr Score Outpost            = make_score( 30, 21, 2, -2);
+  constexpr Score PassedFile         = make_score( 11,  8, -1, 1);
+  constexpr Score PawnlessFlank      = make_score( 17, 95, -2, 2);
+  constexpr Score RestrictedPiece    = make_score(  7,  7, -2, 2);
+  constexpr Score ReachableOutpost   = make_score( 32, 10, 2, -2);
+  constexpr Score RookOnQueenFile    = make_score(  7,  6);
+  constexpr Score SliderOnQueen      = make_score( 59, 18, 5, -5);
+  constexpr Score ThreatByKing       = make_score( 24, 89, -5, 5);
+  constexpr Score ThreatByPawnPush   = make_score( 48, 39, -2, 2);
+  constexpr Score ThreatBySafePawn   = make_score(173, 94, 5, -5);
+  constexpr Score TrappedRook        = make_score( 47,  4, 1, -1);
+  constexpr Score WeakQueen          = make_score( 49, 15, 3, -3);
 
 #undef S
 
@@ -815,6 +815,10 @@ namespace {
        + eg_value(score) * int(PHASE_MIDGAME - me->game_phase()) * sf / SCALE_FACTOR_NORMAL;
 
     v /= PHASE_MIDGAME;
+
+    Value w =  cg_value(score) * int(     pos.count<PAWN>())
+             + og_value(score) * int(16 - pos.count<PAWN>());
+    v += w/16;
 
     // In case of tracing add all remaining individual evaluation terms
     if (T)
