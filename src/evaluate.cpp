@@ -160,7 +160,6 @@ namespace {
   constexpr Score WeakQueenProtection = S( 14,  0);
   constexpr Score WeakQueen           = S( 56, 15);
 
-
 #undef S
 
   // Evaluation class computes and stores attacks tables and other working data
@@ -871,6 +870,10 @@ namespace {
 make_v:
     // Derive single value from mg and eg parts of score
     Value v = winnable(score);
+
+    Value w =  cg_value(score) * int(     pos.count<PAWN>())
+             + og_value(score) * int(16 - pos.count<PAWN>());
+    v += w/16;
 
     // In case of tracing add all remaining individual evaluation terms
     if (T)
