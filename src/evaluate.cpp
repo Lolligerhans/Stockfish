@@ -354,7 +354,7 @@ namespace {
 
             constexpr Score LateraRook = make_score(10, 10);
             if (PseudoAttacks[ROOK][s] & attackedBy[Them][KING] & ~file_bb(s))
-                score += LateraRook;
+                score += LateraRook * (PseudoAttacks[ROOK][s] & pos.pieces(Them, KING) ? 1 : 2);
         }
 
         if (Pt == QUEEN)
