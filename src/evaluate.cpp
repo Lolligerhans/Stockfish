@@ -474,10 +474,11 @@ namespace {
                  +  98 * popcount(pos.blockers_for_king(Us))
                  +  69 * kingAttacksCount[Them]
                  +   3 * kingFlankAttack * kingFlankAttack / 8
-                 +       mg_value(mobility[Them] - mobility[Us])
+                 +       (mg_value(mobility[Them] - mobility[Us])
+                 +       cg_value(mobility[Them] - mobility[Us]))/2
                  - 873 * !pos.count<QUEEN>(Them)
                  - 100 * bool(attackedBy[Us][KNIGHT] & attackedBy[Us][KING])
-                 -   6 * mg_value(score) / 8
+                 -   6 * (mg_value(score) + cg_value(score)) / 16
                  -   4 * kingFlankDefense
                  +  37;
 
@@ -733,6 +734,11 @@ namespace {
   template<Tracing T>
   Value Evaluation<T>::winnable(Score score) const {
 
+    Value mg = mg_value(score);
+    Value eg = eg_value(score);
+    Value cg = cg_value(score);
+    Value og = og_value(score);
+
     int outflanking =  distance<File>(pos.square<KING>(WHITE), pos.square<KING>(BLACK))
                      - distance<Rank>(pos.square<KING>(WHITE), pos.square<KING>(BLACK));
 
@@ -755,17 +761,18 @@ namespace {
                     - 43 * almostUnwinnable
                     -110 ;
 
-    Value mg = mg_value(score);
-    Value eg = eg_value(score);
-
     // Now apply the bonus: note that we find the attacking side by extracting the
     // sign of the midgame or endgame values, and that we carefully cap the bonus
     // so that the midgame and endgame scores do not change sign after the bonus.
     int u = ((mg > 0) - (mg < 0)) * Utility::clamp(complexity + 50, -abs(mg), 0);
     int v = ((eg > 0) - (eg < 0)) * std::max(complexity, -abs(eg));
+    int w = ((cg > 0) - (cg < 0)) * Utility::clamp(complexity + 50, -abs(cg), 0);
+    int x = ((og > 0) - (og < 0)) * std::max(complexity, -abs(og));
 
     mg += u;
     eg += v;
+    og += w;
+    cg += x;
 
     // Compute the scale factor for the winning side
     Color strongSide = eg > VALUE_DRAW ? WHITE : BLACK;
@@ -799,6 +806,9 @@ namespace {
     v =  mg * int(me->game_phase())
        + eg * int(PHASE_MIDGAME - me->game_phase()) * ScaleFactor(sf) / SCALE_FACTOR_NORMAL;
     v /= PHASE_MIDGAME;
+    Value w =  cg * int(     pos.count<PAWN>())
+             + og * int(16 - pos.count<PAWN>()) * sf / SCALE_FACTOR_NORMAL;
+    v += w/16;
 
     if (T)
     {
@@ -838,7 +848,7 @@ namespace {
 
     // Early exit if score is high
     auto lazy_skip = [&](Value lazyThreshold) {
-        return abs(mg_value(score) + eg_value(score)) / 2 > lazyThreshold + pos.non_pawn_material() / 64;
+        return abs(mg_value(score) + eg_value(score) + og_value(score) + cg_value(score)) / 2 > lazyThreshold + pos.non_pawn_material() / 64;
     };
 
     if (lazy_skip(LazyThreshold1))
@@ -871,9 +881,9 @@ make_v:
     // Derive single value from mg and eg parts of score
     Value v = winnable(score);
 
-    Value w =  cg_value(score) * int(     pos.count<PAWN>())
-             + og_value(score) * int(16 - pos.count<PAWN>());
-    v += w/16;
+    sf = scale_factor(og_value(score));
+
+    v /= 2;
 
     // In case of tracing add all remaining individual evaluation terms
     if (T)
