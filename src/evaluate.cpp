@@ -88,6 +88,7 @@ namespace {
   };
 
   constexpr Score S(int a, int b, int c=0, int d=0){return make_score(a,b,c,d);}
+#define S(a,b) make_score(0,0,a,b)
 
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
@@ -118,6 +119,7 @@ namespace {
   constexpr Score PassedRank[RANK_NB] = {
     S(0, 0), S(10, 28), S(17, 33), S(15, 41), S(62, 72), S(168, 177), S(276, 260)
   };
+#undef S
 
   // RookOnFile[semiopen/open] contains bonuses for each rook when there is
   // no (friendly) pawn on the rook file.
