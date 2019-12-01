@@ -87,7 +87,7 @@ namespace {
       {}, {}, {792, 1283}, {645, 967}, {1084, 1897}, {772, 1119}
   };
 
-#define S(mg, eg) make_score(mg, eg)
+  constexpr Score S(int a, int b, int c=0, int d=0){return make_score(a,b,c,d);}
 
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
