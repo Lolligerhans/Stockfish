@@ -263,20 +263,19 @@ constexpr Score make_score(int mg, int eg) {
 /// Extracting the signed lower and upper 16 bits is not so trivial because
 /// according to the standard a simple cast to short is implementation defined
 /// and so is a right shift of a signed integer.
-template<Phase Ph>
 union _value_extractor
 {
     uint16_t ui; int16_t i;
-
-    _value_extractor(uint16_t us) : ui{us} {}
-    constexpr _value_extractor(Score s)
-        : _value_extractor{Ph == MG ? uint16_t(unsigned(s         )      )
-                                    : uint16_t(unsigned(s + 0x8000) >> 16) }
-    {
-        static_assert(Ph == MG || Ph == EG,
-                "Phase must be endgame or middlegame");
-    }
     constexpr operator Value() const { return Value(i); }
+
+    template<Phase Ph>
+    constexpr static Value extract(Score s)
+    {
+        static_assert(Ph == MG || Ph == EG, "Phase must be endgame or middlegame");
+        return Ph == MG ? _value_extractor{uint16_t(unsigned(s         )      )} :
+               Ph == EG ? _value_extractor{uint16_t(unsigned(s + 0x8000) >> 16)}
+                        : (assert(false && "unreachable code"), VALUE_NONE);
+    }
 
     // delete standard-members
     _value_extractor() = delete;
@@ -284,11 +283,11 @@ union _value_extractor
     _value_extractor& operator=(_value_extractor const&) = delete;
 };
 constexpr Value eg_value(Score s) {
-  return _value_extractor<EG>{s};
+  return _value_extractor::extract<EG>(s);
 }
 
 constexpr Value mg_value(Score s) {
-  return _value_extractor<MG>{s};
+  return _value_extractor::extract<MG>(s);
 }
 
 #define ENABLE_BASE_OPERATORS_ON(T)                                \
