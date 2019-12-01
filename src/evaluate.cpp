@@ -817,7 +817,7 @@ namespace {
     v /= PHASE_MIDGAME;
 
     Value w =  cg_value(score) * int(     pos.count<PAWN>())
-             + og_value(score) * int(16 - pos.count<PAWN>());
+             + og_value(score) * int(16 - pos.count<PAWN>()) * sf/SCALE_FACTOR_NORMAL;
     v += w/16;
 
     // In case of tracing add all remaining individual evaluation terms
