@@ -142,8 +142,8 @@ namespace {
   constexpr Score ReachableOutpost   = make_score( 0, 0, 32, 10);
   constexpr Score RookOnQueenFile    = S(  7,  6);
   constexpr Score SliderOnQueen      = S( 59, 18);
-  constexpr Score ThreatByKing       = S( 24, 89);
-  constexpr Score ThreatByPawnPush   = S( 48, 39);
+  constexpr Score ThreatByKing       = S( 0,0,24, 89);
+  constexpr Score ThreatByPawnPush   = S( 0,0,48, 39);
   constexpr Score ThreatBySafePawn   = S(0,0,173,94);
   constexpr Score TrappedRook        = S( 47,  4);
   constexpr Score WeakQueen          = S(0,0,49,15);
