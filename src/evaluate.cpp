@@ -351,6 +351,10 @@ namespace {
                 if ((kf < FILE_E) == (file_of(s) < kf))
                     score -= TrappedRook * (1 + !pos.castling_rights(Us));
             }
+
+            constexpr Score LateraRook = make_score(10, 10);
+            if (PseudoAttacks[ROOK][s] & attackedBy[Them][KING] & ~file_bb(s))
+                score += LateraRook;
         }
 
         if (Pt == QUEEN)
