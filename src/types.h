@@ -263,14 +263,32 @@ constexpr Score make_score(int mg, int eg) {
 /// Extracting the signed lower and upper 16 bits is not so trivial because
 /// according to the standard a simple cast to short is implementation defined
 /// and so is a right shift of a signed integer.
-inline Value eg_value(Score s) {
-  union { uint16_t u; int16_t s; } eg = { uint16_t(unsigned(s + 0x8000) >> 16) };
-  return Value(eg.s);
+template<Phase Ph>
+union _value_extractor
+{
+    uint16_t ui; int16_t i;
+
+    _value_extractor(uint16_t us) : ui{us} {}
+    constexpr _value_extractor(Score s)
+        : _value_extractor{Ph == MG ? uint16_t(unsigned(s         )      )
+                                    : uint16_t(unsigned(s + 0x8000) >> 16) }
+    {
+        static_assert(Ph == MG || Ph == EG,
+                "Phase must be endgame or middlegame");
+    }
+    constexpr operator Value() const { return Value(i); }
+
+    // delete standard-members
+    _value_extractor() = delete;
+    _value_extractor(_value_extractor const&) = delete;
+    _value_extractor& operator=(_value_extractor const&) = delete;
+};
+constexpr Value eg_value(Score s) {
+  return _value_extractor<EG>{s};
 }
 
-inline Value mg_value(Score s) {
-  union { uint16_t u; int16_t s; } mg = { uint16_t(unsigned(s)) };
-  return Value(mg.s);
+constexpr Value mg_value(Score s) {
+  return _value_extractor<MG>{s};
 }
 
 #define ENABLE_BASE_OPERATORS_ON(T)                                \
@@ -325,25 +343,27 @@ inline Square& operator-=(Square& s, Direction d) { return s = s - d; }
 Score operator*(Score, Score) = delete;
 
 /// Division of a Score must be handled separately for each term
-inline Score operator/(Score s, int i) {
+constexpr Score operator/(Score s, int i) {
   return make_score(mg_value(s) / i, eg_value(s) / i);
 }
 
 /// Multiplication of a Score by an integer. We check for overflow in debug mode.
-inline Score operator*(Score s, int i) {
+constexpr Score operator*(Score s, int i) {
 
-  Score result = Score(int(s) * i);
+  return
 
-  assert(eg_value(result) == (i * eg_value(s)));
-  assert(mg_value(result) == (i * mg_value(s)));
-  assert((i == 0) || (result / i) == s);
+#define RESULT (int(s)*i)
+    (assert(eg_value(RESULT) == (i * eg_value(s)))),
+    (assert(mg_value(RESULT) == (i * mg_value(s)))),
+    (assert((i == 0) || (RESULT / i) == s)),
+#undef RESULT
 
-  return result;
+  Score(int(s) * i);
 }
 
 /// Multiplication of a Score by a boolean
-inline Score operator*(Score s, bool b) {
-  return Score(int(s) * int(b));
+constexpr Score operator*(Score s, bool b) {
+  return Score(int(s) * int(b)); // b ? s : SCORE_ZERO
 }
 
 constexpr Color operator~(Color c) {
