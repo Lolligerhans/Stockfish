@@ -263,31 +263,14 @@ constexpr Score make_score(int mg, int eg) {
 /// Extracting the signed lower and upper 16 bits is not so trivial because
 /// according to the standard a simple cast to short is implementation defined
 /// and so is a right shift of a signed integer.
-union _value_extractor
-{
-    uint16_t ui; int16_t i;
-    constexpr operator Value() const { return Value(i); }
+union _value_extractor { uint16_t ui; int16_t i; };
 
-    template<Phase Ph>
-    constexpr static Value extract(Score s)
-    {
-        static_assert(Ph == MG || Ph == EG, "Phase must be endgame or middlegame");
-        return Ph == MG ? _value_extractor{uint16_t(unsigned(s         )      )} :
-               Ph == EG ? _value_extractor{uint16_t(unsigned(s + 0x8000) >> 16)}
-                        : (assert(false && "unreachable code"), VALUE_NONE);
-    }
-
-    // delete standard-members
-    _value_extractor() = delete;
-    _value_extractor(_value_extractor const&) = delete;
-    _value_extractor& operator=(_value_extractor const&) = delete;
-};
 constexpr Value eg_value(Score s) {
-  return _value_extractor::extract<EG>(s);
+  return (Value)_value_extractor{uint16_t(unsigned(s + 0x8000) >> 16)}.i;
 }
 
 constexpr Value mg_value(Score s) {
-  return _value_extractor::extract<MG>(s);
+  return (Value)_value_extractor{uint16_t(unsigned(s))}.i;
 }
 
 #define ENABLE_BASE_OPERATORS_ON(T)                                \
@@ -348,16 +331,11 @@ constexpr Score operator/(Score s, int i) {
 
 /// Multiplication of a Score by an integer. We check for overflow in debug mode.
 constexpr Score operator*(Score s, int i) {
-
   return
-
-#define RESULT (int(s)*i)
-    (assert(eg_value(RESULT) == (i * eg_value(s)))),
-    (assert(mg_value(RESULT) == (i * mg_value(s)))),
-    (assert((i == 0) || (RESULT / i) == s)),
-#undef RESULT
-
-  Score(int(s) * i);
+    (assert(eg_value((int(s)*i)) == (i * eg_value(s)))),
+    (assert(mg_value((int(s)*i)) == (i * mg_value(s)))),
+    (assert((i == 0) || ((int(s)*i) / i) == s)),
+    Score(int(s) * i);
 }
 
 /// Multiplication of a Score by a boolean
