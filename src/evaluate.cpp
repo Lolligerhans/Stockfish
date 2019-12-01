@@ -810,14 +810,14 @@ namespace {
     score += initiative(score);
 
     // Interpolate between a middlegame and a (scaled by 'sf') endgame score
-    ScaleFactor sf = scale_factor(eg_value(score));
+    ScaleFactor sf = scale_factor(eg_value(score)+og_value(score));
     v =  mg_value(score) * int(me->game_phase())
        + eg_value(score) * int(PHASE_MIDGAME - me->game_phase()) * sf / SCALE_FACTOR_NORMAL;
 
     v /= PHASE_MIDGAME;
 
     Value w =  cg_value(score) * int(     pos.count<PAWN>())
-             + og_value(score) * int(16 - pos.count<PAWN>());
+             + og_value(score) * int(16 - pos.count<PAWN>()) * sf / SCALE_FACTOR_NORMAL;
     v += w/16;
 
     // In case of tracing add all remaining individual evaluation terms
