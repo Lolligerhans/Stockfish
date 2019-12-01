@@ -87,6 +87,7 @@ namespace {
   constexpr int KnightSafeCheck = 790;
 
   constexpr Score S(int a, int b, int c=0, int d=0){return make_score(a,b,c,d);}
+#define S(a,b) make_score(0,0,a,b)
 
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
@@ -105,6 +106,7 @@ namespace {
       S( 79,140), S( 88,143), S( 88,148), S( 99,166), S(102,170), S(102,175),
       S(106,184), S(109,191), S(113,206), S(116,212) }
   };
+#undef S
 
   // RookOnFile[semiopen/open] contains bonuses for each rook when there is
   // no (friendly) pawn on the rook file.
@@ -131,22 +133,22 @@ namespace {
   constexpr Score CorneredBishop     = S( 50, 50);
   constexpr Score FlankAttacks       = S(  8,  0);
   constexpr Score Hanging            = S( 69, 36);
-  constexpr Score KingProtector      = S(0,0,7,8);
-  constexpr Score KnightOnQueen      = S(0,0,16,12);
+  constexpr Score KingProtector      = S(  7,  8);
+  constexpr Score KnightOnQueen      = S( 16, 12);
   constexpr Score LongDiagonalBishop = S( 45,  0);
   constexpr Score MinorBehindPawn    = S( 18,  3);
-  constexpr Score Outpost            = make_score( 0, 0, 30, 21);
+  constexpr Score Outpost            = S( 30, 21);
   constexpr Score PassedFile         = S( 11,  8);
   constexpr Score PawnlessFlank      = S( 17, 95);
   constexpr Score RestrictedPiece    = S(  7,  7);
-  constexpr Score ReachableOutpost   = make_score( 0, 0, 32, 10);
+  constexpr Score ReachableOutpost   = S( 32, 10);
   constexpr Score RookOnQueenFile    = S(  7,  6);
   constexpr Score SliderOnQueen      = S( 59, 18);
-  constexpr Score ThreatByKing       = S( 0,0,24, 89);
-  constexpr Score ThreatByPawnPush   = S( 0,0,48, 39);
-  constexpr Score ThreatBySafePawn   = S(0,0,173,94);
+  constexpr Score ThreatByKing       = S( 24, 89);
+  constexpr Score ThreatByPawnPush   = S( 48, 39);
+  constexpr Score ThreatBySafePawn   = S(173, 94);
   constexpr Score TrappedRook        = S( 47,  4);
-  constexpr Score WeakQueen          = S(0,0,49,15);
+  constexpr Score WeakQueen          = S( 49, 15);
 
 #undef S
 
