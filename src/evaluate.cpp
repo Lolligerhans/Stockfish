@@ -352,9 +352,9 @@ namespace {
                     score -= TrappedRook * (1 + !pos.castling_rights(Us));
             }
 
-            constexpr Score LateraRook = make_score(10, 10);
+            constexpr Score LateraRook = make_score(20, 20);
             if (PseudoAttacks[ROOK][s] & attackedBy[Them][KING] & ~file_bb(s))
-                score += LateraRook * (PseudoAttacks[ROOK][s] & pos.pieces(Them, KING) ? 1 : 2);
+                score += LateraRook;
         }
 
         if (Pt == QUEEN)
