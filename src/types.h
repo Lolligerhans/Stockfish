@@ -260,10 +260,14 @@ enum Rank : int {
 /// The least significant 16 bits are used to store the middlegame value and the
 /// upper 16 bits are used to store the endgame value. We have to take care to
 /// avoid left-shifting a signed int to avoid undefined behavior.
-enum Score : int64_t { SCORE_ZERO }; // (msb) og || cg || eg || mg (lsb)
+enum Score : int64_t { SCORE_ZERO };
 
-constexpr Score make_score(int mg, int eg, int cg=VALUE_NONE, int og=VALUE_NONE) {
-  return Score(int64_t(uint64_t(og==VALUE_NONE?eg:og) << 48) + int64_t(uint64_t(cg==VALUE_NONE?mg:cg) << 32) + ((int64_t)((uint64_t)eg << 16) + int64_t(mg)));
+constexpr Score make_score(int mg, int eg, int cg, int og) {
+  return Score(int64_t(uint64_t(og) << 48) + int64_t(uint64_t(cg) << 32) + ((int64_t)((uint64_t)eg << 16) + int64_t(mg)));
+}
+
+constexpr Score make_score(int mg, int eg) {
+  return Score(int64_t(uint64_t(eg) << 48) + int64_t(uint64_t(mg) << 32) + ((int64_t)((uint64_t)eg << 16) + int64_t(mg)));
 }
 
 /// Extracting the signed lower and upper 16 bits is not so trivial because

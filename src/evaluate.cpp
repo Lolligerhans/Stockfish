@@ -468,14 +468,16 @@ namespace {
     int kingFlankAttack  = popcount(b1) + popcount(b2);
     int kingFlankDefense = popcount(b3);
 
+    const Score mobDiff = mobility[Them] - mobility[Us];
+
+    #warning Changing bonuses effects kingDanger
     kingDanger +=        kingAttackersCount[Them] * kingAttackersWeight[Them]
                  + 185 * popcount(kingRing[Us] & weak)
                  + 148 * popcount(unsafeChecks)
                  +  98 * popcount(pos.blockers_for_king(Us))
                  +  69 * kingAttacksCount[Them]
                  +   3 * kingFlankAttack * kingFlankAttack / 8
-                 +       (mg_value(mobility[Them] - mobility[Us])
-                 +       cg_value(mobility[Them] - mobility[Us]))/2
+                 +       (mg_value(mobDiff) + cg_value(mobDiff))/2
                  - 873 * !pos.count<QUEEN>(Them)
                  - 100 * bool(attackedBy[Us][KNIGHT] & attackedBy[Us][KING])
                  -   6 * (mg_value(score) + cg_value(score)) / 16
@@ -874,6 +876,7 @@ namespace {
     if (lazy_skip(LazyThreshold2))
         goto make_v;
 
+<<<<<<< HEAD
     score +=  threats<WHITE>() - threats<BLACK>()
             + space<  WHITE>() - space<  BLACK>();
 
