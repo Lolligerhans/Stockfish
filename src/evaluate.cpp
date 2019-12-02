@@ -877,7 +877,6 @@ namespace {
     if (lazy_skip(LazyThreshold2))
         goto make_v;
 
-<<<<<<< HEAD
     score +=  threats<WHITE>() - threats<BLACK>()
             + space<  WHITE>() - space<  BLACK>();
 
