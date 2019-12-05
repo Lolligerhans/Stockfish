@@ -278,7 +278,7 @@ namespace {
         attackedBy[Us][Pt] |= b;
         attackedBy[Us][ALL_PIECES] |= b;
 
-        bb = b & ~prot[Them];
+        bb = b & ~(prot[Them] & pos.pieces(Them));
 
         if (bb & kingRing[Them])
         {
