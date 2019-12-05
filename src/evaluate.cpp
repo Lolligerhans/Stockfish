@@ -188,6 +188,7 @@ namespace {
     // kingRing[color] are the squares adjacent to the king plus some other
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
+    Bitboard prot[COLOR_NB] = {0};
 
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
@@ -277,11 +278,13 @@ namespace {
         attackedBy[Us][Pt] |= b;
         attackedBy[Us][ALL_PIECES] |= b;
 
-        if (b & kingRing[Them])
+        bb = b & ~prot[Them];
+
+        if (bb & kingRing[Them])
         {
             kingAttackersCount[Us]++;
             kingAttackersWeight[Us] += KingAttackWeights[Pt];
-            kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
+            kingAttacksCount[Us] += popcount(bb & attackedBy[Them][KING]);
         }
 
         int mob = popcount(b & mobilityArea[Us]);
@@ -796,9 +799,13 @@ namespace {
 
     // Pieces should be evaluated first (populate attack tables)
     score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
-            + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
-            + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
-            + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
+            + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>();
+     prot[WHITE] |= attackedBy[WHITE][KNIGHT] | attackedBy[WHITE][BISHOP];
+     prot[BLACK] |= attackedBy[BLACK][KNIGHT] | attackedBy[BLACK][BISHOP];
+    score += pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >();
+     prot[WHITE] |= attackedBy[WHITE][ROOK];
+     prot[BLACK] |= attackedBy[BLACK][ROOK];
+    score += pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
     score += mobility[WHITE] - mobility[BLACK];
 
