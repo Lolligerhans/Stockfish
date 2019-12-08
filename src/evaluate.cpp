@@ -148,10 +148,6 @@ namespace {
   constexpr Score TrappedRook        = S( 47,  4);
   constexpr Score WeakQueen          = S( 49, 15);
 
-  int majcount(Position const& pos, Color c) { return std::min(2, pos.count<ROOK>(c)
-                                                                /*+ pos.count<QUEEN>(c)*/
-                                                                ); }
-
 #undef S
 
   // Evaluation class computes and stores attacks tables and other working data
@@ -297,10 +293,10 @@ namespace {
             // Bonus if piece is on an outpost square or can reach one
             bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
             if (bb & s)
-                score += (Outpost + (make_score(5,5) * majcount(pos,Them))) * (Pt == KNIGHT ? 2 : 1);
+                score += (Outpost + (make_score(5,5) * pos.count<ROOK>(Them))) * (Pt == KNIGHT ? 2 : 1);
 
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
-                score += ReachableOutpost + (make_score(5,5) * majcount(pos,Them));
+                score += ReachableOutpost + (make_score(5,5) * pos.count<ROOK>(Them));
 
             // Knight and Bishop bonus for being right behind a pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
