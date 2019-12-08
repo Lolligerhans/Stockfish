@@ -179,6 +179,9 @@ Entry* probe(const Position& pos) {
   e->pawnAttacksSpan[WHITE] |= ~pawn_double_attacks_bb<WHITE>(
           e->pawnAttacks[BLACK] | pos.pieces(BLACK, PAWN));
 
+  e->pawnAttacksSpan[WHITE] |= e->pawnAttacks[WHITE];
+  e->pawnAttacksSpan[BLACK] |= e->pawnAttacks[BLACK];
+
   return e;
 }
 
