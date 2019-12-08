@@ -174,9 +174,9 @@ Entry* probe(const Position& pos) {
   e->key = key;
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
-  e->pawnAttacksSpan[WHITE] |= pawn_double_attacks_bb<BLACK>(
+  e->pawnAttacksSpan[BLACK] |= ~pawn_double_attacks_bb<BLACK>(
           e->pawnAttacks[WHITE] | pos.pieces(WHITE, PAWN));
-  e->pawnAttacksSpan[BLACK] |= pawn_double_attacks_bb<WHITE>(
+  e->pawnAttacksSpan[WHITE] |= ~pawn_double_attacks_bb<WHITE>(
           e->pawnAttacks[BLACK] | pos.pieces(BLACK, PAWN));
 
   return e;
