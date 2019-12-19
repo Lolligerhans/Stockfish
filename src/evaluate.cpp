@@ -288,6 +288,12 @@ namespace {
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
+        bb = shift<Down>(Pt == KNIGHT || Pt == BISHOP ? pos.pieces(PAWN)
+                                                      : pos.pieces(Them, PAWN));
+        if (bb & s)
+            score += MinorBehindPawn;
+
+
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
@@ -297,10 +303,6 @@ namespace {
 
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
                 score += ReachableOutpost;
-
-            // Knight and Bishop bonus for being right behind a pawn
-            if (shift<Down>(pos.pieces(PAWN)) & s)
-                score += MinorBehindPawn;
 
             // Penalty if the piece is far from the king
             score -= KingProtector * distance(s, pos.square<KING>(Us));
