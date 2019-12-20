@@ -499,7 +499,7 @@ namespace {
     defended = nonPawnEnemies & stronglyProtected;
 
     // Enemies not strongly protected and under our attack
-    weak = pos.pieces(Them) & ~stronglyProtected & attackedBy[Us][ALL_PIECES] & ~pe->pawn_attacks_span(Them);
+    weak = pos.pieces(Them) & ~stronglyProtected & attackedBy[Us][ALL_PIECES];
 
     // Bonus according to the kind of attacking pieces
     if (defended | weak)
@@ -523,7 +523,8 @@ namespace {
     // Bonus for restricting their piece moves
     b =   attackedBy[Them][ALL_PIECES]
        & ~stronglyProtected
-       &  attackedBy[Us][ALL_PIECES];
+       &  attackedBy[Us][ALL_PIECES]
+       & ~pe->pawn_attacks_span(Them);
 
     score += RestrictedPiece * popcount(b);
 
