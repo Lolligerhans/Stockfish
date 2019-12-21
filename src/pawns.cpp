@@ -88,7 +88,7 @@ namespace {
 
 
     // generate pawn list
-    Square p[8];
+    Square p[9];
     Bitboard b = ourPawns; Square* pp = p;
     if (Us == WHITE)
     {
