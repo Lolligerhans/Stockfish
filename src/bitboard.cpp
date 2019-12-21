@@ -18,6 +18,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <cmath>
+
 #include <algorithm>
 #include <bitset>
 
@@ -74,9 +76,11 @@ void Bitboards::init() {
   for (Square s = SQ_A1; s <= SQ_H8; ++s)
       SquareBB[s] = (1ULL << s);
 
+  decltype(distance<File>(SQ_A1, SQ_A1)) x,y;
   for (Square s1 = SQ_A1; s1 <= SQ_H8; ++s1)
       for (Square s2 = SQ_A1; s2 <= SQ_H8; ++s2)
-              SquareDistance[s1][s2] = std::max(distance<File>(s1, s2), distance<Rank>(s1, s2));
+          x = distance<File>(s1, s2), y = distance<Rank>(s1, s2),
+          SquareDistance[s1][s2] = std::sqrt(x*x + y*y);
 
   int steps[][5] = { {}, { 7, 9 }, { 6, 10, 15, 17 }, {}, {}, {}, { 1, 7, 8, 9 } };
 
