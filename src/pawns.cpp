@@ -237,7 +237,8 @@ Score Entry::do_king_safety(const Position& pos) {
       shelter = std::max(shelter, evaluate_shelter<Us>(pos, relative_square(Us, SQ_C1)), compare);
 
   // In endgame we like to bring our king near our closest pawn
-  Bitboard pawns = pos.pieces(~Us, PAWN) & ~pawnAttacks[~Us];
+  Bitboard pawns = pos.pieces(Us, PAWN);
+  pawns |= pos.pieces(~Us, PAWN) & ~pawnAttacks[~Us];
   int minPawnDist = pawns ? 8 : 0;
 
   if (pawns & PseudoAttacks[KING][ksq])
