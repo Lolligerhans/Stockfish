@@ -74,9 +74,8 @@ namespace {
     Bitboard neighbours, stoppers, support, phalanx, opposed;
     Bitboard lever, leverPush, blocked;
     Square s;
-    bool backward, passed, doubled;
+    bool backward, passed, doubled, fix;
     Score score = SCORE_ZERO;
-    const Square* pl = pos.squares<PAWN>(Us);
 
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
@@ -87,8 +86,27 @@ namespace {
     e->kingSquares[Us] = SQ_NONE;
     e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
 
+
+    // generate pawn list
+    Square p[8];
+    Bitboard b = ourPawns; Square* pp = p;
+    if (Us == WHITE)
+    {
+        // fill panws array forwards
+        while (b) *pp++ = pop_lsb(&b);
+        *pp = SQ_NONE;
+    }
+    else
+    {
+        // fill pawns array backwards
+        pp += pos.count<PAWN>(Us);
+        *pp-- = SQ_NONE;
+        while (b) *pp-- = pop_lsb(&b);
+    }
+
     // Loop through all pawns of the current color and score each pawn
-    while ((s = *pl++) != SQ_NONE)
+    pp = p;
+    while ((s = *pp++) != SQ_NONE)
     {
         assert(pos.piece_on(s) == make_piece(Us, PAWN));
 
@@ -105,13 +123,17 @@ namespace {
         phalanx    = neighbours & rank_bb(s);
         support    = neighbours & rank_bb(s - Up);
 
+        // A pawn is fixed when the push square is an opponents pawn or pawn
+        // attack outside of our attack span.
+        fix = (blocked || leverPush) && ~((s+Up) & e->pawnAttacksSpan[Us]);
+
         // A pawn is backward when it is behind all pawns of the same color on
         // the adjacent files and cannot safely advance.
         backward =  !(neighbours & forward_ranks_bb(Them, s + Up))
                   && (leverPush | blocked);
 
         // Compute additional span if pawn is not backward nor blocked
-        if (!backward && !blocked)
+        if (!fix)
             e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
 
         // A pawn is passed if one of the three following conditions is true:
