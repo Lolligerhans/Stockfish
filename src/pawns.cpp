@@ -125,15 +125,13 @@ namespace {
 
         // A pawn is fixed when the push square is an opponents pawn or pawn
         // attack outside of our attack span.
-        fix = (blocked || leverPush) && ~((s+Up) & e->pawnAttacksSpan[Us]);
+        backward = (blocked || leverPush) && ~((s+Up) & e->pawnAttacksSpan[Us]);
 
         // A pawn is backward when it is behind all pawns of the same color on
         // the adjacent files and cannot safely advance.
-        backward =  !(neighbours & forward_ranks_bb(Them, s + Up))
-                  && (leverPush | blocked);
 
         // Compute additional span if pawn is not backward nor blocked
-        if (!fix)
+        if (!backward)
             e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
 
         // A pawn is passed if one of the three following conditions is true:
