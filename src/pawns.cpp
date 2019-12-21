@@ -74,7 +74,7 @@ namespace {
     Bitboard neighbours, stoppers, support, phalanx, opposed;
     Bitboard lever, leverPush, blocked;
     Square s;
-    bool backward, passed, doubled, fix;
+    bool backward, passed, doubled;
     Score score = SCORE_ZERO;
 
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
