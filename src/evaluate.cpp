@@ -713,8 +713,11 @@ namespace {
                            && !pawnsOnBothFlanks;
 
     // Compute the initiative bonus for the attacking side
+    const Color c = eg < 0 ? BLACK : WHITE;
     int complexity =   9 * pe->passed_count()
-                    + 11 * pos.count<PAWN>()
+                    + 11 * popcount((pe->pawn_attacks_span(WHITE)
+                                    |pe->pawn_attacks_span(BLACK))
+                                   &(Rank1BB | Rank8BB))
                     +  9 * outflanking
                     + 21 * pawnsOnBothFlanks
                     + 51 * !pos.non_pawn_material()
