@@ -80,7 +80,7 @@ void Bitboards::init() {
   for (Square s1 = SQ_A1; s1 <= SQ_H8; ++s1)
       for (Square s2 = SQ_A1; s2 <= SQ_H8; ++s2)
           x = distance<File>(s1, s2), y = distance<Rank>(s1, s2),
-          SquareDistance[s1][s2] = std::sqrt(x*x + y*y);
+          SquareDistance[s1][s2] = std::sqrt(x*x + y*y + 0.01);
 
   int steps[][5] = { {}, { 7, 9 }, { 6, 10, 15, 17 }, {}, {}, {}, { 1, 7, 8, 9 } };
 
