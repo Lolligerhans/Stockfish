@@ -487,6 +487,11 @@ namespace {
     Bitboard b, weak, defended, nonPawnEnemies, stronglyProtected, safe;
     Score score = SCORE_ZERO;
 
+    score += make_score(10,0) * popcount(  attackedBy[Us][ALL_PIECES]
+                                        &  pe->pawn_attacks_span(Us)
+                                        & ~pe->pawn_attacks(Us)
+                                        &  pos.pieces(Them));
+
     // Non-pawn enemies
     nonPawnEnemies = pos.pieces(Them) & ~pos.pieces(PAWN);
 
