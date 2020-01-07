@@ -293,7 +293,12 @@ namespace {
             // Bonus if piece is on an outpost square or can reach one
             bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
             if (bb & s)
-                score += Outpost * (Pt == KNIGHT ? 2 : 1);
+            {
+                Score sc = Outpost * (Pt == KNIGHT ? 2 : 1);
+                auto const prox = distance(s, pos.square<KING>(Them));
+                sc = sc * (135 - 10*prox) / 100;
+                score += sc;
+            }
 
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
                 score += ReachableOutpost;
