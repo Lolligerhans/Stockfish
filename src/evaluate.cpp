@@ -356,8 +356,8 @@ namespace {
                 attackedBy[Them][KNIGHT] |
                 attackedBy[Them][BISHOP] |
                 attackedBy[Them][PAWN];
-            if (!(b & ~cheapDef))
-                score -= make_score(25,25);
+            if (!(b & ~(cheapDef | pos.pieces(Us))))
+                score -= make_score(25,15);
         }
 
         if (Pt == QUEEN)
