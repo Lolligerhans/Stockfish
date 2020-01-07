@@ -351,6 +351,13 @@ namespace {
                 if ((kf < FILE_E) == (file_of(s) < kf))
                     score -= TrappedRook * (1 + !pos.castling_rights(Us));
             }
+
+            auto const cheapDef =
+                attackedBy[Them][KNIGHT] |
+                attackedBy[Them][BISHOP] |
+                attackedBy[Them][PAWN];
+            if (!(b & ~cheapDef))
+                score -= make_score(25,25);
         }
 
         if (Pt == QUEEN)
