@@ -296,7 +296,7 @@ namespace {
             {
                 Score sc = Outpost * (Pt == KNIGHT ? 2 : 1);
                 auto const prox = distance(s, pos.square<KING>(Them));
-                sc = sc * (135 - 10*prox) / 100;
+                sc = sc * (121 - 6*prox) / 100;
                 score += sc;
             }
 
