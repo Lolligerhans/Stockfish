@@ -357,7 +357,7 @@ namespace {
                 attackedBy[Them][BISHOP] |
                 attackedBy[Them][PAWN];
             if (!(b & ~(cheapDef | pos.pieces(Us))))
-                score -= make_score(25,15);
+                score -= make_score(100,20);
         }
 
         if (Pt == QUEEN)
