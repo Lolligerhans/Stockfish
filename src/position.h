@@ -353,8 +353,8 @@ inline Key Position::material_key() const {
 }
 
 inline Score Position::psq_score() const {
-  return psq[WHITE][bool(pieces(BLACK, KING) & ~KingSide)]
-        +psq[BLACK][bool(pieces(WHITE, KING) & ~KingSide)];
+  return psq[WHITE][bool(pieces(BLACK, KING) & ~KingSide)&0]
+        +psq[BLACK][bool(pieces(WHITE, KING) & ~KingSide)&0];
 }
 
 inline Value Position::non_pawn_material(Color c) const {
