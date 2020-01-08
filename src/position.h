@@ -191,7 +191,8 @@ private:
   Bitboard castlingPath[CASTLING_RIGHT_NB];
   int gamePly;
   Color sideToMove;
-  Score psq;
+  Score psq[COLOR_NB][2];   // 0 = opposing king EAST
+                            // 1 = opposing king WEST
   Thread* thisThread;
   StateInfo* st;
   bool chess960;
@@ -348,7 +349,8 @@ inline Key Position::material_key() const {
 }
 
 inline Score Position::psq_score() const {
-  return psq;
+  return psq[WHITE][bool(pieces(BLACK, KING) & ~KingSide)]
+        +psq[BLACK][bool(pieces(WHITE, KING) & ~KingSide)];
 }
 
 inline Value Position::non_pawn_material(Color c) const {
@@ -405,7 +407,8 @@ inline void Position::put_piece(Piece pc, Square s) {
   index[s] = pieceCount[pc]++;
   pieceList[pc][index[s]] = s;
   pieceCount[make_piece(color_of(pc), ALL_PIECES)]++;
-  psq += PSQT::psq[pc][s];
+  psq[color_of(pc)][0] += PSQT::psq[pc][              s ];
+  psq[color_of(pc)][1] += PSQT::psq[pc][flip_vertical(s)];
 }
 
 inline void Position::remove_piece(Piece pc, Square s) {
@@ -423,7 +426,8 @@ inline void Position::remove_piece(Piece pc, Square s) {
   pieceList[pc][index[lastSquare]] = lastSquare;
   pieceList[pc][pieceCount[pc]] = SQ_NONE;
   pieceCount[make_piece(color_of(pc), ALL_PIECES)]--;
-  psq -= PSQT::psq[pc][s];
+  psq[color_of(pc)][0] -= PSQT::psq[pc][              s ];
+  psq[color_of(pc)][1] -= PSQT::psq[pc][flip_vertical(s)];
 }
 
 inline void Position::move_piece(Piece pc, Square from, Square to) {
@@ -438,7 +442,8 @@ inline void Position::move_piece(Piece pc, Square from, Square to) {
   board[to] = pc;
   index[to] = index[from];
   pieceList[pc][index[to]] = to;
-  psq += PSQT::psq[pc][to] - PSQT::psq[pc][from];
+  psq[color_of(pc)][0] += PSQT::psq[pc][              to ] - PSQT::psq[pc][              from ];
+  psq[color_of(pc)][1] += PSQT::psq[pc][flip_vertical(to)] - PSQT::psq[pc][flip_vertical(from)];
 }
 
 inline void Position::do_move(Move m, StateInfo& newSt) {
