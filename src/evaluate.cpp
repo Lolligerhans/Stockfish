@@ -188,6 +188,7 @@ namespace {
     // kingRing[color] are the squares adjacent to the king plus some other
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
+    Bitboard threattack[COLOR_NB] = {0};
 
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
@@ -254,6 +255,7 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Down = -pawn_push(Us);
+    constexpr Direction Up = -Down;
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
     const Square* pl = pos.squares<Pt>(Us);
@@ -272,6 +274,15 @@ namespace {
 
         if (pos.blockers_for_king(Us) & s)
             b &= LineBB[pos.square<KING>(Us)][s];
+
+        // rook supporting pawn from behind
+        if (  (bb = forward_file_bb(Us, s) & pos.pieces())
+           && (bb = ( frontmost_sq(Them, bb)
+                    & pos.pieces(Us, PAWN))))
+        {
+            // add square in front of pawn to threattacks
+            threattack[Us] |= shift<Up>(bb);
+        }
 
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
         attackedBy[Us][Pt] |= b;
@@ -539,7 +550,8 @@ namespace {
     b |= shift<Up>(b & TRank3BB) & ~pos.pieces();
 
     // Keep only the squares which are relatively safe
-    b &= ~attackedBy[Them][PAWN] & safe;
+    // Or squares where rook-supported pawns push
+    b &= ~attackedBy[Them][PAWN] & (safe | threattack[Us]);
 
     // Bonus for safe pawn threats on the next move
     b = pawn_attacks_bb<Us>(b) & nonPawnEnemies;
