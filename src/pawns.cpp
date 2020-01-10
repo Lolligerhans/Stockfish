@@ -107,12 +107,17 @@ namespace {
 
         // A pawn is backward when it is behind all pawns of the same color on
         // the adjacent files and cannot safely advance.
-        backward =  !(neighbours & forward_ranks_bb(Them, s + Up))
-                  && (leverPush | blocked);
+        bool foo = !(neighbours & forward_ranks_bb(Them, s + Up)),
+             bar = leverPush | blocked,
+             baz = !(neighbours & rank_bb(s+Up));
+        backward = foo and bar;
 
         // Compute additional span if pawn is not backward nor blocked
         if (!backward && !blocked)
             e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
+
+        // unconnected pawns behind all others are backward
+        backward = foo and (bar or baz);
 
         // A pawn is passed if one of the three following conditions is true:
         // (a) there is no stoppers except some levers
