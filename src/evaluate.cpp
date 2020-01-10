@@ -275,14 +275,10 @@ namespace {
         if (pos.blockers_for_king(Us) & s)
             b &= LineBB[pos.square<KING>(Us)][s];
 
-        // rook supporting pawn from behind
-        if (  (bb = forward_file_bb(Us, s) & pos.pieces())
-           && (bb = ( frontmost_sq(Them, bb)
-                    & pos.pieces(Us, PAWN))))
-        {
-            // add square in front of pawn to threattacks
-            threattack[Us] |= shift<Up>(bb);
-        }
+        // rook/queen supporting pawn from behind?
+        // add square in front of pawn to threattacks
+        if (Pt == ROOK || Pt == QUEEN)
+            threattack[Us] |= shift<Up>(forward_ranks_bb(Us, s) & pos.pieces(Us, PAWN) & b);
 
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
         attackedBy[Us][Pt] |= b;
