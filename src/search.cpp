@@ -773,7 +773,7 @@ namespace {
     }
 
     // Step 6. Static evaluation of the position
-    if (inCheck)
+    if (inCheck || pos.blockers_for_king(us) & pos.pieces(~us))
     {
         ss->staticEval = eval = VALUE_NONE;
         improving = false;
