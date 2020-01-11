@@ -355,8 +355,8 @@ namespace {
         if (Pt == QUEEN)
         {
             // Penalty if any relative pin or discovered attack against the queen
-            Bitboard queenPinners;
-            if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
+            Bitboard queenPinners, dummy;
+            if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners, dummy))
                 score -= WeakQueen;
         }
     }
@@ -445,7 +445,7 @@ namespace {
 
     kingDanger +=        kingAttackersCount[Them] * kingAttackersWeight[Them]
                  + 185 * popcount(kingRing[Us] & weak)
-                 + 148 * popcount(unsafeChecks)
+                 + 148 * popcount(unsafeChecks | pos.st->discovers[Them])
                  +  98 * popcount(pos.blockers_for_king(Us))
                  +  69 * kingAttacksCount[Them]
                  +   3 * kingFlankAttack * kingFlankAttack / 8

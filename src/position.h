@@ -52,6 +52,7 @@ struct StateInfo {
   StateInfo* previous;
   Bitboard   blockersForKing[COLOR_NB];
   Bitboard   pinners[COLOR_NB];
+  Bitboard   discovers[COLOR_NB];
   Bitboard   checkSquares[PIECE_TYPE_NB];
   int        repetition;
 };
@@ -116,7 +117,7 @@ public:
   Bitboard attacks_from(PieceType pt, Square s) const;
   template<PieceType> Bitboard attacks_from(Square s) const;
   template<PieceType> Bitboard attacks_from(Square s, Color c) const;
-  Bitboard slider_blockers(Bitboard sliders, Square s, Bitboard& pinners) const;
+  Bitboard slider_blockers(Bitboard sliders, Square s, Bitboard& pinners, Bitboard& discovers) const;
 
   // Properties of moves
   bool legal(Move m) const;
@@ -193,6 +194,7 @@ private:
   Color sideToMove;
   Score psq;
   Thread* thisThread;
+public:
   StateInfo* st;
   bool chess960;
 };
