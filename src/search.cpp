@@ -1175,6 +1175,10 @@ moves_loop: // When in check, search starts from here
               r -= ss->statScore / 16384;
           }
 
+          if (   pos.blockers_for_king(WHITE) & pos.pieces(BLACK)
+              || pos.blockers_for_king(BLACK) & pos.pieces(WHITE))
+              r--;
+
           Depth d = clamp(newDepth - r, 1, newDepth);
 
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d, true);
