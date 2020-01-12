@@ -129,4 +129,6 @@ void init() {
   }
 }
 
+TUNE(SetRange(-50,50), kdit);
+
 } // namespace PSQT
