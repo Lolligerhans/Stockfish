@@ -71,6 +71,10 @@ namespace Trace {
 
 using namespace Trace;
 
+  namespace PSQT {
+      extern Score kdit[PIECE_NB][128];
+  }
+
 namespace {
 
   // Threshold for lazy and space evaluation
@@ -175,6 +179,7 @@ namespace {
     Pawns::Entry* pe;
     Bitboard mobilityArea[COLOR_NB];
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
+    Score kdi[COLOR_NB] = {SCORE_ZERO};
 
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
@@ -265,6 +270,9 @@ namespace {
 
     for (Square s = *pl; s != SQ_NONE; s = *++pl)
     {
+        const Square k = pos.square<KING>(Them);
+        kdi[Us] += PSQT::kdit[make_piece(Us, Pt)] [Us == WHITE ? 64 +  k -  s
+                                                               : 64 + ~k - ~s];
         // Find attacked squares, including x-ray attacks for bishops and rooks
         b = Pt == BISHOP ? attacks_bb<BISHOP>(s, pos.pieces() ^ pos.pieces(QUEEN))
           : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
@@ -811,6 +819,8 @@ namespace {
             + space<  WHITE>() - space<  BLACK>();
 
     score += initiative(score);
+
+    score += kdi[WHITE] - kdi[BLACK];
 
     // Interpolate between a middlegame and a (scaled by 'sf') endgame score
     ScaleFactor sf = scale_factor(eg_value(score));

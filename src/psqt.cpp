@@ -103,6 +103,8 @@ constexpr Score PBonus[RANK_NB][FILE_NB] =
 
 #undef S
 
+Score kdit[PIECE_NB][128] = {SCORE_ZERO};
+
 Score psq[PIECE_NB][SQUARE_NB];
 
 // init() initializes piece-square tables: the white halves of the tables are
