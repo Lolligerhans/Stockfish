@@ -129,6 +129,7 @@ void init() {
   }
 }
 
-TUNE(SetRange(-50,50), kdit);
+TUNE(SetRange(-50,50), kdit[W_PAWN]);
+TUNE(SetRange(-50,50), kdit[B_PAWN]);
 
 } // namespace PSQT
