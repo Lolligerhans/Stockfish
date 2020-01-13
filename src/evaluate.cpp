@@ -292,8 +292,9 @@ namespace {
         {
             // Bonus if piece is on an outpost square or can reach one
             bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->fluent_span<Them>();
+            Score const OPScore = Score(0x00010001) * int(pos.count<PAWN>()*2);
             if (bb & s)
-                score += Outpost * (Pt == KNIGHT ? 2 : 1);
+                score += OPScore * (Pt == KNIGHT ? 2 : 1);
 
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
                 score += ReachableOutpost;
