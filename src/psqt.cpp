@@ -35,7 +35,7 @@ namespace PSQT {
 // type on a given square a (middlegame, endgame) score pair is assigned. Table
 // is defined for files A..D and white side: it is symmetric for black side and
 // second half of the files.
-constexpr Score Bonus[][RANK_NB][FILE_NB] = {
+Score Bonus[][RANK_NB][FILE_NB] = {
   { },
   { },
   { // Knight
@@ -90,7 +90,7 @@ constexpr Score Bonus[][RANK_NB][FILE_NB] = {
   }
 };
 
-constexpr Score PBonus[RANK_NB][FILE_NB] =
+Score PBonus[RANK_NB][FILE_NB] =
   { // Pawn (asymmetric distribution)
    { },
    { S(  3,-10), S(  3, -6), S( 10, 10), S( 19,  0), S( 16, 14), S( 19,  7), S(  7, -5), S( -5,-19) },
@@ -128,3 +128,27 @@ void init() {
 }
 
 } // namespace PSQT
+
+std::pair<int,int> psqRange(int x)
+{
+    int y = std::abs(x);
+
+    // small values: tune around 0
+    if (y < 15) return std::make_pair(-30,30);
+
+    // large values: tune around current value
+    else        return x < 0 ? std::make_pair(-2*y,   0)
+                             : std::make_pair(   0, 2*y);
+}
+
+TUNE(SetRange(psqRange), ::PSQT::Bonus[KNIGHT], ::PSQT::init);
+TUNE(SetRange(psqRange), ::PSQT::Bonus[BISHOP], ::PSQT::init);
+TUNE(SetRange(psqRange), ::PSQT::Bonus[ROOK], ::PSQT::init);
+TUNE(SetRange(psqRange), ::PSQT::Bonus[QUEEN], ::PSQT::init);
+TUNE(SetRange(psqRange), ::PSQT::Bonus[KING], ::PSQT::init);
+TUNE(SetRange(psqRange), ::PSQT::PBonus[1], ::PSQT::init);
+TUNE(SetRange(psqRange), ::PSQT::PBonus[2], ::PSQT::init);
+TUNE(SetRange(psqRange), ::PSQT::PBonus[3], ::PSQT::init);
+TUNE(SetRange(psqRange), ::PSQT::PBonus[4], ::PSQT::init);
+TUNE(SetRange(psqRange), ::PSQT::PBonus[5], ::PSQT::init);
+TUNE(SetRange(psqRange), ::PSQT::PBonus[6], ::PSQT::init);
