@@ -561,6 +561,24 @@ namespace {
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
     }
 
+    if (pos.count<QUEEN>(Us) > 0)
+    {
+        Bitboard dangling = pos.pieces(Them) & ~(attackedBy[Them][ALL_PIECES]
+                                                |pos.pieces(KING));
+        Bitboard lookouts = 0;
+
+        while (dangling)
+        {
+            Square s = pop_lsb(&dangling);
+            lookouts |= pos.attacks_from<QUEEN>(s);
+        }
+
+        lookouts &= ~(pos.pieces() | attackedBy[Them][ALL_PIECES]);
+
+        constexpr Score QueenSnacks = make_score(20,20);
+        score += QueenSnacks * popcount(lookouts & attackedBy[Us][QUEEN]);
+    }
+
     if (T)
         Trace::add(THREAT, Us, score);
 
