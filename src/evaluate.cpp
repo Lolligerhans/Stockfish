@@ -148,7 +148,11 @@ namespace {
   constexpr Score TrappedRook        = S( 52, 10);
   constexpr Score WeakQueen          = S( 49, 15);
 
+  Score Lookouts = S(20,20);
+
 #undef S
+
+  TUNE(Lookouts);
 
   // Evaluation class computes and stores attacks tables and other working data
   template<Tracing T>
@@ -575,8 +579,8 @@ namespace {
 
         lookouts &= ~(pos.pieces() | attackedBy[Them][ALL_PIECES]);
 
-        constexpr Score QueenSnacks = make_score(20,20);
-        score += QueenSnacks * popcount(lookouts & attackedBy[Us][QUEEN]);
+//        constexpr Score QueenSnacks = make_score(20,20);
+        score += Lookouts * popcount(lookouts & attackedBy[Us][QUEEN]);
     }
 
     if (T)
