@@ -374,6 +374,7 @@ namespace {
     constexpr Color    Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Bitboard Camp = (Us == WHITE ? AllSquares ^ Rank6BB ^ Rank7BB ^ Rank8BB
                                            : AllSquares ^ Rank1BB ^ Rank2BB ^ Rank3BB);
+    constexpr Direction Up = Us == WHITE ? NORTH : SOUTH;
 
     Bitboard weak, b1, b2, b3, safe, unsafeChecks = 0;
     Bitboard rookChecks, queenChecks, bishopChecks, knightChecks;
@@ -442,6 +443,17 @@ namespace {
 
     int kingFlankAttack = popcount(b1) + popcount(b2);
     int kingFlankDefense = popcount(b3);
+
+    // exclude blocked pawns from save checks
+    unsafeChecks &= ~pos.pieces(Them, PAWN) & shift<Up>(pos.pieces());
+    //
+    // NOT excluding blocked pawns
+    // Samples 68799188 Mean 0.353753 o 0.673339
+    // Total   68799188 Hits 17684507 hit rate (%) 26
+    //
+    // excluding blocked pawns
+    // Samples 69157930 Mean 0.0925704 o 0.311925
+    // Total   69157930 Hits 5959348 hit rate (%) 8.6
 
     kingDanger +=        kingAttackersCount[Them] * kingAttackersWeight[Them]
                  + 185 * popcount(kingRing[Us] & weak)
