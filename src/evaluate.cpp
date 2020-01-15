@@ -35,7 +35,7 @@
     // color of king | piece type | rank | file
     // us=0            N=0          -7    -7
     // them=1          Q=3          +7    +7
-    Score ksqt[2][4][15][15] = {};
+    Score ksqt[2][4][15][15] = {0};
 
     TUNE(SetRange(-50,50), ksqt);
 
