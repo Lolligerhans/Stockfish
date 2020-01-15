@@ -30,6 +30,13 @@
 #include "pawns.h"
 #include "thread.h"
 
+    // index ranges:
+    //
+    // color of king | piece type | rank | file
+    // us=0            N=0          -7    -7
+    // them=1          Q=3          +7    +7
+    Score ksqt[2][4][15][15] = {};
+
 namespace Trace {
 
   enum Tracing { NO_TRACE, TRACE };
@@ -358,6 +365,19 @@ namespace {
             Bitboard queenPinners;
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
+        }
+
+        for (const Color c : {WHITE, BLACK})
+        {
+            Square ksq = pos.square<KING>(c);
+            int rankDiff = rank_of(s) - rank_of(ksq);
+            int fileDiff = file_of(s) - file_of(ksq);
+            if (Us == BLACK)
+                rankDiff = -rankDiff;
+            score += ksqt[c == Them ? 1 : 0]
+                         [Pt - 2]
+                         [rankDiff + 7]
+                         [fileDiff + 7];
         }
     }
     if (T)
