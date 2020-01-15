@@ -37,6 +37,8 @@
     // them=1          Q=3          +7    +7
     Score ksqt[2][4][15][15] = {};
 
+    TUNE(SetRange(-50,50), ksqt);
+
 namespace Trace {
 
   enum Tracing { NO_TRACE, TRACE };
