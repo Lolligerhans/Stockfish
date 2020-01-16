@@ -280,7 +280,7 @@ namespace {
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
         attackedBy[Us][Pt] |= b;
         attackedBy[Us][ALL_PIECES] |= b;
-        if (noX) a[1][Us][Pt] |= pos.attacks_from<Pt>(s);
+        if (noX) a[1][Us][Pt] |= attacks_bb<Pt>(s, pos.pieces() ^ pos.pieces(Them, QUEEN));
 
         if (b & kingRing[Them])
         {
