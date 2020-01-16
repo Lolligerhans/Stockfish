@@ -176,10 +176,12 @@ namespace {
     Bitboard mobilityArea[COLOR_NB];
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
 
+    Bitboard a[2][COLOR_NB][PIECE_TYPE_NB];
+
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
     // is also calculated is ALL_PIECES.
-    Bitboard attackedBy[COLOR_NB][PIECE_TYPE_NB];
+    Bitboard (&attackedBy)[COLOR_NB][PIECE_TYPE_NB] = a[0];
 
     // attackedBy2[color] are the squares attacked by at least 2 units of a given
     // color, including x-rays. But diagonal x-rays through pawns are not computed.
@@ -256,12 +258,14 @@ namespace {
     constexpr Direction Down = -pawn_push(Us);
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
+    constexpr auto noX = Pt == BISHOP || Pt == ROOK;
     const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
     Score score = SCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
+    if (noX) a[1][Us][Pt] = 0;
 
     for (Square s = *pl; s != SQ_NONE; s = *++pl)
     {
@@ -276,6 +280,7 @@ namespace {
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
         attackedBy[Us][Pt] |= b;
         attackedBy[Us][ALL_PIECES] |= b;
+        if (noX) a[1][Us][Pt] |= pos.attacks_from<Pt>(s);
 
         if (b & kingRing[Them])
         {
@@ -396,12 +401,12 @@ namespace {
     b2 = attacks_bb<BISHOP>(ksq, pos.pieces() ^ pos.pieces(Us, QUEEN));
 
     // Enemy rooks checks
-    rookChecks = b1 & safe & attackedBy[Them][ROOK];
+    rookChecks = b1 & safe & a[1][Them][ROOK];
 
     if (rookChecks)
         kingDanger += RookSafeCheck;
     else
-        unsafeChecks |= b1 & attackedBy[Them][ROOK];
+        unsafeChecks |= b1 & a[1][Them][ROOK];
 
     // Enemy queen safe checks: we count them only if they are from squares from
     // which we can't give a rook check, because rook checks are more valuable.
@@ -417,14 +422,14 @@ namespace {
     // Enemy bishops checks: we count them only if they are from squares from
     // which we can't give a queen check, because queen checks are more valuable.
     bishopChecks =  b2
-                  & attackedBy[Them][BISHOP]
+                  & a[1][Them][BISHOP]
                   & safe
                   & ~queenChecks;
 
     if (bishopChecks)
         kingDanger += BishopSafeCheck;
     else
-        unsafeChecks |= b2 & attackedBy[Them][BISHOP];
+        unsafeChecks |= b2 & a[1][Them][BISHOP];
 
     // Enemy knights checks
     knightChecks = pos.attacks_from<KNIGHT>(ksq) & attackedBy[Them][KNIGHT];
@@ -503,11 +508,11 @@ namespace {
     // Bonus according to the kind of attacking pieces
     if (defended | weak)
     {
-        b = (defended | weak) & (attackedBy[Us][KNIGHT] | attackedBy[Us][BISHOP]);
+        b = (defended | weak) & (attackedBy[Us][KNIGHT] | a[1][Us][BISHOP]);
         while (b)
             score += ThreatByMinor[type_of(pos.piece_on(pop_lsb(&b)))];
 
-        b = weak & attackedBy[Us][ROOK];
+        b = weak & a[1][Us][ROOK];
         while (b)
             score += ThreatByRook[type_of(pos.piece_on(pop_lsb(&b)))];
 
@@ -555,8 +560,8 @@ namespace {
 
         score += KnightOnQueen * popcount(b & safe);
 
-        b =  (attackedBy[Us][BISHOP] & pos.attacks_from<BISHOP>(s))
-           | (attackedBy[Us][ROOK  ] & pos.attacks_from<ROOK  >(s));
+        b =  (a[1][Us][BISHOP] & pos.attacks_from<BISHOP>(s))
+           | (a[1][Us][ROOK  ] & pos.attacks_from<ROOK  >(s));
 
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
     }
