@@ -156,8 +156,8 @@ const string engine_info(bool to_uci) {
 const std::string compiler_info() {
 
   #define STRINGIFY2(x) #x
-  #define STRINGIFY(x) STRINGIFY2(x)
-  #define VER_STRING(major, minor, patch) STRINGIFY(major) "." STRINGIFY(minor) "." STRINGIFY(patch)
+  #define STRINGIFY1(x) STRINGIFY2(x)
+  #define VER_STRING(major, minor, patch) STRINGIFY1(major) "." STRINGIFY1(minor) "." STRINGIFY1(patch)
 
 /// Predefined macros hell:
 ///
@@ -175,12 +175,12 @@ const std::string compiler_info() {
   #elif __INTEL_COMPILER
      compiler += "Intel compiler ";
      compiler += "(version ";
-     compiler += STRINGIFY(__INTEL_COMPILER) " update " STRINGIFY(__INTEL_COMPILER_UPDATE);
+     compiler += STRINGIFY1(__INTEL_COMPILER) " update " STRINGIFY1(__INTEL_COMPILER_UPDATE);
      compiler += ")";
   #elif _MSC_VER
      compiler += "MSVC ";
      compiler += "(version ";
-     compiler += STRINGIFY(_MSC_FULL_VER) "." STRINGIFY(_MSC_BUILD);
+     compiler += STRINGIFY1(_MSC_FULL_VER) "." STRINGIFY1(_MSC_BUILD);
      compiler += ")";
   #elif __GNUC__
      compiler += "g++ (GNUC) ";
