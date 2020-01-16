@@ -707,9 +707,10 @@ namespace {
     bool infiltration =   rank_of(pos.square<KING>(WHITE)) > RANK_4
                        || rank_of(pos.square<KING>(BLACK)) < RANK_5;
 
-    bool pawnsOnBothFlanks =   (pos.pieces(PAWN) & QueenSide)
-                            && (pos.pieces(PAWN) & KingSide)
-                            && (pos.pieces(PAWN) & ~(FileDBB | FileEBB));
+   const Bitboard pawns = (pos.pieces(WHITE, PAWN) & ~attackedBy[WHITE][PAWN])
+                        | (pos.pieces(BLACK, PAWN) & ~attackedBy[BLACK][PAWN]);
+    bool pawnsOnBothFlanks =   (pawns & QueenSide)
+                            && (pawns & KingSide);
 
     bool almostUnwinnable =   !pe->passed_count()
                            &&  outflanking < 0
