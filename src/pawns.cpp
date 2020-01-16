@@ -175,6 +175,21 @@ Entry* probe(const Position& pos) {
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
 
+  // Precompute some initiative values
+
+  const auto pc = e->passed_count();
+  const bool pawnsOnBothFlanks = (pos.pieces(PAWN) & QueenSide)
+                              && (pos.pieces(PAWN) &  KingSide);
+
+  // parts of almostUnwinnable
+  e-> au = !pc && !pawnsOnBothFlanks;
+
+  // parts  of complexity
+  e->comp =  9 * e->passed_count()
+          + 11 * pos.count<PAWN>()
+          + 21 * pawnsOnBothFlanks
+          - 100;
+
   return e;
 }
 
