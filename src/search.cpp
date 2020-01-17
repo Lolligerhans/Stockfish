@@ -1186,13 +1186,13 @@ moves_loop: // When in check, search starts from here
               r -= ss->statScore / 16384;
           }
 
-          // decrease reduction when piece is put in-between a check
-          if (pos.blockers_for_king(us) & to_sq(move))
-              r--;
-
           // Increase reduction for captures/promotions if late move and at low depth
           else if (depth < 8 && moveCount > 2)
               r++;
+
+          // decrease reduction when piece is put in-between a check
+          if (pos.blockers_for_king(us) & to_sq(move))
+              r--;
 
           Depth d = clamp(newDepth - r, 1, newDepth);
 
