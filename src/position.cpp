@@ -463,7 +463,6 @@ Bitboard Position::slider_blockers(Bitboard sliders, Square s, Bitboard& pinners
     Square sniperSq = pop_lsb(&snipers);
     Bitboard b = between_bb(s, sniperSq) & occupancy;
 
-//    if (b)
     if (b && !more_than_one(b))
     {
         blockers |= b;
