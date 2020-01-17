@@ -371,6 +371,7 @@ namespace {
   template<Tracing T> template<Color Us>
   Score Evaluation<T>::king() const {
 
+    constexpr Direction Up = Us == WHITE ? NORTH : SOUTH;
     constexpr Color    Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Bitboard Camp = (Us == WHITE ? AllSquares ^ Rank6BB ^ Rank7BB ^ Rank8BB
                                            : AllSquares ^ Rank1BB ^ Rank2BB ^ Rank3BB);
@@ -433,6 +434,8 @@ namespace {
         kingDanger += KnightSafeCheck;
     else
         unsafeChecks |= knightChecks;
+
+    unsafeChecks &= ~pos.pieces(Them, PAWN) & shift<Up>(pos.pieces());
 
     // Find the squares that opponent attacks in our king flank, the squares
     // which they attack twice in that flank, and the squares that we defend.
