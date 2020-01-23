@@ -138,7 +138,8 @@ namespace {
   constexpr Score Outpost            = S( 30, 21);
   constexpr Score PassedFile         = S( 11,  8);
   constexpr Score PawnlessFlank      = S( 17, 95);
-  constexpr Score RestrictedPiece    = S(  9,  9);
+  constexpr Score RestrictedPiece    = S(  5,  5);
+  constexpr Score     LiablePiece    = S( 14, 14);
   constexpr Score ReachableOutpost   = S( 32, 10);
   constexpr Score RookOnQueenFile    = S(  7,  6);
   constexpr Score SliderOnQueen      = S( 59, 18);
@@ -522,10 +523,11 @@ namespace {
     // Bonus for restricting their piece moves
     b =   attackedBy[Them][ALL_PIECES]
        & ~stronglyProtected
-       & ~pos.pieces()
        &  attackedBy[Us][ALL_PIECES];
 
-    score += RestrictedPiece * popcount(b);
+    score += RestrictedPiece * popcount(b & ~pos.pieces());
+    score +=     LiablePiece * popcount(b &  pos.pieces());
+
     // pieces on squares in question:
     // any piece  Samples 67993584 Mean 6.87314 o 3.68984 100.0000%
     // only our   Samples 70639348 Mean 6.32303 o 3.47564  91.9962%
