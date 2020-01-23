@@ -522,9 +522,15 @@ namespace {
     // Bonus for restricting their piece moves
     b =   attackedBy[Them][ALL_PIECES]
        & ~stronglyProtected
+       & ~pos.pieces()
        &  attackedBy[Us][ALL_PIECES];
 
-    score += RestrictedPiece * popcount(b & ~pos.pieces());
+    score += RestrictedPiece * popcount(b);
+    // pieces on squares in question:
+    // any piece  Samples 67993584 Mean 6.87314 o 3.68984 100.0000%
+    // only our   Samples 70639348 Mean 6.32303 o 3.47564  91.9962%
+    // only their Samples 69308540 Mean 5.91177 o 3.27103  86.0127%
+    // no piece   Samples 68524558 Mean 5.36067 o 3.09917  77.9945%
 
     // Protected or unattacked squares
     safe = ~attackedBy[Them][ALL_PIECES] | attackedBy[Us][ALL_PIECES];
