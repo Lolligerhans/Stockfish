@@ -185,7 +185,7 @@ Entry* probe(const Position& pos) {
   e-> au = !pc && !pawnsOnBothFlanks;
 
   // parts  of complexity
-  e->comp =  9 * e->passed_count()
+  e->comp =  9 * pc
           + 11 * pos.count<PAWN>()
           + 21 * pawnsOnBothFlanks
           - 100;
