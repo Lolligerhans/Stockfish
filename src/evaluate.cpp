@@ -138,9 +138,9 @@ namespace {
   constexpr Score Outpost            = S( 30, 21);
   constexpr Score PassedFile         = S( 11,  8);
   constexpr Score PawnlessFlank      = S( 17, 95);
-  constexpr Score RestrictedPiece    = S(  7,  7);
-  constexpr Score     LiablePiece    = S(  7,  7);
-  constexpr Score   HopelessPiece    = S(  7,  7);
+  Score RestrictedPiece    = S(  7,  7);
+  Score     LiablePiece    = S(  7,  7);
+  Score   HopelessPiece    = S(  7,  7);
   constexpr Score ReachableOutpost   = S( 32, 10);
   constexpr Score RookOnQueenFile    = S(  7,  6);
   constexpr Score SliderOnQueen      = S( 59, 18);
@@ -151,6 +151,8 @@ namespace {
   constexpr Score WeakQueen          = S( 49, 15);
 
 #undef S
+
+  TUNE(RestrictedPiece, LiablePiece, HopelessPiece);
 
   // Evaluation class computes and stores attacks tables and other working data
   template<Tracing T>
