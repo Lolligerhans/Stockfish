@@ -523,7 +523,7 @@ namespace {
     // Greater bonus when landing square is occupied
     b =   attackedBy[Them][ALL_PIECES]
        & ~stronglyProtected
-       & (~attackedBy[Us][KING] | attackedBy2[Us])
+       & (~attackedBy[Them][KING] | attackedBy2[Them])
        &  attackedBy[Us][ALL_PIECES];
     score += RestrictedPiece * (popcount(b) + popcount(b & pos.pieces()));
 
