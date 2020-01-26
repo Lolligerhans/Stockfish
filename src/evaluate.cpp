@@ -561,6 +561,13 @@ namespace {
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
     }
 
+    Score constexpr redundantQueen = make_score(50,100);
+    if (pos.count<QUEEN>(Us))
+    {
+        const Bitboard enPrise = (pos.pieces(Them) & ~pos.pieces(KING)) & ~attackedBy[Them][ALL_PIECES];
+        score -= redundantQueen * (not more_than_one(enPrise) + not enPrise);
+    }
+
     if (T)
         Trace::add(THREAT, Us, score);
 
