@@ -561,7 +561,7 @@ namespace {
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
     }
 
-    Score constexpr redundantQueen = make_score(15,15);
+    Score constexpr redundantQueen = make_score(0,20);
     if (pos.count<QUEEN>(Us))
     {
         const Bitboard enPrise = (pos.pieces(Them) & ~pos.pieces(KING)) & ~attackedBy[Them][ALL_PIECES];
