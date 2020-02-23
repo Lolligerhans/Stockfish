@@ -88,7 +88,7 @@ namespace {
     e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
 
     // Loop through all pawns of the current color and score each pawn
-    constexpr Bitboard PawnRanks = ~(Rank2BB | Rank7BB);
+    constexpr Bitboard PawnRanks = Rank2BB | Rank7BB;
     while ((s = *pl++) != SQ_NONE)
     {
         assert(pos.piece_on(s) == make_piece(Us, PAWN));
