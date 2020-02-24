@@ -489,9 +489,14 @@ namespace {
     // Non-pawn enemies
     nonPawnEnemies = pos.pieces(Them) & ~pos.pieces(PAWN);
 
+    // Pawns which are threatened themselves do not provide strong protection
+    // for supported pieces
+    Bitboard pawnDef = pawn_attacks_bb<Them>(pos.pieces(Them, PAWN)
+            & (attackedBy[Them][ALL_PIECES] | ~attackedBy[Us][ALL_PIECES]));
+
     // Squares strongly protected by the enemy, either because they defend the
     // square with a pawn, or because they defend the square twice and we don't.
-    stronglyProtected =  attackedBy[Them][PAWN]
+    stronglyProtected =  pawnDef
                        | (attackedBy2[Them] & ~attackedBy2[Us]);
 
     // Non-pawn enemies, strongly protected
