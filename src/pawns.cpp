@@ -70,6 +70,7 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = pawn_push(Us);
+    constexpr Direction Down = -Up;
 
     Bitboard neighbours, stoppers, support, phalanx, opposed;
     Bitboard lever, leverPush, blocked;
@@ -85,7 +86,6 @@ namespace {
 
     e->passedPawns[Us] = 0;
     e->kingSquares[Us] = SQ_NONE;
-    e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -107,8 +107,35 @@ namespace {
 
         // A pawn is backward when it is behind all pawns of the same color on
         // the adjacent files and cannot safely advance.
-        backward =  !(neighbours & forward_ranks_bb(Them, s + Up))
+        const Bitboard unstoppedNeighbours = neighbours &
+                ~(shift<Down>(theirPawns | e->pawnAttacks[Them]));
+        backward =  !(unstoppedNeighbours & forward_ranks_bb(Them, s + Up))
                   && (leverPush | blocked);
+
+        // The two pawns on the 7th are backwards
+        //             v v
+        // +-----------------+ +-----------------+
+        // | . . . . . . . . | | . . . . . . . . | o  their pawns (now in part
+        // | . . . . . o o . | | . . . . . o . . |                 backwards)
+        // | . . . . o . . o | | . . . . . . o . | x  our pawns
+        // | . . . o x . . x | | . . . . . . x . |
+        // | . . . x . x . . | | . . . . . . . . |
+        // | . . . . . . x . | | . . . . . . . . |
+        // | . . . . . . . . | | . . . . . . . . |
+        // +-----------------+ +-----------------+
+        //                                 ^ ^
+        //                Both pawns are backwards
+        //
+        //
+        // +-----------------+
+        // | . . . . . . . . |
+        // | . . . . . . . . |
+        // | . . . . . . . . |    All of their pawns
+        // | . . . o . o . . | <  are backwards.
+        // | . . . . o . o . | <
+        // | x x . . x . x . |
+        // | . . . . . . . . |
+        // +-----------------+
 
         // Compute additional span if pawn is not backward nor blocked
         if (!backward && !blocked)
@@ -172,6 +199,8 @@ Entry* probe(const Position& pos) {
       return e;
 
   e->key = key;
+  e->pawnAttacks[WHITE] = e->pawnAttacksSpan[WHITE] = pawn_attacks_bb<WHITE>(pos.pieces(WHITE, PAWN));
+  e->pawnAttacks[BLACK] = e->pawnAttacksSpan[BLACK] = pawn_attacks_bb<BLACK>(pos.pieces(BLACK, PAWN));
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
 
