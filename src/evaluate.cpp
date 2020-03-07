@@ -285,7 +285,9 @@ namespace {
         }
 
         int mob = popcount(b & mobilityArea[Us]);
-
+        bool trapped;
+        if (Pt == KNIGHT || Pt == BISHOP)
+            trapped = mob <= 4;
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         if (Pt == BISHOP || Pt == KNIGHT)
@@ -293,8 +295,7 @@ namespace {
             // Bonus if piece is on an outpost square or can reach one
             bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
             if (bb & s)
-                score += Outpost * (Pt == KNIGHT ? 2 : 1);
-
+                score += Outpost*2 * (Pt == KNIGHT ? 2 : 1) / (trapped ? 3 : 2);
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
                 score += Outpost;
 
