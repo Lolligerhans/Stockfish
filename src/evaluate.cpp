@@ -85,20 +85,45 @@ namespace {
   constexpr int RookSafeCheck   = 1080;
   constexpr int BishopSafeCheck = 635;
   constexpr int KnightSafeCheck = 790;
-
 #define S(mg, eg) make_score(mg, eg)
 
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
+  constexpr Score Outpost = S( 30, 21);
+  constexpr Score TrappedRook = S( 52, 10);
   constexpr Score MobilityBonus[][32] = {
+    // N
     { S(-62,-81), S(-53,-56), S(-12,-30), S( -4,-14), S(  3,  8), S( 13, 15), // Knights
-      S( 22, 23), S( 28, 27), S( 33, 33) },
+      S( 22, 23), S( 28, 27), S( 33, 33),
+      // outpost
+      S(-62,-81)+Outpost*2, S(-53,-56)+Outpost*2, S(-12,-30)+Outpost*2,
+      S( -4,-14)+Outpost*2, S(  3,  8)+Outpost*2, S( 13, 15)+Outpost*2,
+      S( 22, 23)+Outpost*2, S( 28, 27)+Outpost*2, S( 33, 33)+Outpost*2,
+      // potential outpost
+      S(-62,-81)+Outpost, S(-53,-56)+Outpost, S(-12,-30)+Outpost,
+      S( -4,-14)+Outpost, S(  3,  8)+Outpost, S( 13, 15)+Outpost,
+      S( 22, 23)+Outpost, S( 28, 27)+Outpost, S( 33, 33)+Outpost },
+    // B
     { S(-48,-59), S(-20,-23), S( 16, -3), S( 26, 13), S( 38, 24), S( 51, 42), // Bishops
       S( 55, 54), S( 63, 57), S( 63, 65), S( 68, 73), S( 81, 78), S( 81, 86),
-      S( 91, 88), S( 98, 97) },
+      S( 91, 88), S( 98, 97),
+      // outpost
+      S(-48,-59)+Outpost, S(-20,-23)+Outpost, S( 16, -3)+Outpost,
+      S( 26, 13)+Outpost, S( 38, 24)+Outpost, S( 51, 42)+Outpost,
+      S( 55, 54)+Outpost, S( 63, 57)+Outpost, S( 63, 65)+Outpost,
+      S( 68, 73)+Outpost, S( 81, 78)+Outpost, S( 81, 86)+Outpost,
+      S( 91, 88)+Outpost, S( 98, 97)+Outpost },
+    // R
     { S(-58,-76), S(-27,-18), S(-15, 28), S(-10, 55), S( -5, 69), S( -2, 82), // Rooks
       S(  9,112), S( 16,118), S( 30,132), S( 29,142), S( 32,155), S( 38,165),
-      S( 46,166), S( 48,169), S( 58,171) },
+      S( 46,166), S( 48,169), S( 58,171),
+      // trapped by king
+      S(-58,-76)-TrappedRook, S(-27,-18)-TrappedRook, S(-15, 28)-TrappedRook, // (mob <= 3)
+      S(-10, 55)-TrappedRook, S( -5, 69)-SCORE_ZERO, S( -2, 82)-SCORE_ZERO,
+      S(  9,112)-SCORE_ZERO, S( 16,118)-SCORE_ZERO, S( 30,132)-SCORE_ZERO,
+      S( 29,142)-SCORE_ZERO, S( 32,155)-SCORE_ZERO, S( 38,165)-SCORE_ZERO,
+      S( 46,166)-SCORE_ZERO, S( 48,169)-SCORE_ZERO, S( 58,171)-SCORE_ZERO },
+    // Q
     { S(-39,-36), S(-21,-15), S(  3,  8), S(  3, 18), S( 14, 34), S( 22, 54), // Queens
       S( 28, 61), S( 41, 73), S( 43, 79), S( 48, 92), S( 56, 94), S( 60,104),
       S( 60,113), S( 66,120), S( 67,123), S( 70,126), S( 71,133), S( 73,136),
@@ -135,7 +160,6 @@ namespace {
   constexpr Score KnightOnQueen       = S( 16, 12);
   constexpr Score LongDiagonalBishop  = S( 45,  0);
   constexpr Score MinorBehindPawn     = S( 18,  3);
-  constexpr Score Outpost             = S( 30, 21);
   constexpr Score PassedFile          = S( 11,  8);
   constexpr Score PawnlessFlank       = S( 17, 95);
   constexpr Score RestrictedPiece     = S(  7,  7);
@@ -144,7 +168,6 @@ namespace {
   constexpr Score ThreatByKing        = S( 24, 89);
   constexpr Score ThreatByPawnPush    = S( 48, 39);
   constexpr Score ThreatBySafePawn    = S(173, 94);
-  constexpr Score TrappedRook         = S( 52, 10);
   constexpr Score WeakQueen           = S( 49, 15);
   constexpr Score WeakQueenProtection = S( 14,  0);
 
@@ -284,20 +307,59 @@ namespace {
             kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
         }
 
-        int mob = popcount(b & mobilityArea[Us]);
-
-        mobility[Us] += MobilityBonus[Pt - 2][mob];
-
+        int outpostCase;
         if (Pt == BISHOP || Pt == KNIGHT)
         {
+            outpostCase = 0;
+
             // Bonus if piece is on an outpost square or can reach one
             bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
             if (bb & s)
-                score += Outpost * (Pt == KNIGHT ? 2 : 1);
-
+                outpostCase = 1;
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
-                score += Outpost;
+                outpostCase = 2;
+        }
 
+        int trapped;
+        if (Pt == ROOK)
+        {
+            trapped = 0;
+
+            // Bonus for rook on the same file as a queen
+            if (file_bb(s) & pos.pieces(QUEEN))
+                score += RookOnQueenFile;
+
+            // Bonus for rook on an open or semi-open file
+            if (pos.is_on_semiopen_file(Us, s))
+                score += RookOnFile[pos.is_on_semiopen_file(Them, s)];
+
+            // Penalty when trapped by the king, even more if the king cannot castle
+            // Only activate when pawn on same file
+            else
+            {
+                File kf = file_of(pos.square<KING>(Us));
+                trapped = (kf < FILE_E) == (file_of(s) < kf);
+            }
+        }
+
+        // Mobility
+        int mob = popcount(b & mobilityArea[Us]);
+        Score mobScore = MobilityBonus[Pt - 2][mob];
+        mobility[Us] += mobScore;
+
+        // Outposts and trapped rook, joined with mobility.
+        // (For testing), we add the "normal" mobility separately, to
+        //  - not distory "kingDanger" which uses mobility[] and
+        //  - be able to adjust the bonus separately from mobility (ROOK).
+        score +=
+            Pt == KNIGHT ?  MobilityBonus[Pt-2][mob+ 9*outpostCase] - mobScore
+          : Pt == BISHOP ?  MobilityBonus[Pt-2][mob+14*outpostCase] - mobScore
+          : Pt == ROOK   ? (MobilityBonus[Pt-2][mob+15*trapped    ] - mobScore)
+                          *(1 + !pos.castling_rights(Us)                      )
+          :                SCORE_ZERO;
+
+        if (Pt == BISHOP || Pt == KNIGHT)
+        {
             // Knight and Bishop bonus for being right behind a pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
                 score += MinorBehindPawn;
@@ -330,25 +392,6 @@ namespace {
                                 : pos.piece_on(s + d + d) == make_piece(Us, PAWN) ? CorneredBishop * 2
                                                                                   : CorneredBishop;
                 }
-            }
-        }
-
-        if (Pt == ROOK)
-        {
-            // Bonus for rook on the same file as a queen
-            if (file_bb(s) & pos.pieces(QUEEN))
-                score += RookOnQueenFile;
-
-            // Bonus for rook on an open or semi-open file
-            if (pos.is_on_semiopen_file(Us, s))
-                score += RookOnFile[pos.is_on_semiopen_file(Them, s)];
-
-            // Penalty when trapped by the king, even more if the king cannot castle
-            else if (mob <= 3)
-            {
-                File kf = file_of(pos.square<KING>(Us));
-                if ((kf < FILE_E) == (file_of(s) < kf))
-                    score -= TrappedRook * (1 + !pos.castling_rights(Us));
             }
         }
 

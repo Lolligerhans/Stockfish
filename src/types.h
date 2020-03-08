@@ -338,15 +338,11 @@ inline Score operator/(Score s, int i) {
 }
 
 /// Multiplication of a Score by an integer. We check for overflow in debug mode.
-inline Score operator*(Score s, int i) {
+constexpr Score operator*(Score s, int i) {
 
-  Score result = Score(int(s) * i);
+  // make constexpr
+  return Score(int(s) * i);
 
-  assert(eg_value(result) == (i * eg_value(s)));
-  assert(mg_value(result) == (i * mg_value(s)));
-  assert((i == 0) || (result / i) == s);
-
-  return result;
 }
 
 /// Multiplication of a Score by a boolean
