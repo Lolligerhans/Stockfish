@@ -171,9 +171,9 @@ namespace {
   };
 
   // Tuning stuff
-  Score N[2][9];    // 9x 2OP, 9x OP
-  Score B[14];      // 14x OP
-  Score R[15];      // 4x -TR, 11x 0
+  Score N[2][9] = {0};    // 9x 2OP, 9x OP
+  Score B[14]   = {0};      // 14x OP
+  Score R[15]   = {0};      // 4x -TR, 11x 0
   auto up_n0() -> void { for (int i = 0; i <  9; ++i) MobilityBonus[0][ 9+i] = MobilityBonus_base[0][ 9+i]+N[0][i]; }
   auto up_n1() -> void { for (int i = 0; i <  9; ++i) MobilityBonus[0][18+i] = MobilityBonus_base[0][18+i]+N[1][i]; }
   auto up_b () -> void { for (int i = 0; i < 14; ++i) MobilityBonus[1][14+i] = MobilityBonus_base[1][14+i]+B   [i]; }
