@@ -584,6 +584,7 @@ namespace {
 
     Bitboard b, bb, squaresToQueen, unsafeSquares;
     Score score = SCORE_ZERO;
+    Value vMax = VALUE_ZERO;
 
     b = pe->passed_pawns(Us);
 
@@ -643,7 +644,15 @@ namespace {
             || (pos.pieces(PAWN) & (s + Up)))
             bonus = bonus / 2;
 
-        score += bonus - PassedFile * map_to_queenside(file_of(s));
+        Score sc = bonus - PassedFile * map_to_queenside(file_of(s));
+        Value avg = (mg_value(sc) + eg_value(sc)) / 2;
+
+        // Find best passer
+        if (avg > vMax)
+        {
+            vMax = avg;
+            score = sc;
+        }
     }
 
     if (T)
