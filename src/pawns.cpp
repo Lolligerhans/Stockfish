@@ -107,38 +107,15 @@ namespace {
 
         // A pawn is backward when it is behind all pawns of the same color on
         // the adjacent files and cannot safely advance.
+        backward =  !(neighbours & forward_ranks_bb(Them, s + Up))
+                  && (leverPush | blocked);
         const Bitboard unstoppedNeighbours = neighbours &
                 ~(shift<Down>(theirPawns | e->pawnAttacks[Them]));
-        backward =  !(unstoppedNeighbours & forward_ranks_bb(Them, s + Up))
+        bool noSpan =  !(unstoppedNeighbours & forward_ranks_bb(Them, s + Up))
                   && (leverPush | blocked);
 
-        // The two pawns on the 7th are backwards
-        //             v v
-        // +-----------------+ +-----------------+
-        // | . . . . . . . . | | . . . . . . . . | o  their pawns (now in part
-        // | . . . . . o o . | | . . . . . o . . |                 backwards)
-        // | . . . . o . . o | | . . . . . . o . | x  our pawns
-        // | . . . o x . . x | | . . . . . . x . |
-        // | . . . x . x . . | | . . . . . . . . |
-        // | . . . . . . x . | | . . . . . . . . |
-        // | . . . . . . . . | | . . . . . . . . |
-        // +-----------------+ +-----------------+
-        //                                 ^ ^
-        //                Both pawns are backwards
-        //
-        //
-        // +-----------------+
-        // | . . . . . . . . |
-        // | . . . . . . . . |
-        // | . . . . . . . . |    All of their pawns
-        // | . . . o . o . . | <  are backwards.
-        // | . . . . o . o . | <
-        // | x x . . x . x . |
-        // | . . . . . . . . |
-        // +-----------------+
-
         // Compute additional span if pawn is not backward nor blocked
-        if (!backward && !blocked)
+        if (!noSpan && !blocked)
             e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
 
         // A pawn is passed if one of the three following conditions is true:
