@@ -201,7 +201,8 @@ Entry* probe(const Position& pos) {
 template<Color Us>
 void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
 {
-    constexpr Color Them    = ~Us;
+    constexpr Color     Them    = ~Us;
+    constexpr Direction Up      = (Us == WHITE ? NORTH : SOUTH);
 
     // inputs
     const Bitboard ourPawns     = pos.pieces(Us, PAWN);
@@ -254,6 +255,10 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
 
         Bitboard considered         = totalConsidered & ~totalUntouchable; // sqaures which MIGHT block opponents, if they are outside of any attack span
         Bitboard untouchable        = considered & ~iterSpan;
+        // Add their pawns which can not recieve pushsupport
+        // TODO I suspect this might also work w/o the shift
+        untouchable                |= theirPawns & ~shift<Up>(iterSpan)
+                                    & ~totalUntouchable;
 
         Bitboard considered1        = totalConsidered1 & ~totalUntouchable;
         untouchable                |= considered1 & ~iterSpan2;
