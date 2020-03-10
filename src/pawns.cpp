@@ -204,20 +204,20 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
     constexpr Color     Them    = ~Us;
     constexpr Direction Up      = (Us == WHITE ? NORTH : SOUTH);
 
-    // inputs
+/// inputs
     const Bitboard ourPawns     = pos.pieces(Us, PAWN);
     const Bitboard theirPawns   = pos.pieces(Them, PAWN);
     const Bitboard init         = this->smartSpan[Them];
     const Bitboard init2        = sp2; // squares challenged by more than 1 opponent in current configuration
 
-    // total bitboards
+/// total bitboards
     Bitboard totalConsidered    = ourPawns;
     Bitboard totalConsidered1   = 0;
     Bitboard totalUntouchable   = 0;
     Bitboard totalShut          = 0; // shut squares(!)
     Bitboard totalFix           = 0; // accum. shut down pawns (after any number of steps)
 
-    // iteration bitboards: updated at the beginning of each main iteration, but not in-between
+/// iteration bitboards: updated at the beginning of each main iteration, but not in-between
     Bitboard iterSpan,
              iterSpan1,
              iterSpan2;
@@ -238,6 +238,7 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
         iterSpan2   = nextSpan2; nextSpan2 = 0;
     };
 
+/// iteration loop
     while (true)
     {
         // transit iter bbs from last iteration
@@ -249,6 +250,8 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
         // 2v2 rule
         const Bitboard lowPressure  = ourPawns & ~iterSpan2;
         const Bitboard ganks        = pawn_double_attacks_bb<Us>(lowPressure);
+        // 1v2 rule
+//        const Bitboard highDemand   = shift<Down>(theirPawns);
 
         totalConsidered            |= faceOffs;
         totalConsidered1           |= ganks;
@@ -260,6 +263,7 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
         untouchable                |= theirPawns & ~shift<Up>(iterSpan)
                                     & ~totalUntouchable;
 
+        const // ?
         Bitboard considered1        = totalConsidered1 & ~totalUntouchable;
         untouchable                |= considered1 & ~iterSpan2;
 
@@ -275,8 +279,9 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
             // _________________________________________________________________
             // step 1: remove a sinlge layer
             //
+            //  - untouchable   (new) untouchable squares which need to be
+            //                  handled this iteration
             //  - stepFixed     pawns shut down during step 1 at some distance
-            //  - newFix        pawns shut down during this iteration TODO ???
             //  - totalShut     squares on which opponents pawns will run into our
             //                  untouchables eventually
             Bitboard stepFixed = 0; // pawns shut during half-iteration ("at once")
@@ -298,7 +303,7 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
             //  - totalUntouchable  our global untouchable bb with all squares found
             //                      untouchable (updated with new-found untouchables).
             //  - considered        squares which become untouchable when leaving their
-            //                      attack span. out pawns and face-offs (when found
+            //                      attack span. our pawns and face-offs (when found
             //                      untouchable during this step, removen from this
             //                      bb; for fast-rescoring of only-resp.-squares).
             //  - addNewSpan()      adding new restricted pawn attack span for this
@@ -338,7 +343,7 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
                 untouchable |= onlyRespUntouch;
                 considered  ^= onlyRespUntouch;
             }
-            totalUntouchable |= untouchable;
+            totalUntouchable |= untouchable; // TODO move top of loop
         }
         while (untouchable); // loop back to step 1 if one-step shortcut found new untouchable pawns
 
