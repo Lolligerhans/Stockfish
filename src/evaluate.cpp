@@ -188,6 +188,7 @@ namespace {
     // kingRing[color] are the squares adjacent to the king plus some other
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
+    Bitboard trapped = 0;
 
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
@@ -287,6 +288,8 @@ namespace {
         int mob = popcount(b & mobilityArea[Us]);
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
+
+        if (mob == 0) trapped |= s;
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
@@ -485,6 +488,8 @@ namespace {
 
     Bitboard b, weak, defended, nonPawnEnemies, stronglyProtected, safe;
     Score score = SCORE_ZERO;
+    Square sq;
+    Bitboard bb;
 
     // Non-pawn enemies
     nonPawnEnemies = pos.pieces(Them) & ~pos.pieces(PAWN);
@@ -505,18 +510,18 @@ namespace {
     {
         b = (defended | weak) & (attackedBy[Us][KNIGHT] | attackedBy[Us][BISHOP]);
         while (b)
-            score += ThreatByMinor[type_of(pos.piece_on(pop_lsb(&b)))];
+            score += (sq=pop_lsb(&b), ThreatByMinor[type_of(pos.piece_on(sq))]*(1+bool(trapped&sq)));
 
         b = weak & attackedBy[Us][ROOK];
         while (b)
-            score += ThreatByRook[type_of(pos.piece_on(pop_lsb(&b)))];
+            score += (sq=pop_lsb(&b), ThreatByRook[type_of(pos.piece_on(sq))]*(1+bool(trapped&sq)));
 
-        if (weak & attackedBy[Us][KING])
-            score += ThreatByKing;
+        if ((bb = (weak & attackedBy[Us][KING])))
+            score += ThreatByKing * (1 + bool(trapped & bb));
 
         b =  ~attackedBy[Them][ALL_PIECES]
            | (nonPawnEnemies & attackedBy2[Us]);
-        score += Hanging * popcount(weak & b);
+        score += Hanging * (popcount(weak & b) + popcount(weak & b & trapped));
 
         // Additional bonus if weak piece is only protected by a queen
         score += WeakQueenProtection * popcount(weak & attackedBy[Them][QUEEN]);
@@ -534,7 +539,7 @@ namespace {
     // Bonus for attacking enemy pieces with our relatively safe pawns
     b = pos.pieces(Us, PAWN) & safe;
     b = pawn_attacks_bb<Us>(b) & nonPawnEnemies;
-    score += ThreatBySafePawn * popcount(b);
+    score += ThreatBySafePawn * (popcount(b) + popcount(b & trapped));
 
     // Find squares where our pawns can push on the next move
     b  = shift<Up>(pos.pieces(Us, PAWN)) & ~pos.pieces();
