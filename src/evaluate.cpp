@@ -511,7 +511,7 @@ namespace {
         while (b)
             score += ThreatByRook[type_of(pos.piece_on(pop_lsb(&b)))];
 
-        if (weak & attackedBy[Us][KING])
+        if (weak & attackedBy[Us][KING] & ~attackedBy[Them][ALL_PIECES])
             score += ThreatByKing;
 
         b =  ~attackedBy[Them][ALL_PIECES]
