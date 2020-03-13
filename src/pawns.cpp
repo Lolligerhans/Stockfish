@@ -66,7 +66,7 @@ namespace {
   #undef V
 
   template<Color Us>
-  Score evaluate(const Position& pos, Pawns::Entry* e) {
+  Score evaluate(const Position& pos, Pawns::Entry* e, Bitboard noop[COLOR_NB]) {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = pawn_push(Us);
@@ -95,7 +95,9 @@ namespace {
         Rank r = relative_rank(Us, s);
 
         // Flag the pawn
-        opposed    = theirPawns & forward_file_bb(Us, s);
+        const Bitboard ff = forward_file_bb(Us, s);
+        noop[Us] |= ff;
+        opposed    = theirPawns & ff;
         blocked    = theirPawns & (s + Up);
         stoppers   = theirPawns & passed_pawn_span(Us, s);
         lever      = theirPawns & PawnAttacks[Us][s];
@@ -172,8 +174,12 @@ Entry* probe(const Position& pos) {
       return e;
 
   e->key = key;
-  e->scores[WHITE] = evaluate<WHITE>(pos, e);
-  e->scores[BLACK] = evaluate<BLACK>(pos, e);
+  Bitboard noop[COLOR_NB] = {0};
+  e->scores[WHITE] = evaluate<WHITE>(pos, e, noop);
+  e->scores[BLACK] = evaluate<BLACK>(pos, e, noop);
+  // no blockading outposts
+  e->pawnAttacksSpan[WHITE] |= noop[BLACK];
+  e->pawnAttacksSpan[BLACK] |= noop[WHITE];
 
   return e;
 }
