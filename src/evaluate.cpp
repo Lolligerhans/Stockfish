@@ -302,7 +302,7 @@ namespace {
             if (shift<Down>(pos.pieces(PAWN)) & s)
                 score += MinorBehindPawn;
             if (pos.attacks_from<KING>(s) & pos.pieces(PAWN))
-                score += make_score(5,5);
+                score += make_score(15,15);
 
             // Penalty if the piece is far from the king
             score -= KingProtector * distance(s, pos.square<KING>(Us));
