@@ -52,6 +52,8 @@ struct Entry {
   Score evaluate_shelter(const Position& pos, Square ksq);
 
   template<Color Us>
+  void compute_fixed_new(const Position& pos, Bitboard&) &;
+  template<Color Us>
   void compute_fixed(const Position& pos, Bitboard&) &;
 
   Key key;

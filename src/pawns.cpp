@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <iostream>
 
 #include "bitboard.h"
 #include "pawns.h"
@@ -27,6 +28,18 @@
 #include "thread.h"
 
 namespace {
+
+    void print(Bitboard u, Bitboard t = 0u)
+    {
+        for (Rank r = RANK_8; r >= RANK_1; --r)
+        for (File f = FILE_A; f <= FILE_H; ++f)
+        {
+            Square s = make_square(f, r);
+            std::cout << (u & s ? 'x' : t & s ? 'o' : '.');
+            if (f == FILE_H)    std::cout << std::endl;
+            else                std::cout << " ";
+        }
+    }
 
   #define V Value
   #define S(mg, eg) make_score(mg, eg)
@@ -177,9 +190,39 @@ Entry* probe(const Position& pos) {
   e->scores[WHITE] = evaluate<WHITE>(pos, e, sp2[WHITE]);
   e->scores[BLACK] = evaluate<BLACK>(pos, e, sp2[BLACK]);
 
+  Entry* f = new Entry(*e);
+  Bitboard sp2e[COLOR_NB] = {sp2[0], sp2[1]};
+  f->compute_fixed_new<WHITE>(pos, sp2e[BLACK]);
+  f->compute_fixed_new<BLACK>(pos, sp2e[WHITE]);
+
   e->compute_fixed<WHITE>(pos, sp2[BLACK]);
   e->compute_fixed<BLACK>(pos, sp2[WHITE]);
 
+  if (
+          f->smartSpan[WHITE] != e->smartSpan[WHITE]
+     )
+  {
+      std::cout << "White mismatch" << std::endl;
+      print(pos.pieces(WHITE, PAWN), pos.pieces(BLACK, PAWN));
+      std::cout << "this version" << std::endl;
+      print(e->smartSpan[WHITE]);
+      std::cout << "other version" << std::endl;
+      print(f->smartSpan[WHITE]);
+      std::cin.ignore();
+  }
+  if (
+          f->smartSpan[BLACK] != e->smartSpan[BLACK]
+     )
+  {
+      std::cout << "Black mismatch" << std::endl;
+      print(pos.pieces(WHITE, PAWN), pos.pieces(BLACK, PAWN));
+      std::cout << "this version" << std::endl;
+      print(e->smartSpan[BLACK]);
+      std::cout << "other version" << std::endl;
+      print(f->smartSpan[BLACK]);
+      std::cin.ignore();
+  }
+  delete f;
   return e;
 }
 
