@@ -243,35 +243,45 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
 /// iteration loop
     while (true)
     {
+        // considered: Become untouch if not in span.
+        // considered1: Strong enough to withstand single span. Become untouch
+        //              if not in span2.
+        // untouchable: Squares which we determmined as impossible to challenge
+        //              for them. Their span from pawns straight above ends
+        //              here (excluding the untouch square).
+
         // transit iter bbs from last iteration
         getIterSpan();
 
         // 1v1 rule
         const Bitboard faceToFace   = ourPawns & iterSpan1; // pawns facing exactly 1 opponent
         const Bitboard faceOffs     = pawn_attacks_bb<Us> (faceToFace);
-        // 2v2 rule
+        // 2v2 rule (disjoined ours)
         const Bitboard lowPressure  = ourPawns & ~iterSpan2;
         const Bitboard ganks        = pawn_double_attacks_bb<Us>(lowPressure);
-        // 1v2 rule
-//        const Bitboard highDemand   = shift<Down>(theirPawns);
-
-        totalConsidered            |= faceOffs;
-        totalConsidered1           |= ganks;
-
-        Bitboard considered         = totalConsidered & ~totalUntouchable; // sqaures which MIGHT block opponents, if they are outside of any attack span
-        Bitboard untouchable        = considered & ~iterSpan;
-
-        untouchable                |= (shift<Down>(ourAttacks) | ourAttacks) & ourPawns
-                                    & ~iterSpan2 & ~totalUntouchable;
-
+        // 2v2 rule (joined ours)
+        const Bitboard strongPawns  = ourPawns & (ourAttacks |shift<Down>(ourAttacks));
+        // 1v2 rule (doubled theirs)
         // Add their pawns which can not recieve pushsupport
-        // TODO I suspect this might also work w/o the shift
-        untouchable                |= theirPawns & ~shift<Up>(iterSpan)
-                                    & ~totalUntouchable;
+        // TODO I suspect this might also work w/o the shift  (test!)
+        const Bitboard highDemand   = theirPawns & ~shift<Up>(iterSpan);
 
-        const // ?
+        // add result of rules
+        totalConsidered            |= faceOffs | highDemand;
+        totalConsidered1           |= ganks | strongPawns;
+
+        // NOTE  totalUntouch are removed because we use this bb: If a newly
+        //       shut square is in considered, it becomes untouch for step-2
+        //       shortcut.
+        Bitboard considered         = totalConsidered & ~totalUntouchable;
         Bitboard considered1        = totalConsidered1 & ~totalUntouchable;
+
+        Bitboard
+        untouchable                 = considered & ~iterSpan;
         untouchable                |= considered1 & ~iterSpan2;
+
+        //\ not needed for now
+        untouchable                &= ~totalUntouchable;
 
         const Bitboard iterUntouchable = totalUntouchable; // memorize situation before this iteration
         totalUntouchable           |= untouchable;
