@@ -203,10 +203,12 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
 {
     constexpr Color     Them    = ~Us;
     constexpr Direction Up      = (Us == WHITE ? NORTH : SOUTH);
+    constexpr Direction Down    = -Up;
 
 /// inputs
     const Bitboard ourPawns     = pos.pieces(Us, PAWN);
     const Bitboard theirPawns   = pos.pieces(Them, PAWN);
+    const Bitboard ourAttacks   = pawn_attacks_bb<Us>(ourPawns);
     const Bitboard init         = this->smartSpan[Them];
     const Bitboard init2        = sp2; // squares challenged by more than 1 opponent in current configuration
 
@@ -258,6 +260,10 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
 
         Bitboard considered         = totalConsidered & ~totalUntouchable; // sqaures which MIGHT block opponents, if they are outside of any attack span
         Bitboard untouchable        = considered & ~iterSpan;
+
+        untouchable                |= (shift<Down>(ourAttacks) | ourAttacks) & ourPawns
+                                    & ~iterSpan2 & ~totalUntouchable;
+
         // Add their pawns which can not recieve pushsupport
         // TODO I suspect this might also work w/o the shift
         untouchable                |= theirPawns & ~shift<Up>(iterSpan)
