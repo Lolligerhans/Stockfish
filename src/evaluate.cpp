@@ -167,6 +167,9 @@ namespace {
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
     template<Color Us> Score space() const;
+
+    template<Color Us> void adjust();
+
     ScaleFactor scale_factor(Value eg) const;
     Score initiative(Score score) const;
 
@@ -694,6 +697,31 @@ namespace {
   }
 
 
+  template<Tracing T> template<Color Us>
+  void Evaluation<T>::adjust()
+  {
+      // Predefinitions
+      constexpr auto Them = ~Us;
+      constexpr auto Up = (Us == WHITE ? NORTH : SOUTH);
+      constexpr auto Down = -Up;
+
+      constexpr auto oneMoveSquares = (Us == WHITE ? Rank3BB : Rank6BB);
+
+      const Bitboard freeMove = ~pos.pieces() & ~attackedBy[Them][PAWN];
+      const Bitboard protectedFreeMove = freeMove & attackedBy[Us][PAWN];
+      const Bitboard doubleMover = shift<Down>(protectedFreeMove) & freeMove
+                                 & oneMoveSquares;
+      const Bitboard shiftedProtectedFreeMove =
+          shift<Down>(protectedFreeMove | doubleMover);
+
+      const Bitboard agilePawns = pos.pieces(Us, PAWN)
+                                & shiftedProtectedFreeMove;
+
+      // Insert fake-pawn-attack for our agile pawns
+      attackedBy[Us][PAWN] |= agilePawns;
+  }
+
+
   // Evaluation::initiative() computes the initiative correction value
   // for the position. It is a second order bonus/malus based on the
   // known attacking/defending status of the players.
@@ -805,6 +833,8 @@ namespace {
             + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
+    adjust<WHITE>();
+    adjust<BLACK>();
 
     score += mobility[WHITE] - mobility[BLACK];
 
