@@ -715,7 +715,8 @@ namespace {
           shift<Down>(protectedFreeMove | doubleMover);
 
       const Bitboard agilePawns = pos.pieces(Us, PAWN)
-                                & shiftedProtectedFreeMove;
+                                & shiftedProtectedFreeMove
+                                & ~attackedBy[Them][PAWN];
 
       // Insert fake-pawn-attack for our agile pawns
       attackedBy[Us][PAWN] |= agilePawns;
