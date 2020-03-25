@@ -634,6 +634,9 @@ namespace {
                 if ((pos.pieces(Us) & bb) || (attackedBy[Us][ALL_PIECES] & blockSq))
                     k += 5;
 
+                if (k && pos.count<BISHOP>(Them) > 1)
+                    k -= 5;
+
                 bonus += make_score(k * w, k * w);
             }
         } // r > RANK_3
