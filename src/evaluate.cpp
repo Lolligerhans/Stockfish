@@ -566,9 +566,7 @@ namespace {
 
     Bitboard const& ba = attackedBy[Us][BISHOP];
     if (pos.count<BISHOP>(Us) > 1)
-        score += make_score(0,3) * popcount(
-                ba & (shift<NORTH>(ba) | shift<SOUTH>(ba))
-                );
+        score += make_score(-5,5) * popcount(ba & shift<NORTH>(ba));
 
     if (T)
         Trace::add(THREAT, Us, score);
