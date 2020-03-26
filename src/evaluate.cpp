@@ -523,7 +523,7 @@ namespace {
         score += WeakQueenProtection * popcount(weak & attackedBy[Them][QUEEN]);
     }
 
-    score += make_score(5, 15) * popcount(
+    score += make_score(10, 25) * popcount(
             weak &
             pos.pieces(Them, PAWN) &
             shift<Up>(pos.pieces()) &
