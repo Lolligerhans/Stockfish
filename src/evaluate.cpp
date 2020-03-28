@@ -668,10 +668,11 @@ namespace {
         return SCORE_ZERO;
 
     Bitboard centerOfPlay = FileDBB | FileEBB;
-    if (pos.pieces(KING) & KingSide)
-        centerOfPlay |= FileFBB;
-    if (pos.pieces(KING) & ~KingSide)
-        centerOfPlay |= FileCBB;
+    const bool ksk = pos.pieces(KING) &  KingSide; // kingside  king exists
+    const bool qsk = pos.pieces(KING) & ~KingSide; // queenside king exists
+    if      (!qsk)  centerOfPlay |= FileFBB | FileGBB; // only kingside kings
+    else if ( ksk)  centerOfPlay |= FileCBB | FileFBB; // kings on both sides
+    else            centerOfPlay |= FileBBB | FileCBB; // only queenside kings
 
     constexpr Color Them     = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Down = -pawn_push(Us);
