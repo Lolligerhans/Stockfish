@@ -667,11 +667,18 @@ namespace {
     if (pos.non_pawn_material() < SpaceThreshold)
         return SCORE_ZERO;
 
+    Bitboard centerOfPlay = FileDBB | FileEBB;
+    if (pos.pieces(KING) & KingSide)
+        centerOfPlay |= FileFBB;
+    if (pos.pieces(KING) & ~KingSide)
+        centerOfPlay |= FileCBB;
+
     constexpr Color Them     = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Down = -pawn_push(Us);
-    constexpr Bitboard SpaceMask =
-      Us == WHITE ? CenterFiles & (Rank2BB | Rank3BB | Rank4BB)
-                  : CenterFiles & (Rank7BB | Rank6BB | Rank5BB);
+    constexpr Bitboard SpaceRanks =
+      Us == WHITE ? (Rank2BB | Rank3BB | Rank4BB)
+                  : (Rank7BB | Rank6BB | Rank5BB);
+    const Bitboard SpaceMask = centerOfPlay & SpaceRanks;
 
     // Find the available squares for our pieces inside the area defined by SpaceMask
     Bitboard safe =   SpaceMask
