@@ -36,6 +36,7 @@ namespace {
   constexpr Score BlockedStorm  = S(82, 82);
   constexpr Score Doubled       = S(11, 56);
   constexpr Score Isolated      = S( 5, 15);
+  constexpr Score KingCenter    = S( 0, 15);
   constexpr Score WeakLever     = S( 0, 56);
   constexpr Score WeakUnopposed = S(13, 27);
 
@@ -244,6 +245,9 @@ Score Entry::do_king_safety(const Position& pos) {
       minPawnDist = 1;
   else while (pawns)
       minPawnDist = std::min(minPawnDist, distance(ksq, pop_lsb(&pawns)));
+
+  shelter -= KingCenter * (  edge_distance(file_of(ksq))
+                           < edge_distance(file_of(pos.square<KING>(~Us))));
 
   return shelter - make_score(0, 16 * minPawnDist);
 }
