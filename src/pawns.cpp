@@ -209,6 +209,7 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
     const Bitboard ourPawns     = pos.pieces(Us, PAWN);
     const Bitboard theirPawns   = pos.pieces(Them, PAWN);
     const Bitboard ourAttacks   = pawn_attacks_bb<Us>(ourPawns);
+    const Bitboard theirAttacks = pawn_attacks_bb<Them>(theirPawns);
     const Bitboard init         = this->smartSpan[Them];
     const Bitboard init2        = sp2; // squares challenged by more than 1 opponent in current configuration
 
@@ -260,15 +261,18 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
         const Bitboard lowPressure  = ourPawns & ~iterSpan2;
         const Bitboard ganks        = pawn_double_attacks_bb<Us>(lowPressure);
         // 2v2 rule (joined ours)
-        const Bitboard strongPawns  = ourPawns & (ourAttacks |shift<Down>(ourAttacks));
+        const Bitboard strongPawns  = ourPawns & (ourAttacks | shift<Down>(ourAttacks))
+                                               & ~theirAttacks;
         // 1v2 rule (doubled theirs)
         // Add their pawns which can not recieve pushsupport
         // TODO I suspect this might also work w/o the shift  (test!)
         const Bitboard highDemand   = theirPawns & ~shift<Up>(iterSpan);
 
         // add result of rules
-        totalConsidered            |= faceOffs | highDemand;
-        totalConsidered1           |= ganks | strongPawns;
+        totalConsidered            |= faceOffs;
+        totalConsidered            |= highDemand;
+        totalConsidered1           |= ganks;
+        totalConsidered1           |= strongPawns;
 
         // NOTE  totalUntouch are removed because we use this bb: If a newly
         //       shut square is in considered, it becomes untouch for step-2
