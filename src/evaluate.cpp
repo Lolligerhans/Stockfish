@@ -644,6 +644,16 @@ namespace {
             || (pos.pieces(PAWN) & (s + Up)))
             bonus = bonus / 2;
 
+        if (
+                pos.count<ALL_PIECES>(Us) <= 1 + pos.count<KING>(Us)
+                                               + pos.count<PAWN>(Us)
+            && (forward_file_bb(Us, s) & attackedBy2[Them])
+            && !(pe->pawn_attacks_span(Us) & (s+Up))
+           )
+        {
+            bonus = bonus / 2;
+        }
+
         score += bonus - PassedFile * edge_distance(file_of(s));
     }
 
