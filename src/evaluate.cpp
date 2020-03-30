@@ -647,7 +647,8 @@ namespace {
         if (
                 pos.count<ALL_PIECES>(Us) <= 1 + pos.count<KING>(Us)
                                                + pos.count<PAWN>(Us)
-            && (forward_file_bb(Us, s) & attackedBy2[Them])
+            && (forward_file_bb(Us, s) & (attackedBy2[Them]
+                                         |(attackedBy[Them][ALL_PIECES] & pos.pieces(Them))))
             && !(pe->pawn_attacks_span(Us) & (s+Up))
            )
         {
