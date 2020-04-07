@@ -122,28 +122,18 @@ namespace {
       S(106,184), S(109,191), S(113,206), S(116,212) }
   };
 
-  // scores bytes piece
-  //  4  16     N
-  //  7  28     B
-  //  7  28     R
-  // 14  56     Q
-  // -------
-  // 22
-  // 1
-  //     28
-  //    100
-  // -------
-  // 32 128     sum
-  Score MobilityBonusForward[32] = {SCORE_ZERO};
+  Score MobilityBonusForward[36] = {
+      SCORE_ZERO
+  };
 
   TUNE(SetRange(my_mob_range), MobilityBonus);
   TUNE(SetRange(my_new_range), MobilityBonusForward);
 
   template<PieceType Pt> inline Score mobilityBonusForward(int m) = delete;
   template<> inline Score mobilityBonusForward<KNIGHT>(int m) { return MobilityBonusForward[ 0+m]; }
-  template<> inline Score mobilityBonusForward<BISHOP>(int m) { return MobilityBonusForward[ 4+m]; }
-  template<> inline Score mobilityBonusForward<ROOK  >(int m) { return MobilityBonusForward[11+m]; }
-  template<> inline Score mobilityBonusForward<QUEEN >(int m) { return MobilityBonusForward[18+m]; }
+  template<> inline Score mobilityBonusForward<BISHOP>(int m) { return MobilityBonusForward[ 5+m]; }
+  template<> inline Score mobilityBonusForward<ROOK  >(int m) { return MobilityBonusForward[13+m]; }
+  template<> inline Score mobilityBonusForward<QUEEN >(int m) { return MobilityBonusForward[21+m]; }
 
   // RookOnFile[semiopen/open] contains bonuses for each rook when there is
   // no (friendly) pawn on the rook file.
