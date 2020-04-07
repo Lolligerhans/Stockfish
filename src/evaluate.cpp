@@ -106,6 +106,26 @@ namespace {
       S(106,184), S(109,191), S(113,206), S(116,212) }
   };
 
+  // scores bytes piece
+  //  4  16     N
+  //  7  28     B
+  //  7  28     R
+  // 14  56     Q
+  // -------
+  // 22
+  // 1
+  //     28
+  //    100
+  // -------
+  // 32 128     sum
+  constexpr Score MobilityBonusForward[32] = {SCORE_ZERO};
+
+  template<PieceType Pt> inline constexpr Score mobilityBonusForward(int m) = delete;
+  template<> inline constexpr Score mobilityBonusForward<KNIGHT>(int m) { return MobilityBonusForward[ 0+m]; }
+  template<> inline constexpr Score mobilityBonusForward<BISHOP>(int m) { return MobilityBonusForward[ 4+m]; }
+  template<> inline constexpr Score mobilityBonusForward<ROOK  >(int m) { return MobilityBonusForward[11+m]; }
+  template<> inline constexpr Score mobilityBonusForward<QUEEN >(int m) { return MobilityBonusForward[18+m]; }
+
   // RookOnFile[semiopen/open] contains bonuses for each rook when there is
   // no (friendly) pawn on the rook file.
   constexpr Score RookOnFile[] = { S(21, 4), S(47, 25) };
@@ -285,8 +305,12 @@ namespace {
         }
 
         int mob = popcount(b & mobilityArea[Us]);
+        int mobForward = popcount(b &
+                (mobilityArea[Us] & forward_ranks_bb(Us, s))
+                );
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
+        mobility[Us] += mobilityBonusForward<Pt>(mobForward);
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
