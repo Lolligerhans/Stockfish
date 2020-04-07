@@ -795,8 +795,11 @@ namespace {
 
     // Pieces should be evaluated first (populate attack tables)
     score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
-            + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
-            + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
+            + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>();
+    mobilityArea[WHITE] &= ~(attackedBy[BLACK][KNIGHT] | attackedBy[BLACK][BISHOP]);
+    mobilityArea[BLACK] &= ~(attackedBy[WHITE][KNIGHT] | attackedBy[WHITE][BISHOP]);
+    score +=
+             pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
     score += mobility[WHITE] - mobility[BLACK];
