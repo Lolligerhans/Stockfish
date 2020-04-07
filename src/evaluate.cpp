@@ -73,6 +73,22 @@ using namespace Trace;
 
 namespace {
 
+  std::pair<int,int> my_mob_range(int v)
+  {
+      if (std::abs(v) < 20)
+          // +- 20
+          return std::make_pair(v-20, v+20);
+      else
+          // default
+          return std::make_pair(0, 2*v);
+  }
+
+  std::pair<int,int> my_new_range(int v)
+  {
+      (void)v;
+      return std::make_pair(-100, 100);
+  }
+
   // Threshold for lazy and space evaluation
   constexpr Value LazyThreshold  = Value(1400);
   constexpr Value SpaceThreshold = Value(12222);
@@ -90,7 +106,7 @@ namespace {
 
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
-  constexpr Score MobilityBonus[][32] = {
+  Score MobilityBonus[][32] = {
     { S(-62,-81), S(-53,-56), S(-12,-30), S( -4,-14), S(  3,  8), S( 13, 15), // Knight
       S( 22, 23), S( 28, 27), S( 33, 33) },
     { S(-48,-59), S(-20,-23), S( 16, -3), S( 26, 13), S( 38, 24), S( 51, 42), // Bishop
@@ -118,13 +134,16 @@ namespace {
   //    100
   // -------
   // 32 128     sum
-  constexpr Score MobilityBonusForward[32] = {SCORE_ZERO};
+  Score MobilityBonusForward[32] = {SCORE_ZERO};
 
-  template<PieceType Pt> inline constexpr Score mobilityBonusForward(int m) = delete;
-  template<> inline constexpr Score mobilityBonusForward<KNIGHT>(int m) { return MobilityBonusForward[ 0+m]; }
-  template<> inline constexpr Score mobilityBonusForward<BISHOP>(int m) { return MobilityBonusForward[ 4+m]; }
-  template<> inline constexpr Score mobilityBonusForward<ROOK  >(int m) { return MobilityBonusForward[11+m]; }
-  template<> inline constexpr Score mobilityBonusForward<QUEEN >(int m) { return MobilityBonusForward[18+m]; }
+  TUNE(SetRange(my_mob_range), MobilityBonus);
+  TUNE(SetRange(my_new_range), MobilityBonusForward);
+
+  template<PieceType Pt> inline Score mobilityBonusForward(int m) = delete;
+  template<> inline Score mobilityBonusForward<KNIGHT>(int m) { return MobilityBonusForward[ 0+m]; }
+  template<> inline Score mobilityBonusForward<BISHOP>(int m) { return MobilityBonusForward[ 4+m]; }
+  template<> inline Score mobilityBonusForward<ROOK  >(int m) { return MobilityBonusForward[11+m]; }
+  template<> inline Score mobilityBonusForward<QUEEN >(int m) { return MobilityBonusForward[18+m]; }
 
   // RookOnFile[semiopen/open] contains bonuses for each rook when there is
   // no (friendly) pawn on the rook file.
