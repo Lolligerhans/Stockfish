@@ -188,6 +188,7 @@ namespace {
     // kingRing[color] are the squares adjacent to the king plus some other
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
+    Bitboard test[COLOR_NB] = {0u,0u};
 
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
@@ -293,7 +294,8 @@ namespace {
             // Bonus if piece is on an outpost square or can reach one
             bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
             if (bb & s)
-                score += Outpost * (Pt == KNIGHT ? 2 : 1);
+                score += Outpost * (Pt == KNIGHT ? 2 : 1),
+                test[Us] |= b;
 
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
                 score += Outpost;
@@ -796,8 +798,8 @@ namespace {
     // Pieces should be evaluated first (populate attack tables)
     score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
             + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>();
-    mobilityArea[WHITE] &= ~(attackedBy[BLACK][KNIGHT] | attackedBy[BLACK][BISHOP]);
-    mobilityArea[BLACK] &= ~(attackedBy[WHITE][KNIGHT] | attackedBy[WHITE][BISHOP]);
+    mobilityArea[WHITE] &= ~(test[BLACK]);
+    mobilityArea[BLACK] &= ~(test[WHITE]);
     score +=
              pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
