@@ -90,7 +90,7 @@ namespace {
 
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
-  constexpr Score MobilityBonus[4][4][32] = {
+  Score MoBo[4][4][32] = {
   {
     // Ranks 7+8
     { S(-62,-81), S(-53,-56), S(-12,-30), S( -4,-14), S(  3,  8), S( 13, 15), // Knight
@@ -156,6 +156,16 @@ namespace {
       S(106,184), S(109,191), S(113,206), S(116,212) }
   }
   };
+  std::pair<int,int> tune_range(int v)
+  {
+      if (std::abs(v) > 10)
+          return std::make_pair(v-10, v+10);
+      else if (v > 0)
+          return std::make_pair(0, 2*v);
+      else
+          return std::make_pair(2*v, 0);
+  }
+  TUNE(SetRange(tune_range), MoBo);
 
   // RookOnFile[semiopen/open] contains bonuses for each rook when there is
   // no (friendly) pawn on the rook file.
@@ -338,7 +348,7 @@ namespace {
         int mob = popcount(b & mobilityArea[Us]);
 
         const auto rr = relative_rank(Us, s);
-        mobility[Us] += MobilityBonus
+        mobility[Us] += MoBo
             [(rr < RANK_3) + (rr < RANK_5) + (rr < RANK_7)]
             [Pt - 2]
             [mob];
