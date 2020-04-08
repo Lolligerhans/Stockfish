@@ -715,7 +715,7 @@ namespace {
                     + 24 * infiltration
                     + 51 * !pos.non_pawn_material()
                     - 43 * almostUnwinnable
-                    +      std::abs(eg_value(mobility[WHITE] - mobility[BLACK])) / 8
+                    +      std::abs(eg_value(mobility[WHITE] - mobility[BLACK])) / 16
                     -110 ;
 
     Value mg = mg_value(score);
