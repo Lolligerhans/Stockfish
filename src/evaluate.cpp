@@ -567,7 +567,7 @@ namespace {
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
     }
 
-    score += make_score(-10, -20) * (sadCount[Us] * sadCount[Us]);
+    score += make_score(-10, -10) * (sadCount[Us] * sadCount[Us]);
 
     if (T)
         Trace::add(THREAT, Us, score);
