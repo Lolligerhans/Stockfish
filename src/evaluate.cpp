@@ -614,8 +614,10 @@ namespace {
             // If the pawn is free to advance, then increase the bonus
             if (pos.empty(blockSq))
             {
+                constexpr Bitboard midRanks = ~(Rank1BB | Rank8BB);
+
                 squaresToQueen = forward_file_bb(Us, s);
-                unsafeSquares = passed_pawn_span(Us, s) & ~attackedBy[Us][PAWN];
+                unsafeSquares = passed_pawn_span(Us, s) & (midRanks | squaresToQueen);
 
                 bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN);
 
