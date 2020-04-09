@@ -107,6 +107,9 @@ namespace {
 
         // A pawn is backward when it is behind all pawns of the same color on
         // the adjacent files and cannot safely advance.
+        const bool backwardPhalanx
+                 =  !(neighbours & forward_ranks_bb(Them, s))
+                  && (leverPush ||blocked);
         backward =  !(neighbours & forward_ranks_bb(Them, s + Up))
                   && (leverPush | blocked);
 
@@ -140,7 +143,13 @@ namespace {
             score += make_score(v, v * (r - 2) / 4);
         }
 
-        else if (!neighbours)
+        // +-------+
+        // | o . . | o  their pawns
+        // | . . . | x  our pawns
+        // | . x x |
+        // +-------+
+        //     ^ backwardPhalanx
+        else if (!neighbours || backwardPhalanx)
             score -=   Isolated
                      + WeakUnopposed * !opposed;
 
