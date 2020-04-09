@@ -287,9 +287,8 @@ namespace {
         }
 
         int mob = popcount(b & mobilityArea[Us]);
-        const Score mobScore = MobilityBonus[Pt - 2][mob];
-        if (eg_value(mobScore) < 0) ++sadCount[Us];
-        mobility[Us] += mobScore;
+        mobility[Us] += MobilityBonus[Pt - 2][mob];
+        if (mob <= 2) ++sadCount[Us];
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
