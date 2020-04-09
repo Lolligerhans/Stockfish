@@ -784,8 +784,9 @@ namespace {
     score += pe->pawn_score(WHITE) - pe->pawn_score(BLACK);
 
     // Early exit if score is high
-    Value v = (mg_value(score) + eg_value(score)) / 2;
-    if (abs(v) > LazyThreshold + pos.non_pawn_material() / 64)
+    Value mg = mg_value(score), eg = eg_value(score), v;
+    if (std::abs(eg - mg) < 256)
+    if (abs(v = (mg + eg) / 2) > LazyThreshold + pos.non_pawn_material() / 64)
        return pos.side_to_move() == WHITE ? v : -v;
 
     // Main evaluation begins here
