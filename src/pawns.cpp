@@ -118,9 +118,10 @@ namespace {
         // (a) there is no stoppers except some levers
         // (b) the only stoppers are the leverPush, but we outnumber them
         // (c) there is only one front stopper which can be levered.
+        const bool pushable = popcount(phalanx) >= popcount(leverPush);
         passed =   !(stoppers ^ lever)
                 || (   !(stoppers ^ leverPush)
-                    && popcount(phalanx) >= popcount(leverPush))
+                    && pushable)
                 || (   stoppers == blocked && r >= RANK_5
                     && (shift<Up>(support) & ~(theirPawns | doubleAttackThem)));
 
@@ -134,7 +135,7 @@ namespace {
         // Score this pawn
         if (support | phalanx)
         {
-            int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed))
+            int v =  Connected[r] * (2 + pushable - bool(opposed))
                    + 21 * popcount(support);
 
             score += make_score(v, v * (r - 2) / 4);
