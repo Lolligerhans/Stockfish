@@ -615,7 +615,7 @@ namespace {
             if (pos.empty(blockSq))
             {
                 squaresToQueen = forward_file_bb(Us, s);
-                unsafeSquares = passed_pawn_span(Us, s) & ~PawnAttacks[Us][s];
+                unsafeSquares = passed_pawn_span(Us, s) & ~attackedBy[Us][PAWN];
 
                 bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN);
 
