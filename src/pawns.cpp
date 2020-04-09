@@ -140,7 +140,7 @@ namespace {
             score += make_score(v, v * (r - 2) / 4);
         }
 
-        else if (!neighbours)
+        else if (!backward)
             score -=   Isolated
                      + WeakUnopposed * !opposed;
 
