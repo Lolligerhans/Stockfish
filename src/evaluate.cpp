@@ -189,6 +189,9 @@ namespace {
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
 
+    // pinned to our queen
+    Bitboard qPins[COLOR_NB] = {0, 0};
+
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
     int kingAttackersCount[COLOR_NB];
@@ -272,6 +275,8 @@ namespace {
 
         if (pos.blockers_for_king(Us) & s)
             b &= LineBB[pos.square<KING>(Us)][s];
+        else if (qPins[Us] & s)
+            b &= LineBB[lsb(pos.pieces(Us, QUEEN))][s];
 
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
         attackedBy[Us][Pt] |= b;
@@ -357,8 +362,11 @@ namespace {
         {
             // Penalty if any relative pin or discovered attack against the queen
             Bitboard queenPinners;
-            if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP) & ~attackedBy[Us][PAWN], s, queenPinners))
+            if ((qPins[Us] |= pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP) & ~attackedBy[Us][PAWN], s, queenPinners)))
                 score -= WeakQueen;
+
+            if (pos.count<QUEEN>(Us) > 1)
+                qPins[Us] = 0; // could not compute lineBB later
         }
     }
     if (T)
@@ -793,11 +801,13 @@ namespace {
     initialize<WHITE>();
     initialize<BLACK>();
 
+    // Compute qPins first
+    score +=  pieces<WHITE, QUEEN>() - pieces<BLACK, QUEEN>();
     // Pieces should be evaluated first (populate attack tables)
     score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
             + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
-            + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
+            ;
 
     score += mobility[WHITE] - mobility[BLACK];
 
