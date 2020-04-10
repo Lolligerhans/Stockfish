@@ -588,6 +588,9 @@ namespace {
 
     b = pe->passed_pawns(Us);
 
+    if (!more_than_one(b))
+        b &= ~shift<-Up>(pos.pieces(Them, PAWN));
+
     while (b)
     {
         Square s = pop_lsb(&b);
