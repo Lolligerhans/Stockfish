@@ -591,11 +591,15 @@ namespace {
     const Bitboard candidatePassers = b & shift<-Up>(pos.pieces(Them, PAWN));
     if (candidatePassers)
     {
-        // Also exclude candidate passers for which a lever is blocked by their
-        // non-pawn
-        const Bitboard leverable = shift<Up>(pos.pieces(Us, PAWN)) & ~pos.pieces(Them);
+        // Can we *actually* lever the blocker from our passers?
+        const Bitboard leverable = shift<Up>(pos.pieces(Us, PAWN))
+            & ~pos.pieces(Them)
+            & (~attackedBy2[Them] | attackedBy[Us][ALL_PIECES])
+            ;
         const Bitboard badCandidates = candidatePassers
             & ~(shift<WEST>(leverable) | shift<EAST>(leverable));
+
+        // Only keep passers which can be levered
         b &= ~badCandidates;
     }
 
