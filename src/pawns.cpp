@@ -118,12 +118,13 @@ namespace {
         // (b) the only stoppers are the leverPush, but we outnumber them
         // (c) there is only one front stopper which can be levered.
         //     or IS levered.
+        const Bitboard leveringAttacks = pawn_attacks_bb<Us>(ourPawns & ~doubleAttackThem);
         passed = (   !(stoppers ^ leverPush)
                     && popcount(phalanx) >= popcount(leverPush))
                 || (   stoppers == blocked
                     && r >= RANK_5
                     && (  (shift<Up>(support) & ~(theirPawns | doubleAttackThem))
-                       || (blocked & e->pawnAttacks[Us])
+                       || (blocked & leveringAttacks)
                        )
                    );
 
