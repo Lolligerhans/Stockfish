@@ -588,6 +588,17 @@ namespace {
 
     b = pe->passed_pawns(Us);
 
+    const Bitboard candidatePassers = b & shift<-Up>(pos.pieces(Them, PAWN));
+    if (candidatePassers)
+    {
+        // Also exclude candidate passers for which a lever is blocked by their
+        // non-pawn
+        const Bitboard leverable = shift<Up>(pos.pieces(Us, PAWN)) & ~pos.pieces(Them);
+        const Bitboard badCandidates = candidatePassers
+            & ~(shift<WEST>(leverable) | shift<EAST>(leverable));
+        b &= ~badCandidates;
+    }
+
     while (b)
     {
         Square s = pop_lsb(&b);
