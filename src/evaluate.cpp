@@ -591,15 +591,17 @@ namespace {
     const Bitboard candidatePassers = b & shift<-Up>(pos.pieces(Them, PAWN));
     if (candidatePassers)
     {
-        // Can we *actually* lever the blocker from our passers?
+        // Can we *actually* lever the blocker from our candidate passers?
         const Bitboard leverable = shift<Up>(pos.pieces(Us, PAWN))
             & ~pos.pieces(Them)
             & (~attackedBy2[Them] | attackedBy[Us][ALL_PIECES])
+            & (~(attackedBy[Them][KNIGHT] | attackedBy[Them][BISHOP])
+              | (attackedBy[Us  ][KNIGHT] | attackedBy[Us  ][BISHOP]))
             ;
         const Bitboard badCandidates = candidatePassers
             & ~(shift<WEST>(leverable) | shift<EAST>(leverable));
 
-        // Only keep passers which can be levered
+        // Only keep candidate passers which can be levered
         b &= ~badCandidates;
     }
 
