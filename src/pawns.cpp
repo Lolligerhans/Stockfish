@@ -81,8 +81,6 @@ namespace {
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-    Bitboard doubleAttackThem = pawn_double_attacks_bb<Them>(theirPawns);
-
     e->passedPawns[Us] = 0;
     e->kingSquares[Us] = SQ_NONE;
     e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
@@ -121,8 +119,7 @@ namespace {
         passed =   !(stoppers ^ lever)
                 || (   !(stoppers ^ leverPush)
                     && popcount(phalanx) >= popcount(leverPush))
-                || (   stoppers == blocked && r >= RANK_5
-                    && (shift<Up>(support) & ~(theirPawns | doubleAttackThem)));
+                ;
 
         passed &= !(forward_file_bb(Us, s) & ourPawns);
 
