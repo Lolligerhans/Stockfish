@@ -636,6 +636,8 @@ namespace {
 
                 bonus += make_score(k * w, k * w);
             }
+            else
+                bonus = make_score(0, eg_value(bonus));
         } // r > RANK_3
 
         score += bonus - PassedFile * edge_distance(file_of(s));
