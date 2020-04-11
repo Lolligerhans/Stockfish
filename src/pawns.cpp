@@ -70,6 +70,7 @@ namespace {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Up   = pawn_push(Us);
+    constexpr auto Down = -Up;
 
     Bitboard neighbours, stoppers, support, phalanx, opposed;
     Bitboard lever, leverPush, blocked;
@@ -86,7 +87,15 @@ namespace {
     e->passedPawns[Us] = 0;
     e->kingSquares[Us] = SQ_NONE;
     e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
-    e->spaceWeight[Us] = 0;
+
+    constexpr Bitboard SpaceFiles = AllSquares
+                                  & ~FileABB
+                                  & ~FileHBB;
+    // PAWNS being blocked
+    Bitboard spaceBlock = shift<Down>( (theirPawns | doubleAttackThem)
+                                     & ~e->pawnAttacks[Us])
+                        & ourPawns
+                        & SpaceFiles; // exclude sides like viz for now
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -106,7 +115,9 @@ namespace {
         phalanx    = neighbours & rank_bb(s);
         support    = neighbours & rank_bb(s - Up);
 
-        e->spaceWeight[Us] += file_of(s) > FILE_B && file_of(s) < FILE_G && blocked;
+        // Transform to FILES being blocked
+        if (spaceBlock & s)
+            spaceBlock |= file_bb(s);
 
         // A pawn is backward when it is behind all pawns of the same color on
         // the adjacent files and cannot safely advance.
@@ -155,6 +166,11 @@ namespace {
             score -=   Doubled * doubled
                      + WeakLever * more_than_one(lever);
     }
+
+    // Count number of pairs of blocked files
+    e->spaceWeight[Us] = popcount(spaceBlock
+                                 &shift<WEST>(spaceBlock)
+                                 &Rank1BB);
 
     return score;
   }
