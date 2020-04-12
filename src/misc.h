@@ -21,11 +21,11 @@
 #ifndef MISC_H_INCLUDED
 #define MISC_H_INCLUDED
 
+#include <array>
 #include <cassert>
 #include <chrono>
 #include <ostream>
 #include <string>
-#include <vector>
 
 #include "types.h"
 
@@ -54,7 +54,7 @@ struct HashTable {
   Entry* operator[](Key key) { return &table[(uint32_t)key & (Size - 1)]; }
 
 private:
-  std::vector<Entry> table = std::vector<Entry>(Size); // Allocate on the heap
+  std::array<Entry, Size> table{};
 };
 
 
