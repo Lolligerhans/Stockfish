@@ -596,7 +596,8 @@ namespace {
             & ~pos.pieces(Them)
             & (~attackedBy2[Them] | attackedBy[Us][ALL_PIECES])
             & (~(attackedBy[Them][KNIGHT] | attackedBy[Them][BISHOP])
-              | (attackedBy[Us  ][KNIGHT] | attackedBy[Us  ][BISHOP]))
+              | attackedBy[Us  ][KNIGHT] | attackedBy[Us  ][BISHOP]
+              | attackedBy[Us  ][PAWN  ])
             ;
         const Bitboard badCandidates = candidatePassers
             & ~(shift<WEST>(leverable) | shift<EAST>(leverable));
