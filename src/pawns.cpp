@@ -172,7 +172,7 @@ namespace {
 
                 // "tripleThreat" configuration found! Apply some form of bonus.
 //                e->passedPawns[Us] |= s;
-                score += make_score(0, 15);
+                score += make_score(10, 10);
 
             } nothing: // No "tripleThreat" changes
 
