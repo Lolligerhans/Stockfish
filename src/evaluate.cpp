@@ -595,7 +595,9 @@ namespace {
         // Can we lever the blocker of a candidate passer?
         leverable =  shift<Up>(pos.pieces(Us, PAWN))
                    & ~pos.pieces(Them)
-                   & (~attackedBy2[Them] | attackedBy[Us][ALL_PIECES])
+                   & (~attackedBy2[Them]
+                     | ( attackedBy[Us][ALL_PIECES]
+                       & (~attackedBy[Us][KING] | attackedBy2[Us])))
                    & (~(attackedBy[Them][KNIGHT] | attackedBy[Them][BISHOP])
                      | (attackedBy[Us  ][KNIGHT] | attackedBy[Us  ][BISHOP]));
 
