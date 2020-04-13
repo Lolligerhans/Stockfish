@@ -341,6 +341,7 @@ namespace {
                 score += RookOnQueenFile;
 
             // Bonus for rook on an open or semi-open file
+            if (!(pos.pieces(Them, PAWN) & attackedBy[Them][PAWN] & file_bb(s)))
             if (pos.is_on_semiopen_file(Us, s))
                 score += RookOnFile[pos.is_on_semiopen_file(Them, s)];
 
