@@ -138,6 +138,43 @@ namespace {
         // Score this pawn
         if (support | phalanx)
         {
+            // Compute "tripleThreat" bonus for 3 pawns facing their 2, but
+            // they are far apart that the scoring does not see a passer yet.
+            {
+                Bitboard counters, f, fW, fE;
+                bool undisturbed, protec2, atac2;
+
+                // The 3 files we are working on
+                f = file_bb(s);
+                fW = shift<WEST>(f);
+                fE = shift<EAST>(f);
+
+                // No other pawns are influencing our 3 files from the outside
+                undisturbed = !(pos.pieces(PAWN) & shift<2*WEST>(f))
+                           && !(pos.pieces(PAWN) & shift<2*EAST>(f));
+                if (!undisturbed) goto nothing;
+
+                // We have (at least) 3 non-doubled pawns
+                protec2 = fW & neighbours
+                       && fE & neighbours;
+                if (!protec2) goto nothing;
+
+                // They have (at most) 2 pawns in any configuration
+                counters = theirPawns & (f | fW | fE);
+                if (counters)
+                {
+                    atac2  = popcount(counters) < 3
+                    // Require at least 1 pawn-free rank in-between ours and theirs
+                        && !(shift<-Up>(passed_pawn_span(Us, frontmost_sq(Them, counters)+-Up))
+                            &ourPawns);
+                    if (!atac2) goto nothing;
+                }
+
+                // "tripleThreat" configuration found! Apply some form of bonus.
+                e->passedPawns[Us] |= s;
+
+            } nothing: // No "tripleThreat" changes
+
             int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed))
                    + 21 * popcount(support);
 
