@@ -139,18 +139,20 @@ namespace {
 
             score += make_score(v, v * (r - 2) / 4);
         }
+        else
+        {
+            score -=   Doubled * doubled
+                     + WeakLever * more_than_one(lever);
 
-        else if (!neighbours)
+        if (!neighbours)
             score -=   Isolated
                      + WeakUnopposed * !opposed;
 
         else if (backward)
             score -=   Backward
                      + WeakUnopposed * !opposed;
+        }
 
-        if (!support)
-            score -=   Doubled * doubled
-                     + WeakLever * more_than_one(lever);
     }
 
     return score;
