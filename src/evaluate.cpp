@@ -597,7 +597,9 @@ namespace {
                    & ~pos.pieces(Them)
                    & (~attackedBy2[Them]
                      | ( attackedBy[Us][ALL_PIECES]
-                       & (~attackedBy[Us][KING] | attackedBy2[Us])))
+                       & (~attackedBy[Us  ][KING]
+                         | attackedBy[Them][KING]
+                         | attackedBy2[Us])))
                    & (~(attackedBy[Them][KNIGHT] | attackedBy[Them][BISHOP])
                      | (attackedBy[Us  ][KNIGHT] | attackedBy[Us  ][BISHOP]));
 
