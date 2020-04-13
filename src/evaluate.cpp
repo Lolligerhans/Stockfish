@@ -101,17 +101,17 @@ namespace {
       S( 46,166), S( 48,169), S( 58,171) },
     {
 //    S(-39,-36),
-//S(-21,-15),
+S(-21,-15),
 S(  3,  8),
 //S(  3, 18),
 S( 14, 34),
-//S( 22, 54), // Queen
+S( 22, 54), // Queen
       S( 28, 61),
 S( 41, 73),
 //S( 43, 79),
 S( 48, 92),
 S( 56, 94),
-//S( 60,104),
+S( 60,104),
       S( 60,113),
 S( 66,120),
 S( 67,123),
@@ -121,7 +121,7 @@ S( 73,136),
       S( 79,140),
 S( 88,143),
 S( 88,148),
-//S( 99,166),
+S( 99,166),
 S(102,170),
 S(102,175),
       S(106,184),
@@ -310,7 +310,8 @@ S(116,212) }
 
         int mob;
         if (Pt == QUEEN)
-            mob = popcount(b & mobilityArea[Us] & ~PseudoAttacks[KING][s]);
+            mob = popcount(b & mobilityArea[Us] & ~PseudoAttacks[KING][s])
+                + popcount(b & mobilityArea[Us] &  PseudoAttacks[KING][s]) / 2;
         else
             mob = popcount(b & mobilityArea[Us]);
 
