@@ -666,7 +666,7 @@ bool Position::gives_check(Move m) const {
   case CASTLING:
   {
       Square kfrom = from;
-      Square rfrom = to; // Castling is encoded as 'King captures the rook'
+      Square rfrom = to; // Castling is encoded as 'king captures the rook'
       Square kto = relative_square(sideToMove, rfrom > kfrom ? SQ_G1 : SQ_C1);
       Square rto = relative_square(sideToMove, rfrom > kfrom ? SQ_F1 : SQ_D1);
 
@@ -1121,10 +1121,7 @@ bool Position::is_draw(int ply) const {
 
   // Return a draw score if a position repeats once earlier but strictly
   // after the root, or repeats twice before or at the root.
-  if (st->repetition && st->repetition < ply)
-      return true;
-
-  return false;
+  return st->repetition && st->repetition < ply;
 }
 
 

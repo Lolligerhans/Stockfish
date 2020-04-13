@@ -68,7 +68,7 @@ namespace {
   template<Color Us>
   Score evaluate(const Position& pos, Pawns::Entry* e, Bitboard& sp2) {
 
-    constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
+    constexpr Color     Them = ~Us;
     constexpr Direction Up   = pawn_push(Us);
 
     Bitboard neighbours, stoppers, support, phalanx, opposed;
@@ -124,6 +124,8 @@ namespace {
                     && popcount(phalanx) >= popcount(leverPush))
                 || (   stoppers == blocked && r >= RANK_5
                     && (shift<Up>(support) & ~(theirPawns | doubleAttackThem)));
+
+        passed &= !(forward_file_bb(Us, s) & ourPawns);
 
         // Passed pawns will be properly scored later in evaluation when we have
         // full attack info.
@@ -416,7 +418,7 @@ nospan:
 template<Color Us>
 Score Entry::evaluate_shelter(const Position& pos, Square ksq) {
 
-  constexpr Color Them = (Us == WHITE ? BLACK : WHITE);
+  constexpr Color Them = ~Us;
 
   Bitboard b = pos.pieces(PAWN) & ~forward_ranks_bb(Them, ksq);
   Bitboard ourPawns = b & pos.pieces(Us);
@@ -433,7 +435,7 @@ Score Entry::evaluate_shelter(const Position& pos, Square ksq) {
       b = theirPawns & file_bb(f);
       int theirRank = b ? relative_rank(Us, frontmost_sq(Them, b)) : 0;
 
-      File d = edge_distance(f);
+      File d = File(edge_distance(f));
       bonus += make_score(ShelterStrength[d][ourRank], 0);
 
       if (ourRank && (ourRank == theirRank - 1))
