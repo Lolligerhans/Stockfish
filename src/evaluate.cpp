@@ -708,8 +708,6 @@ namespace {
 
     int pawnSnacks = 0;
 
-    // In bishop-only ending, if we can not attack any pawn with our bishop,
-    // -30 complexity. 0 complexity if we can attack 3. Rest linear.
     if (pos.non_pawn_material(us) == BishopValueMg)
     {
         Bitboard atkPawns = pos.pieces(~us, PAWN);
@@ -718,7 +716,7 @@ namespace {
         else
             atkPawns &= ~DarkSquares;
 
-        pawnSnacks = 3 - popcount(atkPawns);
+        pawnSnacks = -3 + popcount(atkPawns);
     }
 
     bool almostUnwinnable =   outflanking < 0
