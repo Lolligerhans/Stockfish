@@ -341,7 +341,10 @@ namespace {
                 score += RookOnQueenFile;
 
             // Bonus for rook on an open or semi-open file
-            if (pos.is_on_semiopen_file(Us, s))
+            const Bitboard blkPawns = pos.pieces(Us, PAWN)
+                                    & shift<Down>(~attackedBy[Us][PAWN]
+                                                 | pos.pieces());
+            if (!(blkPawns & file_bb(s)))
                 score += RookOnFile[pos.is_on_semiopen_file(Them, s)];
 
             // Penalty when trapped by the king, even more if the king cannot castle
