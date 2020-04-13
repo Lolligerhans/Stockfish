@@ -716,7 +716,7 @@ namespace {
         else
             atkPawns &= ~DarkSquares;
 
-        pawnSnacks = -3 + popcount(atkPawns);
+        pawnSnacks = -4 + popcount(atkPawns);
     }
 
     bool almostUnwinnable =   outflanking < 0
@@ -733,7 +733,7 @@ namespace {
                     + 24 * infiltration
                     + 51 * !pos.non_pawn_material()
                     - 43 * almostUnwinnable
-                    + 10 * pawnSnacks
+                    + 15 * pawnSnacks
                     -110 ;
 
     // Now apply the bonus: note that we find the attacking side by extracting the
