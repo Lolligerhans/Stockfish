@@ -145,8 +145,23 @@ namespace {
                      + WeakUnopposed * !opposed;
 
         else if (backward)
+        {
+            const File f = file_of(s);
+            if (f != FILE_A && f != FILE_H)
+            {
+                const Bitboard anyPawn = pos.pieces(PAWN);
+                const Bitboard fi = file_bb(f);
+                const bool onEdge = 1 ==
+                    ( bool(anyPawn & shift<WEST>(fi))
+                    + bool(anyPawn & shift<EAST>(fi)));
+
+                if (onEdge)
+                    score -= Isolated;
+            }
+
             score -=   Backward
                      + WeakUnopposed * !opposed;
+        }
 
         if (!support)
             score -=   Doubled * doubled
