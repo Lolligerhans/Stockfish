@@ -65,31 +65,61 @@ namespace {
   #undef S
   #undef V
 
-  template<Color Us>
-  Score evaluate(const Position& pos, Pawns::Entry* e) {
 
+} // namespace
+
+namespace Pawns {
+class PawnEval : public Entry
+{
+    Position const& pos;
+
+    Bitboard pawns[COLOR_NB];
+
+public:
+    PawnEval(Key k, Position const& p)
+      : Entry{},
+        pos(p),
+        pawns{pos.pieces(WHITE, PAWN), pos.pieces(BLACK, PAWN)}
+    {
+        this->key = k;
+//        this->passedPawns [WHITE] = 0;
+//        this->passedPawns [BLACK] = 0;
+//        this->blockedCount[WHITE] = 0;
+//        this->blockedCount[BLACK] = 0;
+//        this->kingSquares [WHITE] = SQ_NONE;
+//        this->kingSquares [BLACK] = SQ_NONE;
+
+        evaluate<WHITE>();
+        evaluate<BLACK>();
+    }
+
+    template<Color Us>
+    void evaluate();
+};
+
+template<Color Us>
+void PawnEval::evaluate()
+{
     constexpr Color     Them = ~Us;
     constexpr Direction Up   = pawn_push(Us);
 
+    Bitboard const& ourPawns   = pawns[Us];
+    Bitboard const& theirPawns = pawns[Them];
+
+    this->pawnAttacks    [Us] =
+    this->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
+
     Bitboard neighbours, stoppers, support, phalanx, opposed;
     Bitboard lever, leverPush, blocked;
-    Square s;
     bool backward, passed, doubled;
-    Score score = SCORE_ZERO;
-    const Square* pl = pos.squares<PAWN>(Us);
-
-    Bitboard ourPawns   = pos.pieces(  Us, PAWN);
-    Bitboard theirPawns = pos.pieces(Them, PAWN);
 
     Bitboard doubleAttackThem = pawn_double_attacks_bb<Them>(theirPawns);
 
-    e->passedPawns[Us] = 0;
-    e->kingSquares[Us] = SQ_NONE;
-    e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
-    e->blockedCount[Us] = 0;
+    Score score = SCORE_ZERO;
 
     // Loop through all pawns of the current color and score each pawn
-    while ((s = *pl++) != SQ_NONE)
+    Square s;
+    for (auto pl = pos.squares<PAWN>(Us); (s = *pl) != SQ_NONE; ++pl)
     {
         assert(pos.piece_on(s) == make_piece(Us, PAWN));
 
@@ -106,7 +136,7 @@ namespace {
         phalanx    = neighbours & rank_bb(s);
         support    = neighbours & rank_bb(s - Up);
 
-        e->blockedCount[Us] += bool(blocked);
+        this->blockedCount[Us] += bool(blocked);
 
         // A pawn is backward when it is behind all pawns of the same color on
         // the adjacent files and cannot safely advance.
@@ -115,7 +145,7 @@ namespace {
 
         // Compute additional span if pawn is not backward nor blocked
         if (!backward && !blocked)
-            e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
+            this->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
 
         // A pawn is passed if one of the three following conditions is true:
         // (a) there is no stoppers except some levers
@@ -133,7 +163,7 @@ namespace {
         // Passed pawns will be properly scored later in evaluation when we have
         // full attack info.
         if (passed)
-            e->passedPawns[Us] |= s;
+            this->passedPawns[Us] |= s;
 
         // Score this pawn
         if (support | phalanx)
@@ -157,8 +187,8 @@ namespace {
                      + WeakLever * more_than_one(lever);
     }
 
-    return score;
-  }
+    this->pawnScore[Us] = score;
+}
 
 } // namespace
 
@@ -177,9 +207,7 @@ Entry* probe(const Position& pos) {
   if (e->key == key)
       return e;
 
-  e->key = key;
-  e->scores[WHITE] = evaluate<WHITE>(pos, e);
-  e->scores[BLACK] = evaluate<BLACK>(pos, e);
+  *e = PawnEval(key, pos);
 
   return e;
 }
