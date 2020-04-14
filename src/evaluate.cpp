@@ -345,20 +345,13 @@ namespace {
             if (pos.is_on_semiopen_file(Us, s))
                 score += RookOnFile[pos.is_on_semiopen_file(Them, s)];
 
-            else
+            // Penalty when trapped by the king, even more if the king cannot castle
+            else if (mob <= 3)
             {
-                // Penalty when trapped by the king, even more if the king cannot castle
-                if (mob <= 3)
-                {
-                    File kf = file_of(pos.square<KING>(Us));
-                    if ((kf < FILE_E) == (file_of(s) < kf))
-                        score -= TrappedRook * (1 + !pos.castling_rights(Us));
-                }
-
-                // Penalty for rook behind a supported pawn
-                if (forward_file_bb(Us, s) & pos.pieces(Us, PAWN) & attackedBy[Us][PAWN])
-                    score -= RookBehindPawn;
-             }
+                File kf = file_of(pos.square<KING>(Us));
+                if ((kf < FILE_E) == (file_of(s) < kf))
+                    score -= TrappedRook * (1 + !pos.castling_rights(Us));
+            }
         }
 
         if (Pt == QUEEN)
@@ -598,7 +591,7 @@ namespace {
     b = pe->passed_pawns(Us);
 
     candidatePassers = b & shift<Down>(pos.pieces(Them, PAWN));
-    if (candidatePassers)
+    if (candidatePassers || pos.pieces(Us, ROOK))
     {
         // Can we lever the blocker of a candidate passer?
         leverable =  shift<Up>(pos.pieces(Us, PAWN))
@@ -606,11 +599,23 @@ namespace {
                    & (~attackedBy2[Them] | attackedBy[Us][ALL_PIECES])
                    & (~(attackedBy[Them][KNIGHT] | attackedBy[Them][BISHOP])
                      | (attackedBy[Us  ][KNIGHT] | attackedBy[Us  ][BISHOP]));
-
+        const Bitboard
+        levered = shift<WEST>(leverable)
+                | shift<EAST>(leverable);
         // Remove candidate otherwise
-        b &= ~candidatePassers
-            | shift<WEST>(leverable)
-            | shift<EAST>(leverable);
+        b &= ~candidatePassers | levered;
+
+        for (bb = pos.pieces(Us, ROOK); bb;)
+        {
+            Square s = pop_lsb(&bb);
+            if ( forward_file_bb(Us, s)
+               & pos.pieces(Us, PAWN)
+               & attackedBy[Us][PAWN]
+               &~levered)
+            {
+                score -= RookBehindPawn;
+            }
+        }
     }
 
     while (b)
