@@ -590,8 +590,6 @@ namespace {
     b = pe->passed_pawns(Us);
 
     candidatePassers = b & shift<Down>(pos.pieces(Them, PAWN));
-    if (candidatePassers)
-    {
         // Can we lever the blocker of a candidate passer?
         leverable =  shift<Up>(pos.pieces(Us, PAWN))
                    & ~pos.pieces(Them)
@@ -603,7 +601,12 @@ namespace {
         b &= ~candidatePassers
             | shift<WEST>(leverable)
             | shift<EAST>(leverable);
-    }
+
+    score += make_score(10,10) * popcount(shift<Up>(pos.pieces(Us, PAWN)
+                & attackedBy[Them][PAWN]
+                & ~pawn_double_attacks_bb<Them>(pos.pieces(Them, PAWN))
+                & leverable
+                & attackedBy[Us][ALL_PIECES]));
 
     while (b)
     {
