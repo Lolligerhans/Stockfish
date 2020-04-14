@@ -610,6 +610,7 @@ namespace {
             Square s = pop_lsb(&bb);
             if ( forward_file_bb(Us, s)
                & pos.pieces(Us, PAWN)
+               & shift<Down>(pos.pieces(Them))
                & attackedBy[Us][PAWN]
                &~levered)
             {
