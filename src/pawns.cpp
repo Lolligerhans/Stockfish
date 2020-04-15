@@ -106,8 +106,6 @@ namespace {
         phalanx    = neighbours & rank_bb(s);
         support    = neighbours & rank_bb(s - Up);
 
-        e->blockedCount[Us] += bool(blocked || more_than_one(leverPush));
-
         // A pawn is backward when it is behind all pawns of the same color on
         // the adjacent files and cannot safely advance.
         backward =  !(neighbours & forward_ranks_bb(Them, s + Up))
@@ -129,6 +127,9 @@ namespace {
                     && (shift<Up>(support) & ~(theirPawns | doubleAttackThem)));
 
         passed &= !(forward_file_bb(Us, s) & ourPawns);
+
+        e->blockedCount[Us] += bool(blocked || more_than_one(leverPush) || passed);
+
 
         // Passed pawns will be properly scored later in evaluation when we have
         // full attack info.
