@@ -145,8 +145,8 @@ namespace {
         const Bitboard fE = shift<EAST>(fM);
         const bool noWedge =
                        fM & alive
-            || (fW && (fW & alive || !(fW & ourPawns)))
-            || (fE && (fE & alive || !(fE & ourPawns)));
+            || (fW & alive || !(fW & ourPawns))
+            || (fE & alive || !(fE & ourPawns));
 
 
         // Score this pawn
