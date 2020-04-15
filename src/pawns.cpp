@@ -88,6 +88,11 @@ namespace {
     e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
     e->blockedCount[Us] = 0;
 
+    Bitboard const dead = /*ourPawns &*/
+                    shift<-Up>(theirPawns | doubleAttackThem)
+                  & ~pawn_attacks_bb<Them>(theirPawns);
+    Bitboard const alive = ~dead & ourPawns;
+
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
     {
@@ -135,8 +140,17 @@ namespace {
         if (passed)
             e->passedPawns[Us] |= s;
 
+        const Bitboard fM = file_bb(s);
+        const Bitboard fW = shift<WEST>(fM);
+        const Bitboard fE = shift<EAST>(fM);
+        const bool noWedge =
+                       fM & alive
+            || (fW && (fW & alive || !(fW & ourPawns)))
+            || (fE && (fE & alive || !(fE & ourPawns)));
+
+
         // Score this pawn
-        if (support | phalanx)
+        if ((support | phalanx) && noWedge)
         {
             int v =  Connected[r] * (4 + 2 * bool(phalanx) - 2 * bool(opposed) - bool(blocked)) / 2
                    + 21 * popcount(support);
