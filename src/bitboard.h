@@ -162,8 +162,8 @@ inline Bitboard file_bb(Square s) {
 template<Direction D>
 constexpr Bitboard shift(Bitboard b) {
     return (D < 0 ? Bitboards::lsr : Bitboards::lsl)
-        ( (D - WEST) % NORTH == 0 ? b & ~FileABB :
-          (D - EAST) % NORTH == 0 ? b & ~FileHBB : b
+        ( has_yaw(D, WEST) ? b & ~FileABB :
+          has_yaw(D, EAST) ? b & ~FileHBB : b
         , std::abs(D));
 }
 

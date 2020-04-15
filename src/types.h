@@ -464,4 +464,8 @@ constexpr bool is_ok(Move m) {
   return from_sq(m) != to_sq(m); // Catch MOVE_NULL and MOVE_NONE
 }
 
+constexpr bool has_yaw(Direction D, Direction y) {
+  return (D - y) % NORTH == 0;
+}
+
 #endif // #ifndef TYPES_H_INCLUDED
