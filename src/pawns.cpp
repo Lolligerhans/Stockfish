@@ -276,8 +276,9 @@ Bitboard Entry::compute_fixed(const Position& pos, Bitboard const& sp2) &
         const Bitboard lowPressure  = ourPawns & ~iterSpan2;
         const Bitboard ganks        = pawn_double_attacks_bb<Us>(lowPressure);
 
-        totalConsidered            |= faceOffs;
-        totalConsidered1           |= ganks;
+//        totalConsidered            |= faceOffs;
+//        totalConsidered1           |= ganks;
+        totalConsidered           |= ganks;
 
         Bitboard considered         = totalConsidered & ~totalUntouchable; // sqaures which MIGHT block opponents, if they are outside of any attack span
         Bitboard untouchable        = considered & ~iterSpan;
