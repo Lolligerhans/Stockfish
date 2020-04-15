@@ -128,8 +128,7 @@ namespace {
 
         passed &= !(forward_file_bb(Us, s) & ourPawns);
 
-        e->blockedCount[Us] += bool(blocked || more_than_one(leverPush) || passed);
-
+        e->blockedCount[Us] += bool(blocked || more_than_one(leverPush));
 
         // Passed pawns will be properly scored later in evaluation when we have
         // full attack info.
