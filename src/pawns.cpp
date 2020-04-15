@@ -144,15 +144,12 @@ namespace {
 
 
         // Score this pawn
-        if (support | phalanx)
+        if ((support | phalanx) && noWedge)
         {
             int v =  Connected[r] * (4 + 2 * bool(phalanx) - 2 * bool(opposed) - bool(blocked)) / 2
                    + 21 * popcount(support);
 
             score += make_score(v, v * (r - 2) / 4);
-
-            if (noWedge)
-                score -= make_score(15*r, 15*r);
         }
 
         else if (!neighbours)
