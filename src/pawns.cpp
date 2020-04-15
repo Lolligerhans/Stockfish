@@ -85,7 +85,7 @@ namespace {
 
     e->passedPawns[Us] = 0;
     e->kingSquares[Us] = SQ_NONE;
-    e->pawnAttacks[Us] = e->smartSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
+    e->pawnAttacks[Us] = pawn_attacks_bb<Us>(ourPawns);
     e->blockedCount[Us] = 0;
 
     if (Us == WHITE)
