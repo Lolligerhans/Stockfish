@@ -53,7 +53,10 @@ struct Entry {
   Score evaluate_shelter(const Position& pos, Square ksq);
 
   template<Color Us>
-  void compute_fixed(const Position& pos, Bitboard&) &;
+  Bitboard compute_fixed(const Position& pos, Bitboard const&) &;
+
+  template<Color Us>
+  void compute_span(const Position& pos, Bitboard&) &;
 
   Key key;
   Score scores[COLOR_NB];

@@ -66,7 +66,7 @@ namespace {
   #undef V
 
   template<Color Us>
-  Score evaluate(const Position& pos, Pawns::Entry* e, Bitboard& sp2) {
+  Score evaluate(const Position& pos, Pawns::Entry* e, Bitboard const& fix) {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Up   = pawn_push(Us);
@@ -83,7 +83,7 @@ namespace {
 
     Bitboard doubleAttackThem = pawn_double_attacks_bb<Them>(theirPawns);
 
-    e->passedPawns[Us] = e->smartSpan[Us] = sp2 = 0;
+    e->passedPawns[Us] = 0;
     e->kingSquares[Us] = SQ_NONE;
     e->pawnAttacks[Us] = e->smartSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
     e->blockedCount[Us] = 0;
@@ -94,10 +94,6 @@ namespace {
         assert(pos.piece_on(s) == make_piece(Us, PAWN));
 
         Rank r = relative_rank(Us, s);
-
-        const Bitboard span = pawn_attack_span(Us, s);
-        sp2 |= e->smartSpan[Us] & span;
-        e->smartSpan[Us] |= span;
 
         // Flag the pawn
         opposed    = theirPawns & forward_file_bb(Us, s);
@@ -179,14 +175,37 @@ Entry* probe(const Position& pos) {
       return e;
 
   e->key = key;
-  Bitboard sp2[COLOR_NB];
-  e->scores[WHITE] = evaluate<WHITE>(pos, e, sp2[WHITE]);
-  e->scores[BLACK] = evaluate<BLACK>(pos, e, sp2[BLACK]);
 
-  e->compute_fixed<WHITE>(pos, sp2[BLACK]);
-  e->compute_fixed<BLACK>(pos, sp2[WHITE]);
+  // compute cheapspan and cheapspan2
+  Bitboard sp2[COLOR_NB];
+  e->compute_span<WHITE>(pos, sp2[WHITE]);
+  e->compute_span<BLACK>(pos, sp2[BLACK]);
+
+  // replace their span with smart span, return their fixed
+  Bitboard fix[COLOR_NB];
+  fix[BLACK] = e->compute_fixed<WHITE>(pos, sp2[BLACK]);
+  fix[WHITE] = e->compute_fixed<BLACK>(pos, sp2[WHITE]);
+
+  // now we can use fixed in evaluation
+  e->scores[WHITE] = evaluate<WHITE>(pos, e, fix[WHITE]);
+  e->scores[BLACK] = evaluate<BLACK>(pos, e, fix[BLACK]);
 
   return e;
+}
+
+template<Color Us>
+void Entry::compute_span(const Position& pos, Bitboard& sp2) &
+{
+    smartSpan[Us] = 0;
+    sp2 = 0;
+
+    Square s;
+    for (auto pl = pos.squares<PAWN>(Us); (s = *pl) != SQ_NONE; ++pl)
+    {
+        const Bitboard span = pawn_attack_span(Us, s);
+        sp2 |= smartSpan[Us] & span;
+        smartSpan[Us] |= span;
+    }
 }
 
 // TODO
@@ -205,7 +224,7 @@ Entry* probe(const Position& pos) {
 //  +-------+
 
 template<Color Us>
-void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
+Bitboard Entry::compute_fixed(const Position& pos, Bitboard const& sp2) &
 {
     constexpr Color Them    = ~Us;
 
@@ -381,12 +400,12 @@ void Entry::compute_fixed(const Position& pos, Bitboard& sp2) &
     }
 
     this->smartSpan[Them] = iterSpan;
-    return;
+    return totalFix;
 
 nospan:
     /* nothing */
 //    this->smartSpan[Them] = this->pawnAttacksSpan[Them];
-    return;
+    return totalFix;
 
 }
 
