@@ -37,6 +37,9 @@ namespace Bitboards {
 void init();
 const std::string pretty(Bitboard b);
 
+constexpr Bitboard lsl(Bitboard b, int s) { return b << s; }
+constexpr Bitboard lsr(Bitboard b, int s) { return b >> s; }
+
 }
 
 constexpr Bitboard AllSquares = ~Bitboard(0);
@@ -158,12 +161,10 @@ inline Bitboard file_bb(Square s) {
 
 template<Direction D>
 constexpr Bitboard shift(Bitboard b) {
-  return  D == NORTH      ?  b             << 8 : D == SOUTH      ?  b             >> 8
-        : D == NORTH+NORTH?  b             <<16 : D == SOUTH+SOUTH?  b             >>16
-        : D == EAST       ? (b & ~FileHBB) << 1 : D == WEST       ? (b & ~FileABB) >> 1
-        : D == NORTH_EAST ? (b & ~FileHBB) << 9 : D == NORTH_WEST ? (b & ~FileABB) << 7
-        : D == SOUTH_EAST ? (b & ~FileHBB) >> 7 : D == SOUTH_WEST ? (b & ~FileABB) >> 9
-        : 0;
+    return (D < 0 ? Bitboards::lsr : Bitboards::lsl)
+        ( (D - WEST) % NORTH == 0 ? b & ~FileABB :
+          (D - EAST) % NORTH == 0 ? b & ~FileHBB : b
+        , std::abs(D));
 }
 
 
