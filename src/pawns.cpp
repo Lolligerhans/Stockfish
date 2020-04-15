@@ -66,7 +66,7 @@ namespace {
   #undef V
 
   template<Color Us>
-  Score evaluate(const Position& pos, Pawns::Entry* e, Bitboard& b) {
+  Score evaluate(const Position& pos, Pawns::Entry* e, Bitboard const& fix) {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Up   = pawn_push(Us);
@@ -85,7 +85,7 @@ namespace {
 
     e->passedPawns[Us] = 0;
     e->kingSquares[Us] = SQ_NONE;
-    e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
+    e->pawnAttacks[Us] = e->smartSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
     e->blockedCount[Us] = 0;
 
     if (Us == WHITE)
@@ -119,13 +119,10 @@ namespace {
         e->blockedCount[Us] += bool(blocked);
 
         // A pawn is backward when it is behind all pawns of the same color on
-        // the adjacent files and cannot safely advance.
+        // the adjacent files and cannot safely advance. Phalanx and isolated
+        // pawns will be excluded when the pawn is scored.
         backward =  !(neighbours & forward_ranks_bb(Them, s + Up))
                   && (leverPush | blocked);
-
-        // Compute additional span if pawn is not backward nor blocked
-        if (!backward && !blocked)
-            e->pawnAttacksSpan[Us] |= pawn_attack_span(Us, s);
 
         // A pawn is passed if one of the three following conditions is true:
         // (a) there is no stoppers except some levers
@@ -200,13 +197,239 @@ Entry* probe(const Position& pos) {
       return e;
 
   e->key = key;
-  Bitboard b;
-  e->scores[WHITE] = evaluate<WHITE>(pos, e, b);
-  e->scores[BLACK] = evaluate<BLACK>(pos, e, b);
+
+  // compute cheapspan and cheapspan2
+  Bitboard sp2[COLOR_NB];
+  e->compute_span<WHITE>(pos, sp2[WHITE]);
+  e->compute_span<BLACK>(pos, sp2[BLACK]);
+
+  // replace their span with smart span, return their fixed
+  Bitboard fix[COLOR_NB];
+  fix[BLACK] = e->compute_fixed<WHITE>(pos, sp2[BLACK]);
+  fix[WHITE] = e->compute_fixed<BLACK>(pos, sp2[WHITE]);
+
+  // now we can use fixed in evaluation
+  e->scores[WHITE] = evaluate<WHITE>(pos, e, fix[WHITE]);
+  e->scores[BLACK] = evaluate<BLACK>(pos, e, fix[BLACK]);
 
   return e;
 }
 
+template<Color Us>
+void Entry::compute_span(const Position& pos, Bitboard& sp2) &
+{
+    smartSpan[Us] = 0;
+    sp2 = 0;
+
+    Square s;
+    for (auto pl = pos.squares<PAWN>(Us); (s = *pl) != SQ_NONE; ++pl)
+    {
+        const Bitboard span = pawn_attack_span(Us, s);
+        sp2 |= smartSpan[Us] & span;
+        smartSpan[Us] |= span;
+    }
+}
+
+// TODO
+//  +-------+ (1)
+//  | o . . | o  their pawns
+//  | o . . | x  our pawns
+//  | . . . |
+//  | . x . | Our pawn should shut down both of the opponents pawns.
+//  +-------+
+
+// TODO ?
+//  +-------+ (2)
+//  | . . . |
+//  | o . . |
+//  | . x . | Our attacked pawns should not be considered.
+//  +-------+
+
+template<Color Us>
+Bitboard Entry::compute_fixed(const Position& pos, Bitboard const& sp2) &
+{
+    constexpr Color Them    = ~Us;
+
+    // inputs
+    const Bitboard ourPawns     = pos.pieces(Us, PAWN);
+    const Bitboard theirPawns   = pos.pieces(Them, PAWN);
+    const Bitboard init         = this->smartSpan[Them];
+    const Bitboard init2        = sp2; // squares challenged by more than 1 opponent in current configuration
+
+    // total bitboards
+    Bitboard totalConsidered    = ourPawns;
+    Bitboard totalConsidered1   = 0;
+    Bitboard totalUntouchable   = 0;
+    Bitboard totalShut          = 0; // shut squares(!)
+    Bitboard totalFix           = 0; // accum. shut down pawns (after any number of steps)
+
+    // iteration bitboards: updated at the beginning of each main iteration, but not in-between
+    Bitboard iterSpan,
+             iterSpan1,
+             iterSpan2;
+    Bitboard nextSpan   = init, // next bitboards: construction for running iteration
+             nextSpan2  = init2;
+
+    auto const addNewSpan = [&](const Bitboard span)
+    {
+        nextSpan2 |= nextSpan & span;
+        nextSpan  |= span;
+    };
+    auto const getIterSpan = [&]()
+    {
+        const Bitboard nextSpan1 = nextSpan ^ nextSpan2;
+
+        iterSpan    = nextSpan;  nextSpan  = 0;
+        iterSpan1   = nextSpan1;
+        iterSpan2   = nextSpan2; nextSpan2 = 0;
+    };
+
+    while (true)
+    {
+        // transit iter bbs from last iteration
+        getIterSpan();
+
+        // 1v1 rule
+        const Bitboard faceToFace   = ourPawns & iterSpan1; // pawns facing exactly 1 opponent
+        const Bitboard faceOffs     = pawn_attacks_bb<Us> (faceToFace);
+        // 2v2 rule
+        const Bitboard lowPressure  = ourPawns & ~iterSpan2;
+        const Bitboard ganks        = pawn_double_attacks_bb<Us>(lowPressure);
+
+        totalConsidered            |= faceOffs;
+        totalConsidered1           |= ganks;
+
+        Bitboard considered         = totalConsidered & ~totalUntouchable; // sqaures which MIGHT block opponents, if they are outside of any attack span
+        Bitboard untouchable        = considered & ~iterSpan;
+
+        Bitboard considered1        = totalConsidered1 & ~totalUntouchable;
+        untouchable                |= considered1 & ~iterSpan2;
+
+        const Bitboard iterUntouchable = totalUntouchable; // memorize situation before this iteration
+        totalUntouchable           |= untouchable;
+
+        if (!untouchable) break;    // done
+
+        Bitboard iterFix = 0;
+
+        do
+        {
+            // _________________________________________________________________
+            // step 1: remove a sinlge layer
+            //
+            //  - stepFixed     pawns shut down during step 1 at some distance
+            //  - newFix        pawns shut down during this iteration TODO ???
+            //  - totalShut     squares on which opponents pawns will run into our
+            //                  untouchables eventually
+            Bitboard stepFixed = 0; // pawns shut during half-iteration ("at once")
+            while (untouchable)
+            {
+                const Square    u           = pop_lsb(&untouchable);    // our untouchable pawn
+                const Bitboard  shutting    = forward_file_bb(Us, u);   // squares in front of untouchable
+                const Bitboard  fix         = shutting & theirPawns;    // their pawns in front of untouchable
+
+                totalShut |= shutting;
+                stepFixed |= fix;
+            }
+            iterFix  |= stepFixed;
+
+            // _________________________________________________________________
+            // step 2: 1-step shortcut to possibly remove layer 2 (using span2)
+            //
+            //  - untouchable       our untouchable pawns (found duting this step)
+            //  - totalUntouchable  our global untouchable bb with all squares found
+            //                      untouchable (updated with new-found untouchables).
+            //  - considered        squares which become untouchable when leaving their
+            //                      attack span. out pawns and face-offs (when found
+            //                      untouchable during this step, removen from this
+            //                      bb; for fast-rescoring of only-resp.-squares).
+            //  - addNewSpan()      adding new restricted pawn attack span for this
+            //                      iteration
+            //  - stepFixed         their pawns fixed in step 1 (destructed during this
+            //                      step).
+            while (stepFixed)
+            {
+                // compute updated span for blocked pawn
+                const Square    s           = pop_lsb         (&stepFixed);
+                const Bitboard  span        = pawn_attack_span(Them, s);
+                const Bitboard  block       = forward_file_bb (Them, s) & totalUntouchable;
+                const Square    b           = frontmost_sq    (  Us, block);
+                const Bitboard  blockerSpan = pawn_attack_span(Them, b);
+
+                const Bitboard prevBlock    = block & iterUntouchable;
+                Bitboard deniedSpan;
+                if (prevBlock)
+                {
+                    const Square    p           = frontmost_sq(Us, prevBlock);
+                    const Bitboard  prevBlkSpan = pawn_attack_span(Them, p);
+                    const Bitboard  prevSpan    = span ^ prevBlkSpan;
+
+                    deniedSpan = prevSpan & blockerSpan; // if pawn
+                }
+                else
+                {
+                    deniedSpan = span & blockerSpan;
+                }
+                //
+                // update untouch/considered from new span insights
+                const Bitboard  leftoverSpan = span ^ blockerSpan;
+                const Bitboard onlyResp = deniedSpan & iterSpan1; // can use iterSpan because we check iterblocks before
+                const Bitboard onlyRespUntouch = onlyResp & considered;
+
+                addNewSpan(leftoverSpan); // TODO I think impossible to correct during current iteration
+                untouchable |= onlyRespUntouch;
+                considered  ^= onlyRespUntouch;
+            }
+            totalUntouchable |= untouchable;
+        }
+        while (untouchable); // loop back to step 1 if one-step shortcut found new untouchable pawns
+
+        totalFix |= iterFix;
+
+        if (!totalUntouchable)
+            goto nospan; // TODO worth it?
+
+        // _________________________________________________________________
+        // step 3: compute fluent span of pawns not handles during current
+        //         iteration (cannot create untouched pawns)
+        Bitboard oldFix = totalFix ^ iterFix;
+        while (oldFix)
+        {
+            const Square    o               = pop_lsb           (&oldFix);
+            const Bitboard  span            = pawn_attack_span  (Them, o);
+            const Bitboard  block           = forward_file_bb   (Them, o) & totalUntouchable;
+            const Square    b               = frontmost_sq      (  Us, block);
+            const Bitboard  blockerSpan     = pawn_attack_span  (Them, b);
+            const Bitboard  leftoverSpan    = span ^ blockerSpan;
+
+            addNewSpan(leftoverSpan);
+        }
+
+        // _________________________________________________________________
+        // step 4: compute span of fluent pawns to prepare next iteration
+        //
+        // addNewSpan()     update fluent span bbs for next iteration
+        Bitboard fluent = theirPawns ^ totalFix;
+        while (fluent)
+        {
+            const Square f = pop_lsb(&fluent);
+            const Bitboard span = pawn_attack_span(Them, f);
+            addNewSpan(span);
+        }
+
+        // TODO if no changes finish?
+
+    }
+
+    this->smartSpan[Them] = iterSpan;
+    return totalFix;
+
+nospan:
+    /* nothing */
+//    this->smartSpan[Them] = this->pawnAttacksSpan[Them];
+    return totalFix;
+
+}
 
 /// Entry::evaluate_shelter() calculates the shelter bonus and the storm
 /// penalty for a king, looking at the king file and the two closest files.
