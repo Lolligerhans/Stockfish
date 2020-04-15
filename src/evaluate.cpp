@@ -207,6 +207,7 @@ namespace {
     int kingAttacksCount[COLOR_NB];
 
     int passedCount = 0;
+    int passedFail = 0;
   };
 
 
@@ -608,6 +609,7 @@ namespace {
     }
 
     passedCount += popcount(b);
+    passedFail += popcount(candidatePassers & ~b);
 
     while (b)
     {
@@ -699,7 +701,7 @@ namespace {
     behind |= shift<Down+Down>(behind);
 
     int bonus = popcount(safe) + popcount(behind & safe & ~attackedBy[Them][ALL_PIECES]);
-    int weight = pos.count<ALL_PIECES>(Us) - 3 + std::min(pe->blocked_count() + passedCount, 9);
+    int weight = pos.count<ALL_PIECES>(Us) - 3 + std::min(pe->blocked_count() - passedFail, 9);
     Score score = make_score(bonus * weight * weight / 16, 0);
 
     if (T)
