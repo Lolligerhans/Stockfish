@@ -66,7 +66,7 @@ namespace {
   #undef V
 
   template<Color Us>
-  Score evaluate(const Position& pos, Pawns::Entry* e) {
+  Score evaluate(const Position& pos, Pawns::Entry* e, Bitboard& b) {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Up   = pawn_push(Us);
@@ -88,10 +88,15 @@ namespace {
     e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
     e->blockedCount[Us] = 0;
 
-    Bitboard const dead = /*ourPawns &*/
-                    shift<-Up>(theirPawns | doubleAttackThem)
-                  & ~pawn_attacks_bb<Them>(theirPawns);
-    Bitboard const alive = ~dead & ourPawns;
+    if (Us == WHITE)
+    {
+        Bitboard blk = theirPawns;
+
+        Bitboard const dead = /*ourPawns &*/
+                        shift<-Up>(theirPawns | doubleAttackThem | ourPawns)
+                      & ~pawn_attacks_bb<Them>(theirPawns);
+        Bitboard const alive = ~dead & ourPawns;
+    }
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -195,8 +200,9 @@ Entry* probe(const Position& pos) {
       return e;
 
   e->key = key;
-  e->scores[WHITE] = evaluate<WHITE>(pos, e);
-  e->scores[BLACK] = evaluate<BLACK>(pos, e);
+  Bitboard b;
+  e->scores[WHITE] = evaluate<WHITE>(pos, e, b);
+  e->scores[BLACK] = evaluate<BLACK>(pos, e, b);
 
   return e;
 }
