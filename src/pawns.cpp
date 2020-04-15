@@ -88,15 +88,8 @@ namespace {
     e->pawnAttacks[Us] = pawn_attacks_bb<Us>(ourPawns);
     e->blockedCount[Us] = 0;
 
-    if (Us == WHITE)
-    {
-        Bitboard blk = theirPawns;
-
-        Bitboard const dead = /*ourPawns &*/
-                        shift<-Up>(theirPawns | doubleAttackThem | ourPawns)
-                      & ~pawn_attacks_bb<Them>(theirPawns);
-        Bitboard const alive = ~dead & ourPawns;
-    }
+    Bitboard const dead = fix;
+    Bitboard const alive = ourPawns ^ fix;
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -119,8 +112,7 @@ namespace {
         e->blockedCount[Us] += bool(blocked);
 
         // A pawn is backward when it is behind all pawns of the same color on
-        // the adjacent files and cannot safely advance. Phalanx and isolated
-        // pawns will be excluded when the pawn is scored.
+        // the adjacent files and cannot safely advance.
         backward =  !(neighbours & forward_ranks_bb(Them, s + Up))
                   && (leverPush | blocked);
 
