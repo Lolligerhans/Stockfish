@@ -338,7 +338,7 @@ namespace {
         {
             constexpr Bitboard inner = ~(FileABB | FileHBB);
             if (!((pos.pieces(Us, KING) | pos.pieces(PAWN)) & rank_bb(s) & inner))
-                score += make_score(20,10);
+                score += make_score(10,0);
 
             // Bonus for rook on the same file as a queen
             if (file_bb(s) & pos.pieces(QUEEN))
