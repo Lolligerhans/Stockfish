@@ -256,6 +256,7 @@ namespace {
     constexpr Direction Down = -pawn_push(Us);
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
+    constexpr bool M = Pt == KNIGHT || Pt == BISHOP;
     const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
@@ -273,6 +274,9 @@ namespace {
         if (pos.blockers_for_king(Us) & s)
             b &= LineBB[pos.square<KING>(Us)][s];
 
+        int mob = popcount(b & mobilityArea[Us]);
+        mobility[Us] += MobilityBonus[Pt - 2][mob];
+
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
         attackedBy[Us][Pt] |= b;
         attackedBy[Us][ALL_PIECES] |= b;
@@ -282,16 +286,17 @@ namespace {
             kingAttackersCount[Us]++;
             kingAttackersWeight[Us] += KingAttackWeights[Pt];
             kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
+
+            if (M) bb = ~pe->pawn_attacks_span(Them);
         }
+        else
+            if (M) bb = ~attackedBy[Them][PAWN];
 
-        int mob = popcount(b & mobilityArea[Us]);
-
-        mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
-            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
+            bb &= OutpostRanks & attackedBy[Us][PAWN];
             if (bb & s)
                 score += Outpost * (Pt == KNIGHT ? 2 : 1);
 
