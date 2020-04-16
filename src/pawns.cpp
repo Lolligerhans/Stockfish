@@ -153,7 +153,7 @@ namespace {
                      + WeakUnopposed * !opposed;
 
         else if (backward)
-            score -=   Backward                 / (farBack & s ? 2 : 1)
+            score -=   Backward
                      + WeakUnopposed * !opposed * (farBack & s ? 4 : 1);
 
         if (!support)
