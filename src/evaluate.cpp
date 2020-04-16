@@ -400,7 +400,11 @@ namespace {
     rookChecks = b1 & safe & attackedBy[Them][ROOK];
 
     if (rookChecks)
+    {
         kingDanger += RookSafeCheck;
+        if (more_than_one(rookChecks))
+            kingDanger += RookSafeCheck/2;
+    }
     else
         unsafeChecks |= b1 & attackedBy[Them][ROOK];
 
