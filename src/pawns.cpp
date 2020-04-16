@@ -144,7 +144,7 @@ namespace {
             score += make_score(v, v * (r - 2) / 4);
         }
 
-        else if (!neighbours)
+        else if (!(neighbours & shift<Up>(forward_ranks_bb(Them, s + Up))))
             score -=   Isolated
                      + WeakUnopposed * !opposed;
 
