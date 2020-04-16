@@ -135,7 +135,7 @@ namespace {
         if (passed)
             e->passedPawns[Us] |= s;
 
-        constexpr Score WeakOpposed = make_score(1,1);
+        constexpr Score WeakOpposed = make_score(-1,-1);
 
         // Score this pawn
         if (support | phalanx)
