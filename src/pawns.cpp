@@ -89,8 +89,8 @@ namespace {
     e->blockedCount[Us] = 0;
 
     Bitboard farBack = ourPawns;
-    for (auto& i : {1, 2})
-        farBack = ourPawns & pawn_attacks_bb<Them>(farBack);
+    for (auto& i : {1, 2, 3})
+        farBack &= pawn_attacks_bb<Them>(farBack);
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
