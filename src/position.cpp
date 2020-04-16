@@ -474,6 +474,24 @@ Bitboard Position::slider_blockers(Bitboard sliders, Square s, Bitboard& pinners
   return blockers;
 }
 
+bool Position::queen_blockers(Bitboard sliders, Square s) const {
+
+  // Snipers are sliders that attack 's' when a piece and other snipers are removed
+  Bitboard snipers = (  (PseudoAttacks[  ROOK][s] & pieces(ROOK))
+                      | (PseudoAttacks[BISHOP][s] & pieces(BISHOP))) & sliders;
+  Bitboard occupancy = pieces() ^ snipers;
+
+  while (snipers)
+  {
+    Square sniperSq = pop_lsb(&snipers);
+    Bitboard b = between_bb(s, sniperSq) & occupancy;
+
+    if (b && !more_than_one(b))
+        return true;
+  }
+  return false;
+}
+
 
 /// Position::attackers_to() computes a bitboard of all pieces which attack a
 /// given square. Slider attacks use the occupied bitboard to indicate occupancy.

@@ -116,6 +116,7 @@ public:
   template<PieceType> Bitboard attacks_from(Square s) const;
   template<PieceType> Bitboard attacks_from(Square s, Color c) const;
   Bitboard slider_blockers(Bitboard sliders, Square s, Bitboard& pinners) const;
+  bool queen_blockers(Bitboard sliders, Square s) const;
 
   // Properties of moves
   bool legal(Move m) const;
