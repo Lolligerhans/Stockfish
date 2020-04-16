@@ -141,7 +141,7 @@ namespace {
             int v =  Connected[r] * (4 + 2 * bool(phalanx) - 2 * bool(opposed) - bool(blocked)) / 2
                    + 21 * popcount(support);
 
-            v = v * 8 / (edge_distance(file_of(s))+5);
+            score += make_score(6, 3) * edge_distance(file_of(s));
 
             score += make_score(v, v * (r - 2) / 4);
         }
