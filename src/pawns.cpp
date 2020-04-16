@@ -154,7 +154,7 @@ namespace {
 
         else if (backward)
             score -=   Backward
-                     + WeakUnopposed * !opposed * (farBack & s ? 4 : 1);
+                     + WeakUnopposed * !opposed * (farBack & s ? 8 : 1);
 
         if (!support)
             score -=   Doubled * doubled
