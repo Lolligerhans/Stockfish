@@ -144,18 +144,18 @@ namespace {
         const Bitboard fW = shift<WEST>(fM);
         const Bitboard fE = shift<EAST>(fM);
         const bool noWedge =
-                       fM & alive
+                fM & alive
             || (fW & alive || !(fW & ourPawns))
             || (fE & alive || !(fE & ourPawns));
 
 
         // Score this pawn
-        if ((support | phalanx) && noWedge)
+        if (support | phalanx)
         {
             int v =  Connected[r] * (4 + 2 * bool(phalanx) - 2 * bool(opposed) - bool(blocked)) / 2
                    + 21 * popcount(support);
 
-            score += make_score(v, v * (r - 2) / 4);
+            score += make_score(v, v * (r - 2) / 4) / (noWedge ? 1 : 2);
         }
 
         else if (!neighbours)
