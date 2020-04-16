@@ -413,7 +413,11 @@ namespace {
                  & ~rookChecks;
 
     if (queenChecks)
+    {
         kingDanger += QueenSafeCheck;
+        if (more_than_one(queenChecks))
+            kingDanger += QueenSafeCheck/2;
+    }
 
     // Enemy bishops checks: we count them only if they are from squares from
     // which we can't give a queen check, because queen checks are more valuable.
@@ -423,7 +427,11 @@ namespace {
                   & ~queenChecks;
 
     if (bishopChecks)
+    {
         kingDanger += BishopSafeCheck;
+        if (more_than_one(bishopChecks))
+            kingDanger += BishopSafeCheck/2;
+    }
     else
         unsafeChecks |= b2 & attackedBy[Them][BISHOP];
 
@@ -431,7 +439,11 @@ namespace {
     knightChecks = pos.attacks_from<KNIGHT>(ksq) & attackedBy[Them][KNIGHT];
 
     if (knightChecks & safe)
+    {
         kingDanger += KnightSafeCheck;
+        if (more_than_one(knightChecks & safe))
+            kingDanger += KnightSafeCheck/2;
+    }
     else
         unsafeChecks |= knightChecks;
 
