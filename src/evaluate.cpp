@@ -605,9 +605,12 @@ namespace {
             | shift<EAST>(leverable);
     }
 
+    if (pos.side_to_move() == Them)
+    {
     const Bitboard loose = ~attackedBy[Us][ALL_PIECES];
     const Bitboard hanging = loose & attackedBy[Them][ALL_PIECES];
     b &= ~hanging;
+    }
 
     while (b)
     {
