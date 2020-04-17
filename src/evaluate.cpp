@@ -189,6 +189,7 @@ namespace {
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
     Bitboard def[COLOR_NB] = {0, 0};
+    Bitboard candidatePassers[COLOR_NB];
 
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
@@ -246,6 +247,8 @@ namespace {
 
     // Remove from kingRing[] the squares defended by two pawns
     kingRing[Us] &= ~dblAttackByPawn;
+
+    candidatePassers[Us] = pe->passed_pawns(Us) & shift<Down>(pos.pieces(Them, PAWN));
   }
 
 
@@ -255,6 +258,7 @@ namespace {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Down = -pawn_push(Us);
+    constexpr auto Up = -Down;
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
     const Square* pl = pos.squares<Pt>(Us);
@@ -280,7 +284,14 @@ namespace {
 
         if (Pt == ROOK)
         {
-            def[Us] |= shift<-Down>(forward_ranks_bb(Us, s) & b & pos.pieces(Us, PAWN));
+            if (candidatePassers[Us  ])
+                def[Us] |= shift<Up  >(forward_ranks_bb(Us  , s) & b & pos.pieces(Us  , PAWN));
+            if (candidatePassers[Them])
+                bb       = shift<Down>(forward_ranks_bb(Them, s) & b & pos.pieces(Them, PAWN)),
+                def[Us] |= /*attackedBy[Us][PAWN] &*/ bb;
+            // a[Us][PAWM] is technically required but implicit from the
+            // candidate passer definition: a square cannot at the same time be
+            // a lever square for ours and their passer.
         }
 
         if (b & kingRing[Them])
@@ -584,29 +595,28 @@ namespace {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Up   = pawn_push(Us);
-    constexpr Direction Down = -Up;
+//    constexpr Direction Down = -Up;
 
     auto king_proximity = [&](Color c, Square s) {
       return std::min(distance(pos.square<KING>(c), s), 5);
     };
 
-    Bitboard b, bb, squaresToQueen, unsafeSquares, candidatePassers, leverable;
+    Bitboard b, bb, squaresToQueen, unsafeSquares, leverable;
     Score score = SCORE_ZERO;
 
     b = pe->passed_pawns(Us);
 
-    candidatePassers = b & shift<Down>(pos.pieces(Them, PAWN));
-    if (candidatePassers)
+    if (candidatePassers[Us])
     {
         // Can we lever the blocker of a candidate passer?
         leverable =  shift<Up>(pos.pieces(Us, PAWN))
                    & ~pos.pieces(Them)
-                   & (~attackedBy2[Them] | attackedBy[Us][ALL_PIECES] | def[Us])
+                   & (~(attackedBy2[Them] | def[Them]) | attackedBy[Us][ALL_PIECES] | def[Us])
                    & (~(attackedBy[Them][KNIGHT] | attackedBy[Them][BISHOP])
                      | (attackedBy[Us  ][KNIGHT] | attackedBy[Us  ][BISHOP]));
 
         // Remove candidate otherwise
-        b &= ~candidatePassers
+        b &= ~candidatePassers[Us]
             | shift<WEST>(leverable)
             | shift<EAST>(leverable);
     }
