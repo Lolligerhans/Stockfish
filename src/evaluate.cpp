@@ -696,6 +696,8 @@ namespace {
 
     int bonus = popcount(safe) + popcount(behind & safe & ~attackedBy[Them][ALL_PIECES]);
     int weight = pos.count<ALL_PIECES>(Us) - 3 + std::min(pe->blocked_count(), 9);
+    weight += pos.count<QUEEN>() *2
+             -pos.count<KNIGHT>();
     Score score = make_score(bonus * weight * weight / 16, 0);
 
     if (T)
