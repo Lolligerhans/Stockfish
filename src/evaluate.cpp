@@ -605,6 +605,10 @@ namespace {
             | shift<EAST>(leverable);
     }
 
+    const Bitboard loose = ~attackedBy[Us][ALL_PIECES];
+    const Bitboard hanging = loose & attackedBy[Them][ALL_PIECES];
+    b &= ~hanging;
+
     while (b)
     {
         Square s = pop_lsb(&b);
