@@ -816,10 +816,13 @@ namespace {
     initialize<BLACK>();
 
     // Pieces should be evaluated first (populate attack tables)
-    score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
-            + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
-            + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
-            + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
+    for (Color c : {WHITE, BLACK}) mobilityArea[c] |= pos.pieces(~c, QUEEN);
+    score += pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
+    for (Color c : {WHITE, BLACK}) mobilityArea[c] |= pos.pieces(~c, ROOK);
+    score += pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >();
+    for (Color c : {WHITE, BLACK}) mobilityArea[c] |= pos.pieces(~c, KNIGHT, BISHOP);
+    score += pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>();
+    score += pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>();
 
     score += mobility[WHITE] - mobility[BLACK];
 
