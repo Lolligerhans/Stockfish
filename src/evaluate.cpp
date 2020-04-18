@@ -589,9 +589,10 @@ namespace {
 
     b = pe->passed_pawns(Us);
 
-    candidatePassers = b & shift<Down>(pos.pieces(Them, PAWN));
-    if (candidatePassers)
+    if (b)
     {
+        candidatePassers = b & shift<Down>(pos.pieces(Them, PAWN));
+
         // Can we lever the blocker of a candidate passer?
         leverable =  shift<Up>(pos.pieces(Us, PAWN))
                    & ~pos.pieces(Them)
@@ -600,7 +601,7 @@ namespace {
                      | (attackedBy[Us  ][KNIGHT] | attackedBy[Us  ][BISHOP]));
 
         // Remove candidate otherwise
-        b &= ~candidatePassers
+        b &= (~candidatePassers & shift<Down>(leverable))
             | shift<WEST>(leverable)
             | shift<EAST>(leverable);
     }
