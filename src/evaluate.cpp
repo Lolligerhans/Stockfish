@@ -188,6 +188,7 @@ namespace {
     // kingRing[color] are the squares adjacent to the king plus some other
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
+    Bitboard def[COLOR_NB] = {0, 0};
 
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
@@ -276,6 +277,11 @@ namespace {
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
         attackedBy[Us][Pt] |= b;
         attackedBy[Us][ALL_PIECES] |= b;
+
+        if (Pt == ROOK) if (pe->passed_pawns(Us))
+        {
+            def[Us] |= shift<-Down>(forward_ranks_bb(Us, s) & b & pos.pieces(Us, PAWN));
+        }
 
         if (b & kingRing[Them])
         {
@@ -596,7 +602,7 @@ namespace {
         // Can we lever the blocker of a candidate passer?
         leverable =  shift<Up>(pos.pieces(Us, PAWN))
                    & ~pos.pieces(Them)
-                   & (~attackedBy2[Them] | attackedBy[Us][ALL_PIECES])
+                   & (~attackedBy2[Them] | attackedBy[Us][ALL_PIECES] | def[Us])
                    & (~(attackedBy[Them][KNIGHT] | attackedBy[Them][BISHOP])
                      | (attackedBy[Us  ][KNIGHT] | attackedBy[Us  ][BISHOP]));
 
