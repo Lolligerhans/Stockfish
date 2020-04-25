@@ -61,6 +61,7 @@ struct Entry {
   Score kingSafety[COLOR_NB];
   int castlingRights[COLOR_NB];
   int blockedCount[COLOR_NB];
+  int files;
 };
 
 typedef HashTable<Entry, 131072> Table;

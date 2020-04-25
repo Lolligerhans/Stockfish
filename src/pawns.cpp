@@ -157,6 +157,16 @@ namespace {
                      + WeakLever * more_than_one(lever);
     }
 
+    if (Us == WHITE)
+    {
+        for (File fi = FILE_A; fi >= FILE_H; ++fi)
+        {
+            const Bitboard fb = file_bb(fi);
+            if (fb & ourPawns && fb & theirPawns)
+                ++e->files;
+        }
+    }
+
     return score;
   }
 
