@@ -159,7 +159,8 @@ namespace {
 
     if (Us == WHITE)
     {
-        for (File fi = FILE_A; fi >= FILE_H; ++fi)
+        e->files = 0;
+        for (File fi = FILE_A; fi <= FILE_H; ++fi)
         {
             const Bitboard fb = file_bb(fi);
             if (fb & ourPawns && fb & theirPawns)
