@@ -341,8 +341,10 @@ namespace {
                 score += RookOnQueenFile;
 
             // Bonus for rook on an open or semi-open file
-            if (pos.is_on_semiopen_file(Us, s))
-                score += RookOnFile[pos.is_on_semiopen_file(Them, s)];
+            bool const o1 = pos.is_on_semiopen_file(Us  , s);
+            bool const o2 = pos.is_on_semiopen_file(Them, s);
+            if (o1 || o2)
+                score += RookOnFile[o1 && o2];
 
             // Penalty when trapped by the king, even more if the king cannot castle
             else if (mob <= 3)
