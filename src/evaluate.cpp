@@ -141,7 +141,7 @@ namespace {
   constexpr Score RestrictedPiece     = S(  7,  7);
 //  constexpr Score RookOnQueenFile     = S(  5,  9);
   // closed, ours open, theirs open, both open
-  constexpr Score RookOnQueenFile[]   = { S(5,9), S(5,9), S(5,9), S(5,9) };
+  Score RookOnQueenFile[]   = { S(5,9), S(5,9), S(5,9), S(5,9) };
   constexpr Score SliderOnQueen       = S( 59, 18);
   constexpr Score ThreatByKing        = S( 24, 89);
   constexpr Score ThreatByPawnPush    = S( 48, 39);
@@ -151,6 +151,8 @@ namespace {
   constexpr Score WeakQueenProtection = S( 15,  0);
 
 #undef S
+
+  TUNE(RookOnQueenFile);
 
   // Evaluation class computes and stores attacks tables and other working data
   template<Tracing T>
