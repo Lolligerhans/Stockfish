@@ -336,13 +336,16 @@ namespace {
 
         if (Pt == ROOK)
         {
-            // Bonus for rook on the same file as a queen
-            if (file_bb(s) & pos.pieces(QUEEN))
-                score += RookOnQueenFile;
-
             // Bonus for rook on an open or semi-open file
             if (pos.is_on_semiopen_file(Us, s))
+            {
                 score += RookOnFile[pos.is_on_semiopen_file(Them, s)];
+
+                // Bonus for rook on the same file as a queen
+                if (file_bb(s) & pos.pieces(QUEEN))
+                    score += RookOnQueenFile;
+            }
+
 
             // Penalty when trapped by the king, even more if the king cannot castle
             else if (mob <= 3)
