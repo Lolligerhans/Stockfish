@@ -209,7 +209,7 @@ namespace {
     // to kingAttacksCount[WHITE].
     int kingAttacksCount[COLOR_NB];
 
-    int passedCount = 0;
+    int passedCount[COLOR_NB] = {0, 0};
   };
 
 
@@ -610,7 +610,7 @@ namespace {
             | shift<EAST>(leverable);
     }
 
-    passedCount += popcount(b);
+    passedCount[Us] += popcount(b);
 
     while (b)
     {
@@ -732,7 +732,7 @@ namespace {
                      || rank_of(pos.square<KING>(BLACK)) < RANK_5;
 
     // Compute the initiative bonus for the attacking side
-    int complexity =  18 * passedCount
+    int complexity =  18 * (passedCount[WHITE] + passedCount[BLACK])
                     + 11 * pos.count<PAWN>()
                     +  9 * outflanking
                     + 21 * pawnsOnBothFlanks
@@ -772,7 +772,7 @@ namespace {
         {
             if (   pos.non_pawn_material(WHITE) == BishopValueMg
                 && pos.non_pawn_material(BLACK) == BishopValueMg)
-                sf = 18 + 4 * popcount(pe->passed_pawns(strongSide));
+                sf = 18 + 4 * passedCount[strongSide];
             else
                 sf = 22 + 3 * pos.count<ALL_PIECES>(strongSide);
         }
