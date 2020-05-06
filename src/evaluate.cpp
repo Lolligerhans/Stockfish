@@ -319,9 +319,6 @@ namespace {
                 score -= BishopPawns * pos.pawns_on_same_color_squares(Us, s)
                                      * (!(attackedBy[Us][PAWN] & s) + popcount(blocked & CenterFiles));
 
-                // Penalty for all enemy pawns x-rayed
-                score -= BishopXRayPawns * popcount(PseudoAttacks[BISHOP][s] & pos.pieces(Them, PAWN));
-
                 // Bonus for bishop on a long diagonal which can "see" both center squares
                 if (more_than_one(attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & Center))
                     score += LongDiagonalBishop;
@@ -367,6 +364,13 @@ namespace {
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
         }
+
+        if (Pt != KNIGHT)
+        {
+            // Penalty for all enemy pawns x-rayed
+            score -= BishopXRayPawns * popcount(PseudoAttacks[Pt][s] & pos.pieces(Them, PAWN));
+        }
+
     }
     if (T)
         Trace::add(Pt, Us, score);
