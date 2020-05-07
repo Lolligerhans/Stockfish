@@ -291,7 +291,7 @@ namespace {
         int mob;
         if (Pt == BISHOP)
         {
-            bb = attacks_bb<Pt>(s, pos.pieces(PAWN) | pos.pieces(Them));
+            bb = attacks_bb<Pt>(s, pos.pieces(PAWN) | pos.pieces(Us));
             mob = popcount(bb & mobilityArea[Us]);
         }
         else
