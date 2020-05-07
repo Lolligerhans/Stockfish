@@ -90,7 +90,7 @@ namespace {
 
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
-  constexpr Score MobilityBonus[][32] = {
+  Score MobilityBonus[][32] = {
     { S(-62,-81), S(-53,-56), S(-12,-30), S( -4,-14), S(  3,  8), S( 13, 15), // Knight
       S( 22, 23), S( 28, 27), S( 33, 33) },
     { S(-48,-59), S(-20,-23), S( 16, -3), S( 26, 13), S( 38, 24), S( 51, 42), // Bishop
@@ -127,8 +127,8 @@ namespace {
   };
 
   // Assorted bonuses and penalties
-  constexpr Score BishopPawns         = S(  3,  7);
-  constexpr Score BishopXRayPawns     = S(  4,  5);
+  Score BishopPawns         = S(  3,  7);
+  Score BishopXRayPawns     = S(  4,  5);
   constexpr Score CorneredBishop      = S( 50, 50);
   constexpr Score FlankAttacks        = S(  8,  0);
   constexpr Score Hanging             = S( 69, 36);
@@ -153,6 +153,12 @@ namespace {
   constexpr Score WeakQueenProtection = S( 15,  0);
 
 #undef S
+
+  std::pair<int,int> MyRange(int i)
+  {
+      return std::abs(i) > 10 ? default_range(i) : std::make_pair(-20, 20);
+  }
+  TUNE(SetRange(MyRange), MobilityBonus[BISHOP-2], BishopPawns, BishopXRayPawns);
 
   // Evaluation class computes and stores attacks tables and other working data
   template<Tracing T>
