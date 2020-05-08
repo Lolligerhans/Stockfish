@@ -571,6 +571,8 @@ namespace {
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
     }
 
+    score -= make_score(5,5) * popcount(pos.pieces(Us, PAWN) & pos.blockers_for_king(Us));
+
     if (T)
         Trace::add(THREAT, Us, score);
 
