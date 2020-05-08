@@ -86,7 +86,6 @@ namespace {
     e->passedPawns[Us] = e->smartSpan[Us] = sp2 = 0;
     e->kingSquares[Us] = SQ_NONE;
     e->pawnAttacks[Us] = e->smartSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
-    e->blockedCount[Us] = 0;
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -110,7 +109,7 @@ namespace {
         phalanx    = neighbours & rank_bb(s);
         support    = neighbours & rank_bb(s - Up);
 
-        e->blockedCount[Us] += bool(blocked);
+        e->blockedCount += blocked || more_than_one(leverPush);
 
         // A pawn is backward when it is behind all pawns of the same color on
         // the adjacent files and cannot safely advance. Phalanx and isolated
@@ -179,6 +178,7 @@ Entry* probe(const Position& pos) {
       return e;
 
   e->key = key;
+  e->blockedCount = 0;
   Bitboard sp2[COLOR_NB];
   e->scores[WHITE] = evaluate<WHITE>(pos, e, sp2[WHITE]);
   e->scores[BLACK] = evaluate<BLACK>(pos, e, sp2[BLACK]);
@@ -449,7 +449,7 @@ Score Entry::do_king_safety(const Position& pos) {
 
   // In endgame we like to bring our king near our closest pawn
   Bitboard pawns = pos.pieces(Us, PAWN);
-  int minPawnDist = pawns ? 8 : 0;
+  int minPawnDist = 6;
 
   if (pawns & PseudoAttacks[KING][ksq])
       minPawnDist = 1;
