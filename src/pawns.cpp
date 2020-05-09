@@ -156,6 +156,8 @@ namespace {
                      + WeakLever * more_than_one(lever);
     }
 
+    score = score * pos.count<PAWN>() / 16;
+
     return score;
   }
 
