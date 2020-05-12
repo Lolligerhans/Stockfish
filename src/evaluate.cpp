@@ -831,6 +831,12 @@ namespace {
 
     score += mobility[WHITE] - mobility[BLACK];
 
+    for (auto c : {WHITE,BLACK})
+    {
+        attackedBy[c][PAWN] |= (attackedBy[c][KNIGHT] | attackedBy[c][BISHOP])
+                            & ~(attackedBy[~c][KNIGHT] | attackedBy[~c][BISHOP] | attackedBy[~c][PAWN]);
+    }
+
     // More complex interactions that require fully populated attack bitboards
     score +=  king<   WHITE>() - king<   BLACK>()
             + threats<WHITE>() - threats<BLACK>()
