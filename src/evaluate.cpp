@@ -93,9 +93,9 @@ namespace {
   Score MobilityBonus[][32] = {
     { S(-62,-81), S(-53,-56), S(-12,-30), S( -4,-14), S(  3,  8), S( 13, 15), // Knight
       S( 22, 23), S( 28, 27), S( 33, 33) },
-    { S(-48,-59), S(-20,-23), S( 16, -3), S( 26, 13), S( 38, 24), S( 51, 42), // Bishop
-      S( 55, 54), S( 63, 57), S( 63, 65), S( 68, 73), S( 81, 78), S( 81, 86),
-      S( 91, 88), S( 98, 97) },
+    { S(-49,-62), S(-19,-23), S( 17, -3), S( 27, 13), S( 37, 23), S( 51, 44), // Bishop
+      S( 55, 56), S( 61, 56), S( 65, 66), S( 69, 74), S( 81, 79), S( 81, 82),
+      S( 95, 88), S( 99, 97) },
     { S(-60,-78), S(-20,-17), S(  2, 23), S(  3, 39), S(  3, 70), S( 11, 99), // Rook
       S( 22,103), S( 31,121), S( 40,134), S( 40,139), S( 41,158), S( 48,164),
       S( 57,168), S( 57,169), S( 62,172) },
@@ -127,8 +127,8 @@ namespace {
   };
 
   // Assorted bonuses and penalties
-  Score BishopPawns         = S(  3,  7);
-  Score BishopXRayPawns     = S(  4,  5);
+  Score BishopPawns         = S(  3,  9);
+  Score BishopXRayPawns     = S(  3,  6);
   constexpr Score CorneredBishop      = S( 50, 50);
   constexpr Score FlankAttacks        = S(  8,  0);
   constexpr Score Hanging             = S( 69, 36);
