@@ -292,8 +292,8 @@ namespace {
         else if (Pt == ROOK && (file_bb(s) & kingRing[Them]))
             score += RookOnKingRing;
 
-        else if (Pt == BISHOP && (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & kingRing[Them]))
-            score += BishopOnKingRing;
+        else if (Pt == BISHOP)
+            score += BishopOnKingRing/2 * popcount(attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & kingRing[Them]);
 
         int mob = popcount(b & mobilityArea[Us]);
 
