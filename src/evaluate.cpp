@@ -324,7 +324,7 @@ namespace {
                 Bitboard blocked = pos.pieces(Us, PAWN) & shift<Down>(pos.pieces());
 
                 if (more_than_one(b & blocked & forward_ranks_bb(Us, s)))
-                    score -= make_score(30,0);
+                    score -= make_score(0,30);
 
                 score -= BishopPawns * pos.pawns_on_same_color_squares(Us, s)
                                      * (!(attackedBy[Us][PAWN] & s) + popcount(blocked & CenterFiles));
