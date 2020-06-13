@@ -286,7 +286,7 @@ namespace {
         {
             kingAttackersCount[Us]++;
             kingAttackersWeight[Us] += KingAttackWeights[Pt];
-            kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
+            kingAttacksCount[Us] += popcount(b & kingRing[Them]);
         }
 
         else if (Pt == ROOK && (file_bb(s) & kingRing[Them]))
