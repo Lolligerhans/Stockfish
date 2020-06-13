@@ -263,7 +263,7 @@ namespace {
                                                    : Rank5BB | Rank4BB | Rank3BB);
     const Square* pl = pos.squares<Pt>(Us);
 
-    Bitboard b, bb;
+    Bitboard b, bb, bbb;
     Score score = SCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
@@ -274,13 +274,29 @@ namespace {
         b = Pt == BISHOP ? attacks_bb<BISHOP>(s, pos.pieces() ^ pos.pieces(QUEEN))
           : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
                          : attacks_bb<Pt>(s, pos.pieces());
+        if (Pt == BISHOP)
+            bbb = attacks_bb<BISHOP>(s, pos.pieces(PAWN));
 
         if (pos.blockers_for_king(Us) & s)
-            b &= line_bb(pos.square<KING>(Us), s);
+        {
+            Bitboard l = line_bb(pos.square<KING>(Us), s);
+            b &= l;
+            if (Pt == BISHOP)
+                bbb &= l;
+        }
 
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
         attackedBy[Us][Pt] |= b;
         attackedBy[Us][ALL_PIECES] |= b;
+
+        int mob;
+        if (Pt == BISHOP)
+            mob = popcount(bbb & mobilityArea[Us]);
+        else
+            mob = popcount(b & mobilityArea[Us]);
+
+        mobility[Us] += MobilityBonus[Pt - 2][mob];
+
 
         if (b & kingRing[Them])
         {
@@ -292,12 +308,8 @@ namespace {
         else if (Pt == ROOK && (file_bb(s) & kingRing[Them]))
             score += RookOnKingRing;
 
-        else if (Pt == BISHOP && (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & kingRing[Them]))
+        else if (Pt == BISHOP && (bbb & kingRing[Them]))
             score += BishopOnKingRing;
-
-        int mob = popcount(b & mobilityArea[Us]);
-
-        mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
