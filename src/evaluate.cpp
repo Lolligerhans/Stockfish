@@ -323,8 +323,10 @@ namespace {
                 // when the bishop is outside the pawn chain.
                 Bitboard blocked = pos.pieces(Us, PAWN) & shift<Down>(pos.pieces());
 
-                if (more_than_one(b & blocked & forward_ranks_bb(Us, s)))
-                    score -= make_score(12,12);
+                constexpr Bitboard WHalf = Rank1BB | Rank2BB | Rank3BB | Rank4BB;
+                constexpr Bitboard ourside = (Us == WHITE ? WHalf : ~WHalf);
+                if (more_than_one(b & blocked & forward_ranks_bb(Us, s) & ourside))
+                    score -= make_score(30,30);
 
                 score -= BishopPawns * pos.pawns_on_same_color_squares(Us, s)
                                      * (!(attackedBy[Us][PAWN] & s) + popcount(blocked & CenterFiles));
