@@ -327,7 +327,12 @@ namespace {
                                      * (!(attackedBy[Us][PAWN] & s) + popcount(blocked & CenterFiles));
 
                 // Penalty for all enemy pawns x-rayed
-                score -= BishopXRayPawns * popcount(attacks_bb<BISHOP>(s) & pos.pieces(Them, PAWN));
+                score -= BishopXRayPawns * popcount( attacks_bb<BISHOP>(s)
+                                                   & ( pos.pieces(Them, PAWN)
+                                                     | shift<Down>( pawn_double_attacks_bb<Them>(pos.pieces(Them, PAWN))
+                                                                 & pos.pieces(Them, PAWN))
+                                                     )
+                                                   );
 
                 // Bonus for bishop on a long diagonal which can "see" both center squares
                 if (more_than_one(attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & Center))
