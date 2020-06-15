@@ -664,6 +664,13 @@ namespace {
 
                 bonus += make_score(k * w, k * w);
             }
+
+            if ( (attackedBy[Us  ][KNIGHT] | attackedBy[Us  ][BISHOP])
+               &~(attackedBy[Them][KNIGHT] | attackedBy[Them][BISHOP])
+               & s)
+            {
+                bonus = bonus * 5/4;
+            }
         } // r > RANK_3
 
         score += bonus - PassedFile * edge_distance(file_of(s));
