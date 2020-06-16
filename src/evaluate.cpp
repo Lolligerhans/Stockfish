@@ -328,8 +328,6 @@ namespace {
 
                 // Penalty for all enemy pawns x-rayed
                 score -= BishopXRayPawns * popcount(attacks_bb<BISHOP>(s) & pos.pieces(Them, PAWN));
-                score -= make_score(2,2) * popcount(pos.pieces(Them, PAWN) & attackedBy[Them][PAWN])
-                       - make_score(3,3); // offset by average
 
                 // Bonus for bishop on a long diagonal which can "see" both center squares
                 if (more_than_one(attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & Center))
@@ -579,6 +577,9 @@ namespace {
 
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
     }
+
+    if (pos.count<BISHOP>(Us))
+        score -= make_score(2,2) * popcount(pos.pieces(Them, PAWN) & attackedBy[Them][PAWN]);
 
     if (T)
         Trace::add(THREAT, Us, score);
