@@ -134,7 +134,7 @@ namespace {
         if (passed)
             e->passedPawns[Us] |= s;
 
-        if (r >= 4 and opposed and not blocked)
+        if (r >= RANK_4 and opposed and not blocked)
             score += make_score(5,5);
 
         // Score this pawn
