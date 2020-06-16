@@ -329,7 +329,7 @@ namespace {
                 // Penalty for all enemy pawns x-rayed
                 bb = attacks_bb<BISHOP>(s) & pos.pieces(Them, PAWN);
                 Bitboard const extra = bb & pawn_double_attacks_bb<Them>(pos.pieces(Them, PAWN));
-                score -= BishopXRayPawns * popcount(bb | shift<Down>(extra));
+                score -= BishopXRayPawns * (popcount(bb) + 2*popcount(extra));
 
                 // Bonus for bishop on a long diagonal which can "see" both center squares
                 if (more_than_one(attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & Center))
