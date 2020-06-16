@@ -134,6 +134,9 @@ namespace {
         if (passed)
             e->passedPawns[Us] |= s;
 
+        if (r >= 4 and opposed and not blocked)
+            score += make_score(5,5);
+
         // Score this pawn
         if (support | phalanx)
         {
