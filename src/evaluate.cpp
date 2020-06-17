@@ -413,7 +413,7 @@ namespace {
     // Enemy rooks checks
     rookChecks = b1 & safe & attackedBy[Them][ROOK];
     if (rookChecks)
-        kingDanger += more_than_one(rookChecks) ? RookSafeCheck * 175/100
+        kingDanger += more_than_one(rookChecks) ? RookSafeCheck * 224/128
                                                 : RookSafeCheck;
     else
         unsafeChecks |= b1 & attackedBy[Them][ROOK];
@@ -426,7 +426,7 @@ namespace {
                  & ~attackedBy[Us][QUEEN]
                  & ~rookChecks;
     if (queenChecks)
-        kingDanger += more_than_one(queenChecks) ? QueenSafeCheck * 145/100
+        kingDanger += more_than_one(queenChecks) ? QueenSafeCheck * 186/128
                                                  : QueenSafeCheck;
 
     // Enemy bishops checks: we count them only if they are from squares from
@@ -444,7 +444,7 @@ namespace {
     // Enemy knights checks
     knightChecks = attacks_bb<KNIGHT>(ksq) & attackedBy[Them][KNIGHT];
     if (knightChecks & safe)
-        kingDanger += more_than_one(knightChecks & safe) ? KnightSafeCheck * 162/100
+        kingDanger += more_than_one(knightChecks & safe) ? KnightSafeCheck * 207/128
                                                          : KnightSafeCheck;
     else
         unsafeChecks |= knightChecks;
