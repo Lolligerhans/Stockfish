@@ -141,6 +141,7 @@ namespace {
                    + 21 * popcount(support);
 
             score += make_score(v, v * (r - 2) / 4);
+            score += make_score(5,5) * (popcount(support) > popcount(stoppers));
         }
 
         else if (!neighbours)
