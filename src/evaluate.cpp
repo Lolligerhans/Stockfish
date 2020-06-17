@@ -602,20 +602,6 @@ namespace {
     Score score = SCORE_ZERO;
 
     b = pe->passed_pawns(Us);
-
-    blockedPassers = b & shift<Down>(pos.pieces(Them, PAWN));
-    if (blockedPassers)
-    {
-        helpers =  shift<Up>(pos.pieces(Us, PAWN))
-                 & ~pos.pieces(Them)
-                 & (~attackedBy2[Them] | attackedBy[Us][ALL_PIECES]);
-
-        // Remove blocked candidate passers that don't have help to pass
-        b &=  ~blockedPassers
-            | shift<WEST>(helpers)
-            | shift<EAST>(helpers);
-    }
-
     while (b)
     {
         Square s = pop_lsb(&b);

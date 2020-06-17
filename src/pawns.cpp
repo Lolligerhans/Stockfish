@@ -123,9 +123,7 @@ namespace {
         //     (Refined in Evaluation::passed)
         passed =   !(stoppers ^ lever)
                 || (   !(stoppers ^ leverPush)
-                    && popcount(phalanx) >= popcount(leverPush))
-                || (   stoppers == blocked && r >= RANK_5
-                    && (shift<Up>(support) & ~(theirPawns | doubleAttackThem)));
+                    && popcount(phalanx) >= popcount(leverPush));
 
         passed &= !(forward_file_bb(Us, s) & ourPawns);
 
