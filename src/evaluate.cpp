@@ -617,7 +617,7 @@ namespace {
         {
             double var = sdGet<Us>();
             auto v = var/(8-c);
-            score += make_score(1,1) * int(v);
+            score -= make_score(1,1) * int(v);
         }
     }
 
