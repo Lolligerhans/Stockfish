@@ -392,14 +392,6 @@ namespace {
     if (T)
         Trace::add(Pt, Us, score);
 
-    auto c = pos.count<ALL_PIECES>(Us) - pos.count<PAWN>(Us) - 1;
-    if (c > 0)
-    {
-        auto averagePiece = pieceSum[Us] / c;
-        if (worst[Us] < averagePiece - 100)
-            score -= make_score(25,25);
-    }
-
     return score;
   }
 
@@ -602,6 +594,15 @@ namespace {
 
     if (T)
         Trace::add(THREAT, Us, score);
+
+    auto c = pos.count<ALL_PIECES>(Us) - pos.count<PAWN>(Us) - 1;
+    if (c > 0)
+    {
+        auto averagePiece = pieceSum[Us] / c;
+        bool exceptionallyBad = worst[Us] < averagePiece - 50;
+        if (exceptionallyBad)
+            score -= make_score(20,20);
+    }
 
     return score;
   }
