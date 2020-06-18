@@ -210,6 +210,8 @@ namespace {
     // a white knight on g5 and black's king is on g8, this white knight adds 2
     // to kingAttacksCount[WHITE].
     int kingAttacksCount[COLOR_NB];
+    Value worst[COLOR_NB] = {VALUE_INFINITE, VALUE_INFINITE};
+    Value pieceSum[COLOR_NB] = {VALUE_ZERO, VALUE_ZERO};
   };
 
 
@@ -265,11 +267,14 @@ namespace {
 
     Bitboard b, bb;
     Score score = SCORE_ZERO;
+    Score pieceScore;
 
     attackedBy[Us][Pt] = 0;
 
     for (Square s = *pl; s != SQ_NONE; s = *++pl)
     {
+        pieceScore = SCORE_ZERO;
+
         // Find attacked squares, including x-ray attacks for bishops and rooks
         b = Pt == BISHOP ? attacks_bb<BISHOP>(s, pos.pieces() ^ pos.pieces(QUEEN))
           : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
@@ -290,10 +295,10 @@ namespace {
         }
 
         else if (Pt == ROOK && (file_bb(s) & kingRing[Them]))
-            score += RookOnKingRing;
+            pieceScore += RookOnKingRing;
 
         else if (Pt == BISHOP && (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & kingRing[Them]))
-            score += BishopOnKingRing;
+            pieceScore += BishopOnKingRing;
 
         int mob = popcount(b & mobilityArea[Us]);
 
@@ -304,16 +309,16 @@ namespace {
             // Bonus if piece is on an outpost square or can reach one
             bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
             if (bb & s)
-                score += (Pt == KNIGHT) ? KnightOutpost : BishopOutpost;
+                pieceScore += (Pt == KNIGHT) ? KnightOutpost : BishopOutpost;
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
-                score += ReachableOutpost;
+                pieceScore += ReachableOutpost;
 
             // Bonus for a knight or bishop shielded by pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
-                score += MinorBehindPawn;
+                pieceScore += MinorBehindPawn;
 
             // Penalty if the piece is far from the king
-            score -= (Pt == KNIGHT ? KnightKingProtector
+            pieceScore -= (Pt == KNIGHT ? KnightKingProtector
                                    : BishopKingProtector) * distance(pos.square<KING>(Us), s);
 
             if (Pt == BISHOP)
@@ -323,15 +328,15 @@ namespace {
                 // when the bishop is outside the pawn chain.
                 Bitboard blocked = pos.pieces(Us, PAWN) & shift<Down>(pos.pieces());
 
-                score -= BishopPawns * pos.pawns_on_same_color_squares(Us, s)
+                pieceScore -= BishopPawns * pos.pawns_on_same_color_squares(Us, s)
                                      * (!(attackedBy[Us][PAWN] & s) + popcount(blocked & CenterFiles));
 
                 // Penalty for all enemy pawns x-rayed
-                score -= BishopXRayPawns * popcount(attacks_bb<BISHOP>(s) & pos.pieces(Them, PAWN));
+                pieceScore -= BishopXRayPawns * popcount(attacks_bb<BISHOP>(s) & pos.pieces(Them, PAWN));
 
                 // Bonus for bishop on a long diagonal which can "see" both center squares
                 if (more_than_one(attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & Center))
-                    score += LongDiagonalBishop;
+                    pieceScore += LongDiagonalBishop;
 
                 // An important Chess960 pattern: a cornered bishop blocked by a friendly
                 // pawn diagonally in front of it is a very serious problem, especially
@@ -341,7 +346,7 @@ namespace {
                 {
                     Direction d = pawn_push(Us) + (file_of(s) == FILE_A ? EAST : WEST);
                     if (pos.piece_on(s + d) == make_piece(Us, PAWN))
-                        score -= !pos.empty(s + d + pawn_push(Us))                ? CorneredBishop * 4
+                        pieceScore -= !pos.empty(s + d + pawn_push(Us))                ? CorneredBishop * 4
                                 : pos.piece_on(s + d + d) == make_piece(Us, PAWN) ? CorneredBishop * 2
                                                                                   : CorneredBishop;
                 }
@@ -352,18 +357,18 @@ namespace {
         {
             // Bonus for rook on the same file as a queen
             if (file_bb(s) & pos.pieces(QUEEN))
-                score += RookOnQueenFile;
+                pieceScore += RookOnQueenFile;
 
             // Bonus for rook on an open or semi-open file
             if (pos.is_on_semiopen_file(Us, s))
-                score += RookOnFile[pos.is_on_semiopen_file(Them, s)];
+                pieceScore += RookOnFile[pos.is_on_semiopen_file(Them, s)];
 
             // Penalty when trapped by the king, even more if the king cannot castle
             else if (mob <= 3)
             {
                 File kf = file_of(pos.square<KING>(Us));
                 if ((kf < FILE_E) == (file_of(s) < kf))
-                    score -= TrappedRook * (1 + !pos.castling_rights(Us));
+                    pieceScore -= TrappedRook * (1 + !pos.castling_rights(Us));
             }
         }
 
@@ -372,11 +377,28 @@ namespace {
             // Penalty if any relative pin or discovered attack against the queen
             Bitboard queenPinners;
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
-                score -= WeakQueen;
+                pieceScore -= WeakQueen;
+        }
+
+        score += pieceScore;
+
+        {
+            auto v = mg_value(pieceScore);
+            pieceSum[Us] += v;
+            if (v < worst[Us])
+                worst[Us] = v;
         }
     }
     if (T)
         Trace::add(Pt, Us, score);
+
+    auto c = pos.count<ALL_PIECES>(Us) - pos.count<PAWN>(Us) - 1;
+    if (c > 0)
+    {
+        auto averagePiece = pieceSum[Us] / c;
+        if (worst[Us] < averagePiece - 100)
+            score -= make_score(25,25);
+    }
 
     return score;
   }
