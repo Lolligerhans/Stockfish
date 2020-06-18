@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstring>   // For std::memset
 #include <iomanip>
 #include <sstream>
@@ -210,8 +211,29 @@ namespace {
     // a white knight on g5 and black's king is on g8, this white knight adds 2
     // to kingAttacksCount[WHITE].
     int kingAttacksCount[COLOR_NB];
-    Value worst[COLOR_NB] = {VALUE_INFINITE, VALUE_INFINITE};
-    Value pieceSum[COLOR_NB] = {VALUE_ZERO, VALUE_ZERO};
+
+    int sdCount[COLOR_NB] = {0, 0};
+    int sdSum[COLOR_NB] = {0, 0};
+    double sdVar[COLOR_NB] = {0.0, 0.0};
+
+    template<Color Us>
+    void sdAdd(int v)
+    {
+        double d;
+        if (sdCount[Us]) d = v - double(sdSum[Us]) / sdCount[Us];
+        else             d = v;
+        ++sdCount[Us];
+        sdSum[Us] += v;
+        sdVar[Us] = sdVar[Us] + d * (v - double(sdSum[Us]) / sdCount[Us]);
+    }
+
+    template<Color Us>
+    double sdGet() const
+    {
+        assert(sdCount[Us] > 0);
+        assert(pos.count<ALL_PIECES>(Us) - pos.count<PAWN>(Us) > 1);
+        return std::sqrt(std::abs(sdVar[Us] / sdCount[Us]));
+    }
   };
 
 
@@ -382,23 +404,11 @@ namespace {
 
         score += pieceScore;
 
-        {
-            auto v = mg_value(pieceScore);
-            pieceSum[Us] += v;
-            if (v < worst[Us])
-                worst[Us] = v;
-        }
+        sdAdd<Us>(int(mg_value(pieceScore)));
     }
+
     if (T)
         Trace::add(Pt, Us, score);
-
-    auto c = pos.count<ALL_PIECES>(Us) - pos.count<PAWN>(Us) - 1;
-    if (c > 0)
-    {
-        auto averagePiece = pieceSum[Us] / c;
-        if (worst[Us] < averagePiece - 100)
-            score -= make_score(25,25);
-    }
 
     return score;
   }
@@ -598,6 +608,16 @@ namespace {
            | (attackedBy[Us][ROOK  ] & attacks_bb<ROOK  >(s, pos.pieces()));
 
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
+    }
+
+    // piece variance penalty
+    {
+        int c = pos.count<ALL_PIECES>(Us) - pos.count<PAWN>(Us) - 1;
+        if (c > 0)
+        {
+            double var = sdGet<Us>();
+            score -= make_score(1,0) * int(var/2);
+        }
     }
 
     if (T)
