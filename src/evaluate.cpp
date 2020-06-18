@@ -616,7 +616,7 @@ namespace {
         if (c > 0)
         {
             double var = sdGet<Us>();
-            score -= make_score(1,0) * int(var/2);
+            score += make_score(0,8) - make_score(0,1) * (int(var)/2);
         }
     }
 
