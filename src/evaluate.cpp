@@ -669,8 +669,8 @@ namespace {
 
         auto total = bonus - PassedFile * edge_distance(file_of(s));
         score += total;
-        pawns[Us][0] += mg_value(total) / 10;
-        pawns[Us][1] += eg_value(total) / 14;
+        pawns[Us][0] += mg_value(total) / (10*2);
+        pawns[Us][1] += eg_value(total) / (14*2);
     }
 
     if (T)
