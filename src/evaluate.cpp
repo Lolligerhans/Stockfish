@@ -736,9 +736,9 @@ namespace {
                      || rank_of(pos.square<KING>(BLACK)) < RANK_5;
 
     // Compute the initiative bonus for the attacking side
-    int complexity =   9 * pe->passed_count()
+    int complexity =  0
                     + 12 * pos.count<PAWN>()
-                    +  5 * popcount(shift<NORTH>(pos.pieces(WHITE, PAWN) | attackedBy[WHITE][PAWN]) & (pos.pieces(BLACK, PAWN) | attackedBy[BLACK][PAWN]))
+                    + 10 * popcount(shift<NORTH>(pos.pieces(WHITE, PAWN) | attackedBy[WHITE][PAWN]) & (pos.pieces(BLACK, PAWN) | attackedBy[BLACK][PAWN]))
                     +  9 * outflanking
                     + 21 * pawnsOnBothFlanks
                     + 24 * infiltration
