@@ -171,7 +171,7 @@ namespace {
     template<Color Us, PieceType Pt> Score pieces();
     template<Color Us> Score king() const;
     template<Color Us> Score threats() const;
-    template<Color Us> Score passed() const;
+    template<Color Us> Score passed() ;
     template<Color Us> Score space() const;
     Value winnable(Score score) const;
 
@@ -210,6 +210,7 @@ namespace {
     // a white knight on g5 and black's king is on g8, this white knight adds 2
     // to kingAttacksCount[WHITE].
     int kingAttacksCount[COLOR_NB];
+    int pawns[COLOR_NB][2] = {0};
   };
 
 
@@ -588,7 +589,7 @@ namespace {
   // pawns of the given color.
 
   template<Tracing T> template<Color Us>
-  Score Evaluation<T>::passed() const {
+  Score Evaluation<T>::passed() {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Up   = pawn_push(Us);
@@ -666,7 +667,10 @@ namespace {
             }
         } // r > RANK_3
 
-        score += bonus - PassedFile * edge_distance(file_of(s));
+        auto total = bonus - PassedFile * edge_distance(file_of(s));
+        score += total;
+        pawns[Us][0] += mg_value(total) / 10;
+        pawns[Us][1] += eg_value(total) / 14;
     }
 
     if (T)
@@ -736,7 +740,7 @@ namespace {
                      || rank_of(pos.square<KING>(BLACK)) < RANK_5;
 
     // Compute the initiative bonus for the attacking side
-    int complexity =   9 * pe->passed_count()
+    int complexity =   /*9 * pe->passed_count()*/ 0
                     + 12 * pos.count<PAWN>()
                     +  9 * outflanking
                     + 21 * pawnsOnBothFlanks
@@ -751,8 +755,8 @@ namespace {
     // Now apply the bonus: note that we find the attacking side by extracting the
     // sign of the midgame or endgame values, and that we carefully cap the bonus
     // so that the midgame and endgame scores do not change sign after the bonus.
-    int u = ((mg > 0) - (mg < 0)) * Utility::clamp(complexity + 50, -abs(mg), 0);
-    int v = ((eg > 0) - (eg < 0)) * std::max(complexity, -abs(eg));
+    int u = ((mg > 0) - (mg < 0)) * Utility::clamp(complexity + 50 + this->pawns[mg < 0][0], -abs(mg), 0);
+    int v = ((eg > 0) - (eg < 0)) * std::max      (complexity      + this->pawns[eg < 0][1], -abs(eg)   );
 
     mg += u;
     eg += v;
