@@ -735,6 +735,12 @@ namespace {
     bool infiltration = rank_of(pos.square<KING>(WHITE)) > RANK_4
                      || rank_of(pos.square<KING>(BLACK)) < RANK_5;
 
+    Bitboard
+    b = pe->passed_pawns(WHITE); b &= shift<EAST>(b);
+    bool doublePasserW = b;
+    b = pe->passed_pawns(BLACK); b &= shift<EAST>(b);
+    bool doublePasserB = b;
+
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
                     + 12 * pos.count<PAWN>()
@@ -751,8 +757,8 @@ namespace {
     // Now apply the bonus: note that we find the attacking side by extracting the
     // sign of the midgame or endgame values, and that we carefully cap the bonus
     // so that the midgame and endgame scores do not change sign after the bonus.
-    int u = ((mg > 0) - (mg < 0)) * Utility::clamp(complexity + 50, -abs(mg), 0);
-    int v = ((eg > 0) - (eg < 0)) * std::max(complexity, -abs(eg));
+    int u = ((mg > 0) - (mg < 0)) * Utility::clamp(complexity + 50 + (40 * (mg > 0 ? doublePasserW : doublePasserB)), -abs(mg), 0);
+    int v = ((eg > 0) - (eg < 0)) * std::max(complexity + (40 * (eg > 0 ? doublePasserW : doublePasserB)), -abs(eg));
 
     mg += u;
     eg += v;
