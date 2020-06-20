@@ -167,7 +167,7 @@ namespace {
             File f;
             if (f = file_of(s), f == FILE_A || f ==FILE_H)
                 if (r >= RANK_4)
-                    score += make_score(20,5);
+                    score += make_score(10,10);
         }
     }
 
