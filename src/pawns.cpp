@@ -163,7 +163,7 @@ namespace {
             pawnScore -=   Doubled * doubled
                      + WeakLever * more_than_one(lever);
 
-        if (not (blocked or leverPush))
+        if (stoppers and not (blocked or leverPush))
             pawnScore = pawnScore * 2/3;
 
         score += pawnScore;
