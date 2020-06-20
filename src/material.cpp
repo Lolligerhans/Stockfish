@@ -129,7 +129,7 @@ Entry* probe(const Position& pos) {
 
   Value npm_w = pos.non_pawn_material(WHITE);
   Value npm_b = pos.non_pawn_material(BLACK);
-  Value npm   = Utility::clamp(npm_w + npm_b - PieceValue[MG][PAWN] * 4*(popcount(pos.pieces(WHITE, PAWN) & shift<SOUTH>(pos.pieces(BLACK, PAWN)))),
+  Value npm   = Utility::clamp(npm_w + npm_b - PieceValue[MG][PAWN] * 2*(popcount(pos.pieces(WHITE, PAWN) & shift<SOUTH>(pos.pieces(BLACK, PAWN)))),
                                EndgameLimit,
                                MidgameLimit);
 
