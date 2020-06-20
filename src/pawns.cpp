@@ -92,6 +92,7 @@ namespace {
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
     {
+        Score pawnScore = SCORE_ZERO;
         assert(pos.piece_on(s) == make_piece(Us, PAWN));
 
         Rank r = relative_rank(Us, s);
@@ -140,7 +141,7 @@ namespace {
             int v =  Connected[r] * (4 + 2 * bool(phalanx) - 2 * bool(opposed) - bool(blocked)) / 2
                    + 21 * popcount(support);
 
-            score += make_score(v, v * (r - 2) / 4);
+            pawnScore += make_score(v, v * (r - 2) / 4);
         }
 
         else if (!neighbours)
@@ -148,19 +149,24 @@ namespace {
             if (     opposed
                 &&  (ourPawns & forward_file_bb(Them, s))
                 && !(theirPawns & adjacent_files_bb(s)))
-                score -= Doubled;
+                pawnScore -= Doubled;
             else
-                score -=   Isolated
+                pawnScore -=   Isolated
                          + WeakUnopposed * !opposed;
         }
 
         else if (backward)
-            score -=   Backward
+            pawnScore -=   Backward
                      + WeakUnopposed * !opposed;
 
         if (!support)
-            score -=   Doubled * doubled
+            pawnScore -=   Doubled * doubled
                      + WeakLever * more_than_one(lever);
+
+        if (not (blocked or leverPush))
+            pawnScore = pawnScore * 2/3;
+
+        score += pawnScore;
     }
 
     return score;
