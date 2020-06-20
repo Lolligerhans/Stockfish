@@ -135,7 +135,7 @@ namespace {
             e->passedPawns[Us] |= s;
 
         // Score this pawn
-        if (support | phalanx)
+        else if (support | phalanx)
         {
             int v =  Connected[r] * (4 + 2 * bool(phalanx) - 2 * bool(opposed) - bool(blocked)) / 2
                    + 21 * popcount(support);
