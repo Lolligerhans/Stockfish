@@ -264,9 +264,24 @@ namespace {
     const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
+    Bitboard safeSquares;
     Score score = SCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
+
+    if (Pt == BISHOP || Pt == KNIGHT)
+    {
+        safeSquares = 0;
+
+        // Find squares which their minors cannot attack
+        if (pos.count<KNIGHT>(Them) == 0 && pos.count<BISHOP>(Them) < 2)
+        {
+            if (pos.pieces(Them, BISHOP) & DarkSquares)
+                safeSquares |= ~DarkSquares;    // Max 1 bishop
+            else if (pos.pieces(Them, BISHOP) & ~DarkSquares)
+                safeSquares |= DarkSquares;
+        }
+    }
 
     for (Square s = *pl; s != SQ_NONE; s = *++pl)
     {
@@ -302,7 +317,7 @@ namespace {
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
-            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
+            bb = OutpostRanks & (attackedBy[Us][PAWN] | safeSquares) & ~pe->pawn_attacks_span(Them);
             if (bb & s)
                 score += (Pt == KNIGHT) ? KnightOutpost : BishopOutpost;
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
