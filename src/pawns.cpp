@@ -67,7 +67,7 @@ namespace {
   #undef V
 
   template<Color Us>
-  Score evaluate(const Position& pos, Pawns::Entry* e) {
+  Score evaluate(const Position& pos, Pawns::Entry* e, bool lock) {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Up   = pawn_push(Us);
@@ -161,6 +161,14 @@ namespace {
         if (!support)
             score -=   Doubled * doubled
                      + WeakLever * more_than_one(lever);
+
+        if (lock)
+        {
+            File f;
+            if (f = file_of(s), f == FILE_A || f ==FILE_H)
+                if (r >= RANK_4)
+                    score += make_score(20,5);
+        }
     }
 
     return score;
@@ -185,8 +193,14 @@ Entry* probe(const Position& pos) {
 
   e->key = key;
   e->blockedCount = 0;
-  e->scores[WHITE] = evaluate<WHITE>(pos, e);
-  e->scores[BLACK] = evaluate<BLACK>(pos, e);
+
+  Bitboard b = square_bb(SQ_D4) | SQ_E5;
+  b |= shift<NORTH>(b);
+  bool lock = popcount(             b  & pos.pieces(PAWN)) == 4
+            ||popcount(shift<SOUTH>(b) & pos.pieces(PAWN)) == 4;
+
+  e->scores[WHITE] = evaluate<WHITE>(pos, e, lock);
+  e->scores[BLACK] = evaluate<BLACK>(pos, e, lock);
 
   return e;
 }
