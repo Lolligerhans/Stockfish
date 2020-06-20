@@ -301,10 +301,16 @@ namespace {
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
+            Bitboard pawns = pos.pieces(Them, PAWN);
+            pawns |= shift<Down>(pawns & (Rank2BB | Rank7BB)) & ~pos.pieces();
+            Bitboard const possibleMoves = shift<Down>(pawns) & ~pos.pieces();
+            Bitboard const possibleAttacks = pawn_attacks_bb<Them>(possibleMoves) | attackedBy[Them][PAWN];
+            Bitboard const almostNoSpan = ~possibleAttacks;
+
             // Bonus if piece is on an outpost square or can reach one
-            bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
+            bb = OutpostRanks & attackedBy[Us][PAWN] & (~pe->pawn_attacks_span(Them) | almostNoSpan);
             if (bb & s)
-                score += (Pt == KNIGHT) ? KnightOutpost : BishopOutpost;
+                score += ((Pt == KNIGHT) ? KnightOutpost : BishopOutpost) / (pe->pawn_attacks_span(Them) & s ? 1 : 2);
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
                 score += ReachableOutpost;
 
