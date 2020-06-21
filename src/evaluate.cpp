@@ -271,15 +271,16 @@ namespace {
 
     if (Pt == BISHOP || Pt == KNIGHT)
     {
-        safeSquares = 0;
+        safeSquares = AllSquares;
 
         // Find squares which their minors cannot attack
         if (pos.count<KNIGHT>(Them) == 0 && pos.count<BISHOP>(Them) < 2)
         {
+            // Max 1 bishop so max 1 color is excluded, if no bishop, no square excluded
             if (pos.pieces(Them, BISHOP) & DarkSquares)
-                safeSquares |= ~DarkSquares;    // Max 1 bishop
+                safeSquares &= ~DarkSquares;
             else if (pos.pieces(Them, BISHOP) & ~DarkSquares)
-                safeSquares |= DarkSquares;
+                safeSquares &= DarkSquares;
         }
     }
 
