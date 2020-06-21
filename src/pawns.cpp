@@ -123,7 +123,7 @@ namespace {
         //     (Refined in Evaluation::passed)
         passed =   !(stoppers ^ lever)
                 || (   !(stoppers ^ leverPush)
-                    && popcount(phalanx) >= popcount(leverPush))
+                    && popcount(phalanx & ~shift<-Up>(pawn_attacks_bb<Them>(theirPawns))) >= popcount(leverPush))
                 || (   stoppers == blocked && r >= RANK_5
                     && (shift<Up>(support) & ~(theirPawns | doubleAttackThem)));
 
