@@ -326,6 +326,13 @@ namespace {
                 score -= BishopPawns * pos.pawns_on_same_color_squares(Us, s)
                                      * (!(attackedBy[Us][PAWN] & s) + popcount(blocked & CenterFiles));
 
+                bool const opponentHasSameBishop = pos.pieces(Them, BISHOP) & (DarkSquares & s ? DarkSquares : ~DarkSquares);
+                if (!opponentHasSameBishop)
+                {
+                    auto oppositeColorPawns = pos.pieces(Them, PAWN) & (DarkSquares & s ? ~DarkSquares : DarkSquares);
+                    score += make_score(5,0) * popcount(oppositeColorPawns);
+                }
+
                 // Penalty for all enemy pawns x-rayed
                 score -= BishopXRayPawns * popcount(attacks_bb<BISHOP>(s) & pos.pieces(Them, PAWN));
 
