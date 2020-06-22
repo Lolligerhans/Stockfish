@@ -373,6 +373,12 @@ namespace {
             Bitboard queenPinners;
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
+
+            auto atkByThem = attackedBy[Them][ALL_PIECES] & (~attackedBy[Them][QUEEN] | attackedBy2[Them]);
+            auto possibleMoves = b & ~(atkByThem | pos.pieces(Us));
+            if (popcount(possibleMoves) <= 1)
+                score -= make_score(20, 30);
+
         }
     }
     if (T)
@@ -832,8 +838,8 @@ namespace {
     // Note that the order of evaluation of the terms is left unspecified
     score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
             + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
-            + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
-            + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
+            + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >();
+    score +=  pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
     score += mobility[WHITE] - mobility[BLACK];
 
