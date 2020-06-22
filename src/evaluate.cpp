@@ -588,7 +588,7 @@ namespace {
         const Square ksq = pos.square<KING>(Them);
         const Bitboard kqLine = line_bb(ksq, s);
         if ((asBish | asRook) & ksq)
-            score += make_score(30, 20) * popcount(nextMoveSliderAttacks & kqLine);
+            score += make_score(40, 40) * popcount(nextMoveSliderAttacks & kqLine);
     }
 
     if (T)
