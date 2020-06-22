@@ -394,8 +394,9 @@ namespace {
             {
                 auto atkByThem = attackedBy[Them][ALL_PIECES] & (~attackedBy[Them][QUEEN] | attackedBy2[Them]);
                 auto possibleMoves = b & ~(atkByThem | pos.pieces(Us));
-                if (popcount(possibleMoves) <= 1)
-                    score -= make_score(20, 30);
+                auto n = popcount(possibleMoves);
+                if (n <= 1) score -= make_score(20, 30);
+                if (n <= 2) score -= make_score(20, 30);
             }
 
             // Bonus for queen on weak square in enemy camp
