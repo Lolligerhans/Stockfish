@@ -167,7 +167,7 @@ namespace {
             File f;
             if (f = file_of(s), f == FILE_A || f ==FILE_H)
                 if (r >= RANK_4)
-                    score += make_score(0,15);
+                    score += make_score(10,5);
         }
     }
 
@@ -194,13 +194,12 @@ Entry* probe(const Position& pos) {
   e->key = key;
   e->blockedCount = 0;
 
-  Bitboard b = square_bb(SQ_D4) | SQ_E5;
-  b |= shift<NORTH>(b);
-  bool lock = popcount(             b  & pos.pieces(PAWN)) == 4
-            ||popcount(shift<SOUTH>(b) & pos.pieces(PAWN)) == 4;
+  constexpr Bitboard range = (FileDBB | FileEBB) & (Rank3BB | Rank4BB | Rank5BB);
 
-  e->scores[WHITE] = evaluate<WHITE>(pos, e, lock);
-  e->scores[BLACK] = evaluate<BLACK>(pos, e, lock);
+  bool looseLock = pos.pieces(WHITE, PAWN) & shift<SOUTH>(pos.pieces(BLACK, PAWN));
+
+  e->scores[WHITE] = evaluate<WHITE>(pos, e, looseLock);
+  e->scores[BLACK] = evaluate<BLACK>(pos, e, looseLock);
 
   return e;
 }
