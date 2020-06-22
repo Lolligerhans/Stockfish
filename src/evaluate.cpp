@@ -374,10 +374,13 @@ namespace {
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
 
-            auto atkByThem = attackedBy[Them][ALL_PIECES] & (~attackedBy[Them][QUEEN] | attackedBy2[Them]);
-            auto possibleMoves = b & ~(atkByThem | pos.pieces(Us));
-            if (popcount(possibleMoves) <= 1)
-                score -= make_score(20, 30);
+            if (pos.count<QUEEN>(Them) == 1)
+            {
+                auto atkByThem = attackedBy[Them][ALL_PIECES] & (~attackedBy[Them][QUEEN] | attackedBy2[Them]);
+                auto possibleMoves = b & ~(atkByThem | pos.pieces(Us));
+                if (popcount(possibleMoves) <= 1)
+                    score -= make_score(20, 30);
+            }
 
         }
     }
