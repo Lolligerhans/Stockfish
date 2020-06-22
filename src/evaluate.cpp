@@ -577,10 +577,18 @@ namespace {
 
         score += KnightOnQueen * popcount(b & safe);
 
-        b =  (attackedBy[Us][BISHOP] & attacks_bb<BISHOP>(s, pos.pieces()))
-           | (attackedBy[Us][ROOK  ] & attacks_bb<ROOK  >(s, pos.pieces()));
+        const Bitboard asBish = attacks_bb<BISHOP>(s, pos.pieces());
+        const Bitboard asRook = attacks_bb<ROOK  >(s, pos.pieces());
+        b =  (attackedBy[Us][BISHOP] & asBish)
+           | (attackedBy[Us][ROOK  ] & asRook);
+        const Bitboard nextMoveSliderAttacks = b & safe & attackedBy2[Us];
 
-        score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
+        score += SliderOnQueen * popcount(nextMoveSliderAttacks);
+
+        const Square ksq = pos.square<KING>(Them);
+        const Bitboard kqLine = line_bb(ksq, s);
+        if ((asBish | asRook) & ksq)
+            score += make_score(30, 20) * popcount(nextMoveSliderAttacks & kqLine);
     }
 
     if (T)
