@@ -194,6 +194,7 @@ namespace {
     // kingRing[color] are the squares adjacent to the king plus some other
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
+    Bitboard atk[COLOR_NB];
 
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
@@ -296,9 +297,14 @@ namespace {
         else if (Pt == BISHOP && (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & kingRing[Them]))
             score += BishopOnKingRing;
 
-        int mob = popcount(b & mobilityArea[Us]);
-
+        // Mobility score
+        auto const mobAtk = b & mobilityArea[Us];
+        int mob = popcount(mobAtk);
         mobility[Us] += MobilityBonus[Pt - 2][mob];
+
+        // Mobility correction for squares we can not actually move to
+        score -= make_score(2,2) * popcount(mobAtk & ~atk[Them]);
+
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
@@ -380,6 +386,7 @@ namespace {
                 score += QueenInfiltration;    
         }
     }
+
     if (T)
         Trace::add(Pt, Us, score);
 
@@ -834,10 +841,17 @@ namespace {
 
     // Pieces evaluated first (also populates attackedBy, attackedBy2).
     // Note that the order of evaluation of the terms is left unspecified
+    for (auto c : {WHITE, BLACK})
+        atk[c] = attackedBy[c][ALL_PIECES] & (attackedBy2[c] | ~attackedBy[c][KING]),
+        atk[c] |= pos.pieces(~c);   // Cannot move to own pieces
     score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
-            + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
-            + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
-            + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
+            + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>();
+    for (auto c : {WHITE, BLACK})
+        atk[c] |= attackedBy[c][ALL_PIECES] & (attackedBy2[c] | ~attackedBy[c][KING]);
+    score +=  pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >();
+    for (auto c : {WHITE, BLACK})
+        atk[c] |= attackedBy[c][ALL_PIECES] & (attackedBy2[c] | ~attackedBy[c][KING]);
+    score +=  pieces<WHITE, QUEEN >() -  pieces<BLACK, QUEEN >();
 
     score += mobility[WHITE] - mobility[BLACK];
 
