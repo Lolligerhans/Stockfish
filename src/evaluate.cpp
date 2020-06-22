@@ -545,7 +545,8 @@ namespace {
     // Bonus for restricting their piece moves
     b =   attackedBy[Them][ALL_PIECES]
        & ~stronglyProtected
-       &  attackedBy[Us][ALL_PIECES];
+       &  attackedBy[Us][ALL_PIECES]
+       &  mobilityArea[Them];
     score += RestrictedPiece * popcount(b);
 
     // Protected or unattacked squares
