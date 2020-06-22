@@ -155,7 +155,7 @@ namespace {
         }
 
         else if (backward)
-            score -=   Backward
+            score -=   make_score(5, 15) + make_score(2, 3) * r
                      + WeakUnopposed * !opposed;
 
         if (!support)
