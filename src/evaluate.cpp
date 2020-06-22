@@ -374,7 +374,7 @@ namespace {
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
 
-            if (pos.count<QUEEN>(Them) == 1)
+            if (pos.count<QUEEN>(Them) <= 1)
             {
                 auto atkByThem = attackedBy[Them][ALL_PIECES] & (~attackedBy[Them][QUEEN] | attackedBy2[Them]);
                 auto possibleMoves = b & ~(atkByThem | pos.pieces(Us));
