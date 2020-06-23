@@ -161,6 +161,12 @@ namespace {
         if (!support)
             score -=  Doubled * doubled
                     + WeakLever * more_than_one(lever);
+
+        Bitboard const leverStoppers = stoppers ^ opposed;
+        if (popcount(leverStoppers) == 1)
+        {
+            score += make_score(5,5);
+        }
     }
 
     return score;
