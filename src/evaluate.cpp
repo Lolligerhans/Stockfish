@@ -78,7 +78,7 @@ namespace Trace {
   int x ## 3 = cg_value((x));\
   int x ## 4 = og_value((x));\
   void x ## 5 (void) { x = make_score(x ## 1, x ## 2, x ## 3, x ## 4); }\
-  TUNE(SetRange(r), x ## 1, x ## 2, SetRange(-100,100), x ## 3, x ## 4, x ## 5);
+  TUNE(SetRange(r), x ## 1, x ## 2, SetRange(-100,100), x ## 3, x ## 4, x ## 5)
 #endif
 
 using namespace Trace;
@@ -173,7 +173,7 @@ namespace {
   Score WeakQueenProtection = S( 14,  0);
   Score WeakQueen           = S( 56, 15);
 
-  auto normalRange(int v) { retur v != 0 ? default_range(v) : make_pair(-10, +10) };
+  Range normalRange(int v) { return v != 0 ? default_range(v) : std::make_pair(-10, +10); }
   Q(BadOutpost, normalRange);
   Q(BishopPawns, normalRange);
   Q(BishopOnKingRing, normalRange);
