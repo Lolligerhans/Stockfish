@@ -180,6 +180,7 @@ namespace {
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
     template<Color Us> Score space() const;
+    void mergeClosedness(Score&) const;
     Value winnable(Score score) const;
 
     const Position& pos;
@@ -686,6 +687,22 @@ namespace {
 
     return score;
   }
+
+
+template<Tracing T>
+void Evaluation<T>::mergeClosedness(Score& score) const
+{
+    auto const blockedPawns =              pos.pieces(WHITE, PAWN)
+                            & shift<SOUTH>(pos.pieces(BLACK, PAWN));
+    auto const interpolation = popcount(blockedPawns);
+    auto constexpr InterpolMax = 8; // no crazyhouse ;)
+
+    // Weighted sum. More og if few blocked pawns, more cg if many.
+    auto const og = (InterpolMax-interpolation) * og_value(score);
+    auto const cg = (            interpolation) * cg_value(score);
+
+    score += make_score(1,1) * int((og + cg) / 8);
+}
 
 
   // Evaluation::space() computes a space evaluation for a given side, aiming to improve game
