@@ -741,6 +741,8 @@ void Evaluation<T>::mergeClosedness(Score& score) const
     auto const og = (InterpolMax-interpolation) * og_value(score);
     auto const cg = (            interpolation) * cg_value(score);
 
+    dbg_mean_of(og + cg);
+
     score += make_score(1,1) * int((og + cg) / 8);
 }
 
