@@ -274,22 +274,22 @@ constexpr Score make_score(int mg, int eg) {
 /// according to the standard a simple cast to short is implementation defined
 /// and so is a right shift of a signed integer.
 inline Value eg_value(Score s) {
-  union { uint16_t u; int16_t s; } eg = { uint16_t(uint64_t(s + 0x8000) >> 16) };
+  union { uint16_t u; int16_t s; } eg = { uint16_t((uint64_t)s + 0x8000ull) >> 16) };
   return Value(eg.s);
 }
 
 inline Value mg_value(Score s) {
-  union { uint16_t u; int16_t s; } mg = { uint16_t(uint64_t(s)) };
+  union { uint16_t u; int16_t s; } mg = { uint16_t((uint64_t)s) };
   return Value(mg.s);
 }
 
 inline Value cg_value(Score s) {
-  union { uint16_t u; int16_t s; } cg = { uint16_t(uint64_t(s + 0x80008000) >> 32) };
+  union { uint16_t u; int16_t s; } cg = { uint16_t((uint64_t)s + 0x80008000ull) >> 32) };
   return Value(cg.s);
 }
 
 inline Value og_value(Score s) {
-  union { uint16_t u; int16_t s; } og = { uint16_t(uint64_t(s + 0x800080008000) >> 48) };
+  union { uint16_t u; int16_t s; } og = { uint16_t((uint64_t)s + 0x800080008000ull) >> 48) };
   return Value(og.s);
 }
 
