@@ -267,7 +267,7 @@ constexpr Score make_score(int mg, int eg, int cg, int og) {
 }
 
 constexpr Score make_score(int mg, int eg) {
-  return Score(int64_t(uint64_t(eg) << 48) + int64_t(uint64_t(mg) << 32) + ((int64_t)((uint64_t)eg << 16) + int64_t(mg)));
+  return makeScore(mg, eg, 0, 0);
 }
 
 /// Extracting the signed lower and upper 16 bits is not so trivial because
