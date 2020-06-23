@@ -69,6 +69,18 @@ namespace Trace {
   }
 }
 
+#ifdef Q
+#error Redefinition of macro Q
+#else
+#define Q(x, r) \
+  int x ## 1 = mg_value((x));\
+  int x ## 2 = eg_value((x));\
+  int x ## 3 = cg_value((x));\
+  int x ## 4 = og_value((x));\
+  void x ## 5 (void) { x = make_score(x ## 1, x ## 2, x ## 3, x ## 4); }\
+  TUNE(SetRange(r), x ## 1, x ## 2, x ## 3, x ## 4, x ## 5);
+#endif
+
 using namespace Trace;
 
 namespace {
