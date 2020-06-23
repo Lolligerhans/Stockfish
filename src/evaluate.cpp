@@ -138,9 +138,9 @@ namespace {
   constexpr Score KnightOnQueen       = S( 16, 11);
   constexpr Score LongDiagonalBishop  = S( 45,  0);
   constexpr Score MinorBehindPawn     = S( 18,  3);
-  constexpr Score KnightOutpost       = S( 56, 36-4*2);
-  constexpr Score BishopOutpost       = S( 30, 23-4*2);
-  constexpr Score ReachableOutpost    = S( 31, 22-4*2);
+  constexpr Score KnightOutpost       = S( 56-4*4, 36-4*4);
+  constexpr Score BishopOutpost       = S( 30-4*4, 23-4*4);
+  constexpr Score ReachableOutpost    = S( 31-4*2, 22-4*2);
   constexpr Score PassedFile          = S( 11,  8);
   constexpr Score PawnlessFlank       = S( 17, 95);
   constexpr Score QueenInfiltration   = S( -2, 14);
@@ -306,11 +306,11 @@ namespace {
             bb = OutpostRanks & attackedBy[Us][PAWN] & ~pe->pawn_attacks_span(Them);
             if (bb & s)
                 score += (Pt == KNIGHT ? KnightOutpost : BishopOutpost)
-                    + make_score(0,2) * pos.count<PAWN>(Them);
+                    + make_score(4,4) * pos.count<PAWN>(Them);
 
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
                 score += ReachableOutpost
-                    + make_score(0,2) * pos.count<PAWN>(Them);
+                    + make_score(2,2) * pos.count<PAWN>(Them);
 
             // Bonus for a knight or bishop shielded by pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
