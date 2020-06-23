@@ -78,7 +78,7 @@ namespace Trace {
   int x ## 3 = cg_value((x));\
   int x ## 4 = og_value((x));\
   void x ## 5 (void) { x = make_score(x ## 1, x ## 2, x ## 3, x ## 4); }\
-  TUNE(SetRange(r), x ## 1, x ## 2, x ## 3, x ## 4, x ## 5);
+  TUNE(SetRange(r), x ## 1, x ## 2, SetRange(-100,100), x ## 3, x ## 4, x ## 5);
 #endif
 
 using namespace Trace;
@@ -148,32 +148,60 @@ namespace {
   };
 
   // Assorted bonuses and penalties
-  constexpr Score BadOutpost          = S( -7, 36);
-  constexpr Score BishopOnKingRing    = S( 24,  0);
-  constexpr Score BishopPawns         = S(  3,  7);
-  constexpr Score BishopXRayPawns     = S(  4,  5);
-  constexpr Score CorneredBishop      = S( 50, 50);
-  constexpr Score FlankAttacks        = S(  8,  0);
-  constexpr Score Hanging             = S( 69, 36);
-  constexpr Score KnightOnQueen       = S( 16, 11);
-  constexpr Score LongDiagonalBishop  = S( 45,  0);
-  constexpr Score MinorBehindPawn     = S( 18,  3);
-  constexpr Score PassedFile          = S( 11,  8);
-  constexpr Score PawnlessFlank       = S( 17, 95);
-  constexpr Score QueenInfiltration   = S( -2, 14);
-  constexpr Score ReachableOutpost    = S( 31, 22);
-  constexpr Score RestrictedPiece     = S(  7,  7);
-  constexpr Score RookOnKingRing      = S( 16,  0);
-  constexpr Score RookOnQueenFile     = S(  6, 11);
-  constexpr Score SliderOnQueen       = S( 60, 18);
-  constexpr Score ThreatByKing        = S( 24, 89);
-  constexpr Score ThreatByPawnPush    = S( 48, 39);
-  constexpr Score ThreatBySafePawn    = S(173, 94);
-  constexpr Score TrappedRook         = S( 55, 13);
-  constexpr Score WeakQueenProtection = S( 14,  0);
-  constexpr Score WeakQueen           = S( 56, 15);
+  Score BadOutpost          = S( -7, 36);
+  Score BishopOnKingRing    = S( 24,  0);
+  Score BishopPawns         = S(  3,  7);
+  Score BishopXRayPawns     = S(  4,  5);
+  Score CorneredBishop      = S( 50, 50);
+  Score FlankAttacks        = S(  8,  0);
+  Score Hanging             = S( 69, 36);
+  Score KnightOnQueen       = S( 16, 11);
+  Score LongDiagonalBishop  = S( 45,  0);
+  Score MinorBehindPawn     = S( 18,  3);
+  Score PassedFile          = S( 11,  8);
+  Score PawnlessFlank       = S( 17, 95);
+  Score QueenInfiltration   = S( -2, 14);
+  Score ReachableOutpost    = S( 31, 22);
+  Score RestrictedPiece     = S(  7,  7);
+  Score RookOnKingRing      = S( 16,  0);
+  Score RookOnQueenFile     = S(  6, 11);
+  Score SliderOnQueen       = S( 60, 18);
+  Score ThreatByKing        = S( 24, 89);
+  Score ThreatByPawnPush    = S( 48, 39);
+  Score ThreatBySafePawn    = S(173, 94);
+  Score TrappedRook         = S( 55, 13);
+  Score WeakQueenProtection = S( 14,  0);
+  Score WeakQueen           = S( 56, 15);
 
-#undef S
+  auto normalRange(int v) { retur v != 0 ? default_range(v) : make_pair(-10, +10) };
+  Q(BadOutpost, normalRange);
+  Q(BishopPawns, normalRange);
+  Q(BishopOnKingRing, normalRange);
+  Q(BishopXRayPawns, normalRange);
+  Q(CorneredBishop, normalRange);
+  Q(FlankAttacks, normalRange);
+  Q(Hanging, normalRange);
+  Q(BishopKingProtector, normalRange);
+  Q(KnightKingProtector, normalRange);
+  Q(KnightOnQueen, normalRange);
+  Q(LongDiagonalBishop, normalRange);
+  Q(MinorBehindPawn, normalRange);
+  Q(KnightOutpost, normalRange);
+  Q(BishopOutpost, normalRange);
+  Q(ReachableOutpost, normalRange);
+  Q(PassedFile, normalRange);
+  Q(PawnlessFlank, normalRange);
+  Q(QueenInfiltration, normalRange);
+  Q(RestrictedPiece, normalRange);
+  Q(RookOnKingRing, normalRange);
+  Q(RookOnQueenFile, normalRange);
+  Q(SliderOnQueen, normalRange);
+  Q(ThreatByKing, normalRange);
+  Q(ThreatByPawnPush, normalRange);
+  Q(ThreatBySafePawn, normalRange);
+  Q(TrappedRook, normalRange);
+  Q(WeakQueen, normalRange);
+  Q(WeakQueenProtection, normalRange);
 
   // Evaluation class computes and stores attacks tables and other working data
   template<Tracing T>
