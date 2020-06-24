@@ -258,6 +258,11 @@ Score Entry::do_king_safety(const Position& pos) {
   else while (pawns)
       minPawnDist = std::min(minPawnDist, distance(ksq, pop_lsb(&pawns)));
 
+  auto constexpr W = Us == WHITE;
+  auto constexpr Down = W ? SOUTH : NORTH;
+  if (shift<Down>(pos.pieces(Us, PAWN)) & shift<2*Down>(pos.pieces(~Us, PAWN)) & ksq)
+      shelter -= make_score(20, 20);
+
   return shelter - make_score(0, 16 * minPawnDist);
 }
 
