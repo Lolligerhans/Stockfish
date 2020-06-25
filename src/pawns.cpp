@@ -169,10 +169,6 @@ namespace {
                     + WeakLever * more_than_one(lever);
     }
 
-    e->passedPawns[Us] &= ~pawn_attacks_bb<Them>(
-            theirPawns & pawn_attacks_bb<Them>(theirPawns)
-            );
-
     return score;
   }
 

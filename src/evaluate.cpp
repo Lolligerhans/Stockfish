@@ -626,6 +626,11 @@ namespace {
             | shift<EAST>(helpers);
     }
 
+    auto const prevented = pawn_attacks_bb<Them>( pos.pieces(Them, PAWN)
+                                                & attackedBy[Them][PAWN])
+                         & shift<Down>(pos.pieces(Them));
+    b &= ~prevented;
+
     while (b)
     {
         Square s = pop_lsb(&b);
