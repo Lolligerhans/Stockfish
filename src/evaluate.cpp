@@ -337,7 +337,7 @@ namespace {
 
             if (shift<Down>(pos.pieces(PAWN)) & s)
             {
-                if (noOutpost && safeSquares[Us] & shift<Down>(pos.pieces(Them)) & s)
+                if (noOutpost && safeSquares[Us] & shift<Down>(pos.pieces(Them, PAWN)) & s)
                     score += make_score(25,10);
                 else
                     // Bonus for a knight or bishop shielded by pawn
