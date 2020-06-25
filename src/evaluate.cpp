@@ -196,6 +196,8 @@ namespace {
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
 
+    Bitboard safeSquares[COLOR_NB];
+
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
     int kingAttackersCount[COLOR_NB];
@@ -253,6 +255,27 @@ namespace {
 
     // Remove from kingRing[] the squares defended by two pawns
     kingRing[Us] &= ~dblAttackByPawn;
+
+    // Init safe squares where their minors cannot attack
+    {
+        // Find squares which their minors cannot attack
+        if (pos.count<KNIGHT>(Them) == 0 && pos.count<BISHOP>(Them) < 2)
+        {
+            safeSquares[Us] = AllSquares;
+
+            // Max 1 bishop so max 1 color is excluded, if no bishop, no square excluded
+            if (pos.pieces(Them, BISHOP) & DarkSquares)
+                safeSquares[Us] &= ~DarkSquares;
+            else if (pos.pieces(Them, BISHOP) & ~DarkSquares)
+                safeSquares[Us] &= DarkSquares;
+        }
+        else
+        {
+            safeSquares[Us] = 0;
+        }
+    }
+
+
   }
 
 
@@ -591,7 +614,7 @@ namespace {
     auto constexpr TheirHalf = Us == WHITE
         ? Rank5BB | Rank6BB | Rank7BB | Rank8BB
         : Rank1BB | Rank2BB | Rank3BB | Rank4BB;
-    score += make_score(5,5) * popcount(attackedBy[Us][PAWN] & TheirHalf);
+    score += make_score(5,5) * popcount(attackedBy[Us][PAWN] & TheirHalf & ~safeSquares[Them]);
 
     if (T)
         Trace::add(THREAT, Us, score);
