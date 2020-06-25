@@ -588,6 +588,11 @@ namespace {
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
     }
 
+    auto constexpr TheirHalf = Us == WHITE
+        ? Rank5BB | Rank6BB | Rank7BB | Rank8BB
+        : Rank1BB | Rank2BB | Rank3BB | Rank4BB;
+    score += make_score(5,5) * popcount(attackedBy[Us][PAWN] & TheirHalf);
+
     if (T)
         Trace::add(THREAT, Us, score);
 
