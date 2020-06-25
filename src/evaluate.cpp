@@ -614,17 +614,14 @@ namespace {
     b = pe->passed_pawns(Us);
 
     blockedPassers = b & shift<Down>(pos.pieces(Them, PAWN));
-    if (blockedPassers)
-    {
-        helpers =  shift<Up>(pos.pieces(Us, PAWN))
-                 & ~pos.pieces(Them)
-                 & (~attackedBy2[Them] | attackedBy[Us][ALL_PIECES]);
+        auto const liberated = shift<Down>( ~pos.pieces(Them)
+                                          & (~attackedBy2[Them] | attackedBy[Us][ALL_PIECES]) );
+        helpers =  shift<Up>(pos.pieces(Us, PAWN) & liberated);
 
         // Remove blocked candidate passers that don't have help to pass
-        b &=  ~blockedPassers
+        b &=  (~blockedPassers & liberated)
             | shift<WEST>(helpers)
             | shift<EAST>(helpers);
-    }
 
     while (b)
     {
@@ -650,7 +647,7 @@ namespace {
                 bonus -= make_score(0, king_proximity(Us, blockSq + Up) * w);
 
             // If the pawn is free to advance, then increase the bonus
-            if (pos.empty(blockSq))
+            if (liberated & s)
             {
                 squaresToQueen = forward_file_bb(Us, s);
                 unsafeSquares = passed_pawn_span(Us, s);
