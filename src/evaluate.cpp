@@ -480,7 +480,7 @@ namespace {
                  - 873 * !pos.count<QUEEN>(Them)
                  - 100 * bool(attackedBy[Us][KNIGHT] & attackedBy[Us][KING])
                  -   6 * mg_value(score) / 8
-                 -  16 * kingFlankDefense
+                 -  11 * kingFlankDefense
                  +  37;
 
     // Transform the kingDanger units into a Score, and subtract it from the evaluation
