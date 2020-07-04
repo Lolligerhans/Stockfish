@@ -365,7 +365,7 @@ namespace {
             {
                 score += RookOnFile[pos.is_on_semiopen_file(Them, s)];
                 if (b)
-                    score += make_score(-16, -16) + (make_score(4, 4) *
+                    score += make_score(-8, -8) + (make_score(2, 2) *
                             (int) relative_rank(Us, frontmost_sq(Us, b))
                             );
             }
