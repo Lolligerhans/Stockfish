@@ -57,8 +57,8 @@ struct Entry {
   Bitboard passedPawns[COLOR_NB];
   Bitboard pawnAttacks[COLOR_NB];
   Bitboard pawnAttacksSpan[COLOR_NB];
-  Bitboard backward = 0;
-  Bitboard unopposed = 0;
+  Bitboard backward;
+  Bitboard unopposed;
   Square kingSquares[COLOR_NB];
   Score kingSafety[COLOR_NB];
   int castlingRights[COLOR_NB];
