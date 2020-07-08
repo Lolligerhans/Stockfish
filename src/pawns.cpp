@@ -175,9 +175,10 @@ namespace {
             e->backward |= x;
             if (not opposed) e->unopposed |= x;
 
-            // Move this scoring to eval:
-//            score -=  Backward
-//                    + WeakUnopposed * !opposed;
+            // Expand on this scoring in eval:
+            if (backward)
+            score -=  Backward
+                    + WeakUnopposed * !opposed;
         }
 
         if (!support)

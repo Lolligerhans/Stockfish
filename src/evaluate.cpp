@@ -276,8 +276,9 @@ Score Evaluation<T>::piecesPawns() const
     auto const backw          = pe->backward  & pos.pieces(Us);
     auto const unopposedBackw = pe->unopposed & pos.pieces(Us);
 
-    auto const blocks = shift<Down>( pos.pieces(~Us)         // Blocked by ANY of their pieces (not just pawns)
-                                   | attackedBy[~Us][PAWN]); // ...or leverPush pawns (like before)
+    // Blocked by ANY of their pieces (not just pawns)
+    // ...or leverPush pawns (like before)
+    auto const blocks = shift<Down>(pos.pieces(~Us) & ~pos.pieces(~Us, PAWN));
 
     // Score backwards pawns like pawns.cpp, BUT blocked by piece is also
     // backwards.
