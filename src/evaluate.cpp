@@ -174,6 +174,7 @@ namespace {
   private:
     template<Color Us> void initialize();
     template<Color Us, PieceType Pt> Score pieces();
+    template<Color Us>               Score piecesPawns() const;
     template<Color Us> Score king() const;
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
@@ -260,6 +261,29 @@ namespace {
 
 
   // Evaluation::pieces() scores pieces of a given color and type
+
+template<Tracing T> template<Color Us>
+Score Evaluation<T>::piecesPawns() const
+{
+    constexpr Direction Down = -pawn_push(Us);
+
+    // Copied from pawns.cpp
+    constexpr Score Backward      = make_score( 9, 24);
+    constexpr Score WeakUnopposed = make_score(13, 27);
+
+
+    // Obtain backwards pawns from pawn entry
+    auto const backw          = pe->backward  & pos.pieces(Us);
+    auto const unopposedBackw = pe->unopposed & pos.pieces(Us);
+
+    auto const blocks = shift<Down>( pos.pieces(~Us)         // Blocked by ANY of their pieces (not just pawns)
+                                   | attackedBy[~Us][PAWN]); // ...or leverPush pawns (like before)
+
+    // Score backwards pawns like pawns.cpp, BUT blocked by piece is also
+    // backwards.
+    return -Backward      * popcount(backw          & blocks)
+           -WeakUnopposed * popcount(unopposedBackw & blocks);
+}
 
   template<Tracing T> template<Color Us, PieceType Pt>
   Score Evaluation<T>::pieces() {
@@ -840,6 +864,7 @@ namespace {
 
     // Pieces evaluated first (also populates attackedBy, attackedBy2).
     // Note that the order of evaluation of the terms is left unspecified.
+    score += piecesPawns<WHITE>() - piecesPawns<BLACK>();
     score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
             + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()

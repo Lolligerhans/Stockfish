@@ -118,9 +118,12 @@ namespace {
         phalanx    = neighbours & rank_bb(s);
         support    = neighbours & rank_bb(s - Up);
 
+        // Pawn WOULD be backward IF blocked by something
+        bool const maybeBackward = !(neighbours & forward_ranks_bb(Them, s + Up));
+
         // A pawn is backward when it is behind all pawns of the same color on
         // the adjacent files and cannot safely advance.
-        backward =  !(neighbours & forward_ranks_bb(Them, s + Up))
+        backward =  maybeBackward
                   && (leverPush | blocked);
 
         // Compute additional span if pawn is not backward nor blocked
@@ -165,9 +168,17 @@ namespace {
                         + WeakUnopposed * !opposed;
         }
 
-        else if (backward)
-            score -=  Backward
-                    + WeakUnopposed * !opposed;
+        else if (maybeBackward)
+        {
+            // Store potentially blocked pawns in entry
+            auto const x = square_bb(s);
+            e->backward |= x;
+            if (not opposed) e->unopposed |= x;
+
+            // Move this scoring to eval:
+//            score -=  Backward
+//                    + WeakUnopposed * !opposed;
+        }
 
         if (!support)
             score -=  Doubled * doubled
@@ -200,6 +211,8 @@ Entry* probe(const Position& pos) {
 
   e->key = key;
   e->blockedCount = 0;
+  e->backward = 0;
+  e->unopposed = 0;
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
 
