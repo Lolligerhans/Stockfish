@@ -665,10 +665,13 @@ namespace {
                 // If there are no enemy attacks on passed pawn span, assign a big bonus.
                 // Otherwise assign a smaller bonus if the path to queen is not attacked
                 // and even smaller bonus if it is attacked but block square is not.
-                int k = !unsafeSquares                    ? 35 :
-                        !(unsafeSquares & squaresToQueen) ? 20 :
-                        !(unsafeSquares & blockSq)        ?  9 :
-                                                             0 ;
+                auto const us1 = unsafeSquares;
+                auto const us2 = unsafeSquares & squaresToQueen;
+                auto const us3 = unsafeSquares & blockSq;
+                int k = !us1 ? 35                         :
+                        !us2 ? 25 - 10*more_than_one(us1) :
+                        !us3 ?  9                         :
+                                0 ;
 
                 // Assign a larger bonus if the block square is defended
                 if ((pos.pieces(Us) & bb) || (attackedBy[Us][ALL_PIECES] & blockSq))
