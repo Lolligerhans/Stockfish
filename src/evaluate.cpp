@@ -669,7 +669,7 @@ namespace {
                 auto const us2 = unsafeSquares & squaresToQueen;
                 auto const us3 = unsafeSquares & blockSq;
                 int k = !us1 ? 35                         :
-                        !us2 ? 23 - 6*more_than_one(us1) :
+                        !us2 ? 24 - 5*more_than_one(us1) :
                         !us3 ?  9                         :
                                 0 ;
 
