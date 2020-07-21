@@ -668,9 +668,9 @@ namespace {
                 auto const us1 = unsafeSquares;
                 auto const us2 = unsafeSquares & squaresToQueen;
                 auto const us3 = unsafeSquares & blockSq;
-                int k = !us1 ? 35                         :
+                int k = !us1 ? 35                        :
                         !us2 ? 21 - 5*more_than_one(us1) :
-                        !us3 ?  9                         :
+                        !us3 ? 10 - 3*more_than_one(us2) :
                                 0 ;
 
                 // Assign a larger bonus if the block square is defended
