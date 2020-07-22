@@ -295,7 +295,8 @@ namespace {
         {
             kingAttackersCount[Us]++;
             kingAttackersWeight[Us] += KingAttackWeights[Pt];
-            kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
+            int constexpr cnt[] = {0,  6,  8, 10, 12, 14, 16};
+            kingAttacksCount[Us] += cnt[popcount(b & attackedBy[Them][KING])];
         }
 
         else if (Pt == ROOK && (file_bb(s) & kingRing[Them]))
@@ -857,6 +858,7 @@ namespace {
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
     score += mobility[WHITE] - mobility[BLACK];
+    for (auto c : {WHITE, BLACK}) kingAttacksCount[c] /= 4;
 
     // More complex interactions that require fully populated attack bitboards
     score +=  king<   WHITE>() - king<   BLACK>()
