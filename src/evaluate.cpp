@@ -287,15 +287,12 @@ namespace {
         if (pos.blockers_for_king(Us) & s)
             b &= line_bb(pos.square<KING>(Us), s);
 
-        attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
-        attackedBy[Us][Pt] |= b;
-        attackedBy[Us][ALL_PIECES] |= b;
-
         if (b & kingRing[Them])
         {
             kingAttackersCount[Us]++;
             kingAttackersWeight[Us] += KingAttackWeights[Pt];
-            kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
+            auto const katk = b & attackedBy[Them][KING];
+            kingAttacksCount[Us] += popcount(katk) - popcount(katk & attackedBy[Us][ALL_PIECES])/2;
         }
 
         else if (Pt == ROOK && (file_bb(s) & kingRing[Them]))
@@ -303,6 +300,10 @@ namespace {
 
         else if (Pt == BISHOP && (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & kingRing[Them]))
             score += BishopOnKingRing;
+
+        attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
+        attackedBy[Us][Pt] |= b;
+        attackedBy[Us][ALL_PIECES] |= b;
 
         int mob = popcount(b & mobilityArea[Us]);
 
