@@ -371,7 +371,7 @@ namespace {
             // Bonus for rook on an open or semi-open file
             constexpr auto TheirHalf = Us == WHITE ? Rank5BB | Rank6BB | Rank7BB | Rank8BB
                                                    : Rank4BB | Rank3BB | Rank2BB | Rank1BB;
-            if (b & mobilityArea[Us] & TheirHalf)
+            if (b & (mobilityArea[Us] | pe->pawn_attacks_span(Us)) & TheirHalf)
             {
             if (pos.is_on_semiopen_file(Us, s))
                 score += RookOnFile[pos.is_on_semiopen_file(Them, s)];
