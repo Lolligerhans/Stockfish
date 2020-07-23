@@ -480,7 +480,7 @@ namespace {
                  - 100 * bool(attackedBy[Us][KNIGHT] & attackedBy[Us][KING])
                  -   6 * mg_value(score) / 8
                  -   4 * kingFlankDefense
-                 -  25 * popcount(pos.pieces(Us, PAWN) & KingFlank[file_of(ksq)] & Camp)
+                 -  13 * popcount(pos.pieces(Us, PAWN) & KingFlank[file_of(ksq)] & Camp)
                  +  37;
 
     // Transform the kingDanger units into a Score, and subtract it from the evaluation
