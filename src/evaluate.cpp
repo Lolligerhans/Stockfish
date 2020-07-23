@@ -308,6 +308,15 @@ namespace {
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
+        if (Pt == KNIGHT)
+        {
+            auto constexpr GoodRanks = Us == WHITE ? Rank4BB | Rank5BB | Rank6BB | Rank7BB
+                                                   : Rank5BB | Rank4BB | Rank3BB | Rank2BB;
+            auto constexpr GoodSquares = GoodRanks & CenterFiles;
+            if (not (b & mobilityArea[Us] & GoodSquares))
+                score -= make_score(15,15);
+        }
+
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if piece is on an outpost square or can reach one
