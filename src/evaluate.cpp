@@ -871,9 +871,10 @@ void Evaluation<T>::mergeClosedness(Score& score) const
     v =  mg * int(me->game_phase())
        + eg * int(PHASE_MIDGAME - me->game_phase()) * ScaleFactor(sf) / SCALE_FACTOR_NORMAL;
     v /= PHASE_MIDGAME;
-    Value v2 = cg * int(     pos.count<PAWN>())
-             + og * int(16 - pos.count<PAWN>()) * sf / SCALE_FACTOR_NORMAL;
-    v += v2/16;
+    auto closednessFactor = popcount(shift<NORTH>(pos.pieces(WHITE, PAWN)) & pos.pieces(BLACK, PAWN));
+    Value v2 = cg * int(    closednessFactor)
+             + og * int(8 - closednessFactor) * sf / SCALE_FACTOR_NORMAL;
+    v += v2/8;
 
     if (T)
     {
