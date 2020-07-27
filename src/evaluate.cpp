@@ -175,13 +175,13 @@ namespace {
 
   Range normalRange(int v) { return v != 0 ? default_range(v) : std::make_pair(-10, +10); }
 
-  Q(MobilityBonus, normalRange);
-  Q(KingProtector, normalRange);
-  Q(Outpost, normalRange);
-  Q(PassedRank, normalRange);
-  Q(RookOnFile, normalRange);
-  Q(ThreatByMinor, normalRange);
-  Q(ThreatByRook, normalRange);
+//  Q(MobilityBonus, normalRange);
+//  Q(KingProtector, normalRange);
+//  Q(Outpost, normalRange);
+//  Q(PassedRank, normalRange);
+//  Q(RookOnFile, normalRange);
+//  Q(ThreatByMinor, normalRange);
+//  Q(ThreatByRook, normalRange);
 
   Q(BadOutpost, normalRange);
   Q(BishopPawns, normalRange);
