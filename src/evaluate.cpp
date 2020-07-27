@@ -104,7 +104,7 @@ namespace {
 
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
-  constexpr Score MobilityBonus[][32] = {
+  Score MobilityBonus[][32] = {
     { S(-62,-81), S(-53,-56), S(-12,-31), S( -4,-16), S(  3,  5), S( 13, 11), // Knight
       S( 22, 17), S( 28, 20), S( 33, 25) },
     { S(-48,-59), S(-20,-23), S( 16, -3), S( 26, 13), S( 38, 24), S( 51, 42), // Bishop
@@ -121,29 +121,29 @@ namespace {
   };
 
   // KingProtector[knight/bishop] contains penalty for each distance unit to own king
-  constexpr Score KingProtector[] = { S(8, 9), S(6, 9) };
+  Score KingProtector[] = { S(8, 9), S(6, 9) };
 
   // Outpost[knight/bishop] contains bonuses for each knight or bishop occupying a
   // pawn protected square on rank 4 to 6 which is also safe from a pawn attack.
-  constexpr Score Outpost[] = { S(56, 36), S(30, 23) };
+  Score Outpost[] = { S(56, 36), S(30, 23) };
 
   // PassedRank[Rank] contains a bonus according to the rank of a passed pawn
-  constexpr Score PassedRank[RANK_NB] = {
+  Score PassedRank[RANK_NB] = {
     S(0, 0), S(10, 28), S(17, 33), S(15, 41), S(62, 72), S(168, 177), S(276, 260)
   };
 
   // RookOnFile[semiopen/open] contains bonuses for each rook when there is
   // no (friendly) pawn on the rook file.
-  constexpr Score RookOnFile[] = { S(19, 7), S(48, 29) };
+  Score RookOnFile[] = { S(19, 7), S(48, 29) };
 
   // ThreatByMinor/ByRook[attacked PieceType] contains bonuses according to
   // which piece type attacks which one. Attacks on lesser pieces which are
   // pawn-defended are not considered.
-  constexpr Score ThreatByMinor[PIECE_TYPE_NB] = {
+  Score ThreatByMinor[PIECE_TYPE_NB] = {
     S(0, 0), S(5, 32), S(57, 41), S(77, 56), S(88, 119), S(79, 161)
   };
 
-  constexpr Score ThreatByRook[PIECE_TYPE_NB] = {
+  Score ThreatByRook[PIECE_TYPE_NB] = {
     S(0, 0), S(3, 46), S(37, 68), S(42, 60), S(0, 38), S(58, 41)
   };
 
@@ -174,6 +174,15 @@ namespace {
   Score WeakQueen           = S( 56, 15);
 
   Range normalRange(int v) { return v != 0 ? default_range(v) : std::make_pair(-10, +10); }
+
+  Q(MobilityBonus, normalRange);
+  Q(KingProtector, normalRange);
+  Q(Outpost, normalRange);
+  Q(PassedRank, normalRange);
+  Q(RookOnFile, normalRange);
+  Q(ThreatByMinor, normalRange);
+  Q(ThreatByRook, normalRange);
+
   Q(BadOutpost, normalRange);
   Q(BishopPawns, normalRange);
   Q(BishopOnKingRing, normalRange);
