@@ -181,13 +181,9 @@ namespace {
   Q(CorneredBishop, normalRange);
   Q(FlankAttacks, normalRange);
   Q(Hanging, normalRange);
-  Q(BishopKingProtector, normalRange);
-  Q(KnightKingProtector, normalRange);
   Q(KnightOnQueen, normalRange);
   Q(LongDiagonalBishop, normalRange);
   Q(MinorBehindPawn, normalRange);
-  Q(KnightOutpost, normalRange);
-  Q(BishopOutpost, normalRange);
   Q(ReachableOutpost, normalRange);
   Q(PassedFile, normalRange);
   Q(PawnlessFlank, normalRange);
@@ -220,7 +216,7 @@ namespace {
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
     template<Color Us> Score space() const;
-    void mergeClosedness(Score&) const;
+//    void mergeClosedness(Score&) const;
     Value winnable(Score score) const;
 
     const Position& pos;
@@ -728,7 +724,7 @@ namespace {
     return score;
   }
 
-
+/*
 template<Tracing T>
 void Evaluation<T>::mergeClosedness(Score& score) const
 {
@@ -745,6 +741,7 @@ void Evaluation<T>::mergeClosedness(Score& score) const
 
     score += make_score(1,1) * int((og + cg) / 8);
 }
+*/
 
 
   // Evaluation::space() computes a space evaluation for a given side, aiming to improve game
@@ -865,9 +862,9 @@ void Evaluation<T>::mergeClosedness(Score& score) const
     v =  mg * int(me->game_phase())
        + eg * int(PHASE_MIDGAME - me->game_phase()) * ScaleFactor(sf) / SCALE_FACTOR_NORMAL;
     v /= PHASE_MIDGAME;
-    Value w =  cg * int(     pos.count<PAWN>())
+    Value v2 = cg * int(     pos.count<PAWN>())
              + og * int(16 - pos.count<PAWN>()) * sf / SCALE_FACTOR_NORMAL;
-    v += w/16;
+    v += v2/16;
 
     if (T)
     {
@@ -939,10 +936,6 @@ void Evaluation<T>::mergeClosedness(Score& score) const
 make_v:
     // Derive single value from mg and eg parts of score
     Value v = winnable(score);
-
-    sf = scale_factor(og_value(score));
-
-    v /= 2;
 
     // In case of tracing add all remaining individual evaluation terms
     if (T)
