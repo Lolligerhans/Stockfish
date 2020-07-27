@@ -943,6 +943,9 @@ void Evaluation<T>::mergeClosedness(Score& score) const
             + space<  WHITE>() - space<  BLACK>();
 
 make_v:
+    // Alternative, better (?) way to add cg/og values
+//    this->mergeClosedness(score);
+
     // Derive single value from mg and eg parts of score
     Value v = winnable(score);
 
