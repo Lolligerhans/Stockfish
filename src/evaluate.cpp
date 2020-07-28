@@ -148,7 +148,7 @@ namespace {
   constexpr Score PassedFile          = S( 11,  8);
   constexpr Score PawnlessFlank       = S( 17, 95);
   constexpr Score QueenInfiltration   = S( -2, 14);
-  constexpr Score ReachableOutpost    = S( 31, 22);
+  constexpr Score ReachableOutpost    = S( 17, 12);
   constexpr Score RestrictedPiece     = S(  7,  7);
   constexpr Score RookOnKingRing      = S( 16,  0);
   constexpr Score RookOnQueenFile     = S(  6, 11);
@@ -320,8 +320,12 @@ namespace {
                 score += BadOutpost;
             else if (bb & s)
                 score += Outpost[Pt == BISHOP];
-            else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
-                score += ReachableOutpost;
+            else if (Pt == KNIGHT)
+            {
+                auto const reachableOutpostSqures = bb & b & ~pos.pieces(Us);
+                if (reachableOutpostSqures)
+                    score += ReachableOutpost * (1 + bool(reachableOutpostSqures & CenterFiles));
+            }
 
             // Bonus for a knight or bishop shielded by pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
