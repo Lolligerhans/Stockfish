@@ -843,7 +843,6 @@ namespace {
         return abs(mg_value(score) + eg_value(score)) / 2 > lazyThreshold + pos.non_pawn_material() / 64;
     };
 
-    Value guess;
     if (lazy_skip(LazyThreshold1))
         goto make_v;
 
@@ -883,7 +882,7 @@ make_v:
             v = winnable(score);
         }
     }
-    else if (guess < -200)
+    else if (v < -200)
     {
         if (this->kingDangers[BLACK] != SCORE_ZERO)
         {
