@@ -187,7 +187,7 @@ namespace {
     Pawns::Entry* pe;
     Bitboard mobilityArea[COLOR_NB];
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
-    Score kingDangers[COLOR_NB];
+    Score kingDangers[COLOR_NB] = {SCORE_ZERO, SCORE_ZERO};
 
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
@@ -870,17 +870,27 @@ namespace {
     score +=  threats<WHITE>() - threats<BLACK>()
             + space<  WHITE>() - space<  BLACK>();
 
-    // Reduce value of king danger for losing side
-    guess = mg_value(score) + eg_value(score);
-    if (guess > 200)
-        score -= this->kingDangers[WHITE]/2; // Subtract since originally it is added
-    else if (guess < -200)
-        score += this->kingDangers[BLACK]/2; // Add since originally it is subtracted
-
 make_v:
-
     // Derive single value from mg and eg parts of score
     Value v = winnable(score);
+
+    // Reduce value of king danger for losing side
+    if (v > 200)
+    {
+        if (this->kingDangers[WHITE] != SCORE_ZERO)
+        {
+            score -= this->kingDangers[WHITE]/2; // Subtract since originally it is added
+            v = winnable(score);
+        }
+    }
+    else if (guess < -200)
+    {
+        if (this->kingDangers[BLACK] != SCORE_ZERO)
+        {
+            score += this->kingDangers[BLACK]/2; // Add since originally it is subtracted
+            v = winnable(score);
+        }
+    }
 
     // In case of tracing add all remaining individual evaluation terms
     if (T)
