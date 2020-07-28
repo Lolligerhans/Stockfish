@@ -176,7 +176,7 @@ namespace {
   private:
     template<Color Us> void initialize();
     template<Color Us, PieceType Pt> Score pieces();
-    template<Color Us> Score king() const;
+    template<Color Us> Score king() ;
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
     template<Color Us> Score space() const;
@@ -187,6 +187,7 @@ namespace {
     Pawns::Entry* pe;
     Bitboard mobilityArea[COLOR_NB];
     Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
+    Score kingDangers[COLOR_NB];
 
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
@@ -403,7 +404,7 @@ namespace {
   // Evaluation::king() assigns bonuses and penalties to a king of a given color
 
   template<Tracing T> template<Color Us>
-  Score Evaluation<T>::king() const {
+  Score Evaluation<T>::king() {
 
     constexpr Color    Them = ~Us;
     constexpr Bitboard Camp = (Us == WHITE ? AllSquares ^ Rank6BB ^ Rank7BB ^ Rank8BB
@@ -496,7 +497,7 @@ namespace {
     if (T)
         Trace::add(KING, Us, score);
 
-    return score;
+    return this->kingDangers[Us] = score;
   }
 
 
@@ -869,6 +870,14 @@ namespace {
             + space<  WHITE>() - space<  BLACK>();
 
 make_v:
+
+    // Reduce value of king danger for losing side
+    auto guess = mg_value(score) + eg_value(score);
+    if (guess > 50)
+        score -= this->kingDangers[WHITE]/2; // Subtract since originally it is added
+    else if (guess < -50)
+        score += this->kingDangers[BLACK]/2; // Add since originally it is subtracted
+
     // Derive single value from mg and eg parts of score
     Value v = winnable(score);
 
