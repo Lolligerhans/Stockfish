@@ -873,9 +873,9 @@ make_v:
 
     // Reduce value of king danger for losing side
     auto guess = mg_value(score) + eg_value(score);
-    if (guess > 50)
+    if (guess > 100)
         score -= this->kingDangers[WHITE]/2; // Subtract since originally it is added
-    else if (guess < -50)
+    else if (guess < -100)
         score += this->kingDangers[BLACK]/2; // Add since originally it is subtracted
 
     // Derive single value from mg and eg parts of score
