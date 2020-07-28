@@ -225,7 +225,7 @@ namespace {
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
     template<Color Us> Score space() const;
-//    void mergeClosedness(Score&) const;
+    void mergeClosedness(Score&) const;
     Value winnable(Score score) const;
 
     const Position& pos;
@@ -733,7 +733,6 @@ namespace {
     return score;
   }
 
-/*
 template<Tracing T>
 void Evaluation<T>::mergeClosedness(Score& score) const
 {
@@ -746,11 +745,8 @@ void Evaluation<T>::mergeClosedness(Score& score) const
     auto const og = (InterpolMax-interpolation) * og_value(score);
     auto const cg = (            interpolation) * cg_value(score);
 
-    dbg_mean_of(og + cg);
-
-    score += make_score(1,1) * int((og + cg) / 8);
+    score += make_score(1,1) * int((og + cg) / InterpolMax);
 }
-*/
 
 
   // Evaluation::space() computes a space evaluation for a given side, aiming to improve game
@@ -799,11 +795,6 @@ void Evaluation<T>::mergeClosedness(Score& score) const
   template<Tracing T>
   Value Evaluation<T>::winnable(Score score) const {
 
-    Value mg = mg_value(score);
-    Value eg = eg_value(score);
-    Value cg = cg_value(score);
-    Value og = og_value(score);
-
     int outflanking =  distance<File>(pos.square<KING>(WHITE), pos.square<KING>(BLACK))
                      - distance<Rank>(pos.square<KING>(WHITE), pos.square<KING>(BLACK));
 
@@ -826,18 +817,17 @@ void Evaluation<T>::mergeClosedness(Score& score) const
                     - 43 * almostUnwinnable
                     -110 ;
 
+    Value mg = mg_value(score);
+    Value eg = eg_value(score);
+
     // Now apply the bonus: note that we find the attacking side by extracting the
     // sign of the midgame or endgame values, and that we carefully cap the bonus
     // so that the midgame and endgame scores do not change sign after the bonus.
     int u = ((mg > 0) - (mg < 0)) * Utility::clamp(complexity + 50, -abs(mg), 0);
     int v = ((eg > 0) - (eg < 0)) * std::max(complexity, -abs(eg));
-    int w = ((cg > 0) - (cg < 0)) * Utility::clamp(complexity + 50, -abs(cg), 0);
-    int x = ((og > 0) - (og < 0)) * std::max(complexity, -abs(og));
 
     mg += u;
     eg += v;
-    og += w;
-    cg += x;
 
     // Compute the scale factor for the winning side
     Color strongSide = eg > VALUE_DRAW ? WHITE : BLACK;
@@ -871,10 +861,6 @@ void Evaluation<T>::mergeClosedness(Score& score) const
     v =  mg * int(me->game_phase())
        + eg * int(PHASE_MIDGAME - me->game_phase()) * ScaleFactor(sf) / SCALE_FACTOR_NORMAL;
     v /= PHASE_MIDGAME;
-    auto closednessFactor = popcount(shift<NORTH>(pos.pieces(WHITE, PAWN)) & pos.pieces(BLACK, PAWN));
-    Value v2 = cg * int(    closednessFactor)
-             + og * int(8 - closednessFactor) * sf / SCALE_FACTOR_NORMAL;
-    v += v2/8;
 
     if (T)
     {
@@ -914,7 +900,7 @@ void Evaluation<T>::mergeClosedness(Score& score) const
 
     // Early exit if score is high
     auto lazy_skip = [&](Value lazyThreshold) {
-        return abs(mg_value(score) + eg_value(score) + og_value(score) + cg_value(score)) / 2 > lazyThreshold + pos.non_pawn_material() / 64;
+        return abs(mg_value(score) + eg_value(score)) / 2 > lazyThreshold + pos.non_pawn_material() / 64;
     };
 
     if (lazy_skip(LazyThreshold1))
@@ -942,10 +928,10 @@ void Evaluation<T>::mergeClosedness(Score& score) const
 
     score +=  threats<WHITE>() - threats<BLACK>()
             + space<  WHITE>() - space<  BLACK>();
+    // Additive open/closed game
+    this->mergeClosedness(score);
 
 make_v:
-    // Alternative, better (?) way to add cg/og values
-//    this->mergeClosedness(score);
 
     // Derive single value from mg and eg parts of score
     Value v = winnable(score);
