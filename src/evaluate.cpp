@@ -136,30 +136,30 @@ namespace {
   };
 
   // Assorted bonuses and penalties
-  constexpr Score BadOutpost          = S( -7, 36);
-  constexpr Score BishopOnKingRing    = S( 24,  0);
-  constexpr Score BishopPawns         = S(  3,  7);
-  constexpr Score BishopXRayPawns     = S(  4,  5);
-  constexpr Score CorneredBishop      = S( 50, 50);
-  constexpr Score FlankAttacks        = S(  8,  0);
-  constexpr Score Hanging             = S( 69, 36);
-  constexpr Score KnightOnQueen       = S( 16, 11);
-  constexpr Score LongDiagonalBishop  = S( 45,  0);
-  constexpr Score MinorBehindPawn     = S( 18,  3);
-  constexpr Score PassedFile          = S( 11,  8);
-  constexpr Score PawnlessFlank       = S( 17, 95);
-  constexpr Score QueenInfiltration   = S( -2, 14);
-  constexpr Score ReachableOutpost    = S( 31, 22);
-  constexpr Score RestrictedPiece     = S(  7,  7);
-  constexpr Score RookOnKingRing      = S( 16,  0);
-  constexpr Score RookOnQueenFile     = S(  6, 11);
-  constexpr Score SliderOnQueen       = S( 60, 18);
-  constexpr Score ThreatByKing        = S( 24, 89);
-  constexpr Score ThreatByPawnPush    = S( 48, 39);
-  constexpr Score ThreatBySafePawn    = S(173, 94);
-  constexpr Score TrappedRook         = S( 55, 13);
-  constexpr Score WeakQueenProtection = S( 14,  0);
-  constexpr Score WeakQueen           = S( 56, 15);
+  constexpr Score BadOutpost          = S(-9, 37, 27, 11);
+  constexpr Score BishopOnKingRing    = S(23,1,-15,3);
+  constexpr Score BishopPawns         = S(3,7,2,-2);
+  constexpr Score BishopXRayPawns     = S(4,5,-5,7);
+  constexpr Score CorneredBishop      = S(40,45,-8,-12);
+  constexpr Score FlankAttacks        = S(9,1,9,-2);
+  constexpr Score Hanging             = S(69,42,-13,2);
+  constexpr Score KnightOnQueen       = S(17,15,-4,23);
+  constexpr Score LongDiagonalBishop  = S(58,2,-6,10);
+  constexpr Score MinorBehindPawn     = S(19,3,7,4);
+  constexpr Score PassedFile          = S(11,10,3,-5);
+  constexpr Score PawnlessFlank       = S(15,78,3,5);
+  constexpr Score QueenInfiltration   = S(-2,16,11,-5);
+  constexpr Score ReachableOutpost    = S(28,22,-21,-1);
+  constexpr Score RestrictedPiece     = S(9,7,3,-1);
+  constexpr Score RookOnKingRing      = S(18,0,10,-5);
+  constexpr Score RookOnQueenFile     = S(5,11,-4,-6);
+  constexpr Score SliderOnQueen       = S(66,26,6,-1);
+  constexpr Score ThreatByKing        = S(28,82,16,12);
+  constexpr Score ThreatByPawnPush    = S(44,34,14,23);
+  constexpr Score ThreatBySafePawn    = S(134,63,2,1);
+  constexpr Score TrappedRook         = S(54,12,17,-10);
+  constexpr Score WeakQueenProtection = S(18,2,1,-3);
+  constexpr Score WeakQueen           = S(58,14,-23,4);
 
   // Evaluation class computes and stores attacks tables and other working data
   template<Tracing T>
