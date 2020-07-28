@@ -200,6 +200,7 @@ namespace {
     // kingRing[color] are the squares adjacent to the king plus some other
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
+    Bitboard pinnedPieces[COLOR_NB];
 
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
@@ -258,6 +259,9 @@ namespace {
 
     // Remove from kingRing[] the squares defended by two pawns
     kingRing[Us] &= ~dblAttackByPawn;
+
+    // Pinned Pieces
+    this->pinnedPieces[Us] = pos.pieces(Us) & pos.blockers_for_king(Us);
   }
 
 
@@ -280,9 +284,9 @@ namespace {
     for (Square s = *pl; s != SQ_NONE; s = *++pl)
     {
         // Find attacked squares, including x-ray attacks for bishops and rooks
-        b = Pt == BISHOP ? attacks_bb<BISHOP>(s, pos.pieces() ^ pos.pieces(QUEEN))
-          : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
-                         : attacks_bb<Pt>(s, pos.pieces());
+        b = Pt == BISHOP ? attacks_bb<BISHOP>(s, (pos.pieces() ^ pos.pieces(QUEEN)) & ~pinnedPieces[Them])
+          : Pt ==   ROOK ? attacks_bb<  ROOK>(s, (pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK)) & ~pinnedPieces[Them])
+                         : attacks_bb<Pt>(s, (pos.pieces()) & ~pinnedPieces[Them]);
 
         if (pos.blockers_for_king(Us) & s)
             b &= line_bb(pos.square<KING>(Us), s);
