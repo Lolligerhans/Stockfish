@@ -843,6 +843,7 @@ namespace {
         return abs(mg_value(score) + eg_value(score)) / 2 > lazyThreshold + pos.non_pawn_material() / 64;
     };
 
+    Value guess;
     if (lazy_skip(LazyThreshold1))
         goto make_v;
 
@@ -869,14 +870,14 @@ namespace {
     score +=  threats<WHITE>() - threats<BLACK>()
             + space<  WHITE>() - space<  BLACK>();
 
-make_v:
-
     // Reduce value of king danger for losing side
-    auto guess = mg_value(score) + eg_value(score);
-    if (guess > 100)
+    guess = mg_value(score) + eg_value(score);
+    if (guess > 200)
         score -= this->kingDangers[WHITE]/2; // Subtract since originally it is added
-    else if (guess < -100)
+    else if (guess < -200)
         score += this->kingDangers[BLACK]/2; // Add since originally it is subtracted
+
+make_v:
 
     // Derive single value from mg and eg parts of score
     Value v = winnable(score);
