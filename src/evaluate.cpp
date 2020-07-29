@@ -553,7 +553,7 @@ namespace {
     b =   attackedBy[Them][ALL_PIECES]
        & ~stronglyProtected
        &  attackedBy[Us][ALL_PIECES];
-    score += make_score(1,1) * ( popcount( shift<NORTH>(pos.pieces(WHITE, PAWN))
+    score += make_score(2,2) * ( popcount( shift<NORTH>(pos.pieces(WHITE, PAWN))
                                          &              pos.pieces(BLACK, PAWN) )
                                * popcount(b));
 
