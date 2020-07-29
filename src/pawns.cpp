@@ -37,6 +37,7 @@ namespace {
   constexpr Score Isolated      = S( 5, 15);
   constexpr Score WeakLever     = S( 0, 56);
   constexpr Score WeakUnopposed = S(13, 27);
+  constexpr Score PawnlessFlank = S(17, 95);
 
   // Bonus for blocked pawns at 5th or 6th rank
   constexpr Score BlockedPawn[2] = { S(-11, -4), S(-3, 4) };
@@ -266,6 +267,11 @@ Score Entry::do_king_safety(const Position& pos) {
 
   // In endgame we like to bring our king near our closest pawn
   Bitboard pawns = pos.pieces(Us, PAWN);
+
+  // Penalty when our king is on a pawnless flank
+  if (!(pawns & KingFlank[file_of(ksq)]))
+      shelter -= PawnlessFlank;
+
   int minPawnDist = 6;
 
   if (pawns & attacks_bb<KING>(ksq))
