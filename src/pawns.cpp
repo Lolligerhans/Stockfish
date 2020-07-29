@@ -240,6 +240,10 @@ Score Entry::evaluate_shelter(const Position& pos, Square ksq) const {
           bonus -= make_score(UnblockedStorm[d][theirRank], 0);
   }
 
+  // Penalty when our king is on a pawnless flank
+  if (!(pos.pieces(PAWN) & KingFlank[file_of(ksq)]))
+      bonus -= PawnlessFlank;
+
   return bonus;
 }
 
@@ -267,11 +271,6 @@ Score Entry::do_king_safety(const Position& pos) {
 
   // In endgame we like to bring our king near our closest pawn
   Bitboard pawns = pos.pieces(Us, PAWN);
-
-  // Penalty when our king is on a pawnless flank
-  if (!(pawns & KingFlank[file_of(ksq)]))
-      shelter -= PawnlessFlank;
-
   int minPawnDist = 6;
 
   if (pawns & attacks_bb<KING>(ksq))
