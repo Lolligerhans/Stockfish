@@ -147,6 +147,7 @@ namespace {
   constexpr Score MinorBehindPawn     = S( 18,  3);
   constexpr Score PassedFile          = S( 11,  8);
   constexpr Score PawnlessFlank       = S( 17, 95);
+  constexpr Score PawnlessFlank2      = S(  5, 20);
   constexpr Score QueenInfiltration   = S( -2, 14);
   constexpr Score ReachableOutpost    = S( 31, 22);
   constexpr Score RestrictedPiece     = S(  7,  7);
@@ -488,9 +489,10 @@ namespace {
 
     // Penalty when our king is on a pawnless flank
     auto fil = file_bb(ksq);
-    fil |= shift<EAST>(fil) | shift<WEST>(fil);
-    if (!(pos.pieces(PAWN) & fil))
-        score -= PawnlessFlank;
+    fil |= shift<EAST>(fil) | shift<WEST>(fil); // 3 files wide
+    if (!(pos.pieces(PAWN) & fil )) score -= PawnlessFlank;
+    auto fil2 = shift<EAST>(fil) | shift<WEST>(fil); // 5 files wide
+    if (!(pos.pieces(PAWN) & fil2)) score -= PawnlessFlank2;
 
     // Penalty if king flank is under attack, potentially moving toward the king
     score -= FlankAttacks * kingFlankAttack;
