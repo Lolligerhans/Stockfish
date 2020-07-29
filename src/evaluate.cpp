@@ -553,7 +553,9 @@ namespace {
     b =   attackedBy[Them][ALL_PIECES]
        & ~stronglyProtected
        &  attackedBy[Us][ALL_PIECES];
-    score += make_score(1,1) * (pos.count<PAWN>() * popcount(b) / 2);
+    score += make_score(1,1) * ( popcount( shift<NORTH>(pos.pieces(WHITE, PAWN))
+                                         &              pos.pieces(BLACK, PAWN) )
+                               * popcount(b));
 
     // Protected or unattacked squares
     safe = ~attackedBy[Them][ALL_PIECES] | attackedBy[Us][ALL_PIECES];
