@@ -87,6 +87,7 @@ namespace {
     Bitboard lever, leverPush, blocked;
     Square s;
     bool backward, passed, doubled;
+    bool backwardFlag = false;
     Score score = SCORE_ZERO;
     const Square* pl = pos.squares<PAWN>(Us);
 
@@ -166,8 +167,11 @@ namespace {
         }
 
         else if (backward)
-            score -=  Backward
+        {
+            score -=  Backward * backwardFlag
                     + WeakUnopposed * !opposed;
+            backwardFlag = true;
+        }
 
         if (!support)
             score -=  Doubled * doubled
