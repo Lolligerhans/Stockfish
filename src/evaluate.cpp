@@ -148,30 +148,30 @@ namespace {
   };
 
   // Assorted bonuses and penalties
-  Score BadOutpost          = S(-6, 38, -18, 10);
-  Score BishopOnKingRing    = S(26,-1,17,13);
-  Score BishopPawns         = S(3,6,2,-1);
-  Score BishopXRayPawns     = S(4,4,9,3);
-  Score CorneredBishop      = S(51,42,-24,2);
-  Score FlankAttacks        = S(8,0,11,-3);
+  Score BadOutpost          = S(-6, 38, -19, 12);
+  Score BishopOnKingRing    = S(27,-1,20,12);
+  Score BishopPawns         = S(3,6,3,-2);
+  Score BishopXRayPawns     = S(4,4,12,4);
+  Score CorneredBishop      = S(50,42,-25,0);
+  Score FlankAttacks        = S(8,0,9,-1);
   Score Hanging             = S(77,42,-11,11);
-  Score KnightOnQueen       = S(20,10,10,9);
-  Score LongDiagonalBishop  = S(39,1,-6,-1);
-  Score MinorBehindPawn     = S(17,3,-11,13);
-  Score PassedFile          = S(11,9,0,-2);
-  Score PawnlessFlank       = S(20,120,9,-6);
-  Score QueenInfiltration   = S(-2,14,-2,-15);
-  Score ReachableOutpost    = S(20,20,6,-1);
-  Score RestrictedPiece     = S(6,8,5,-1);
+  Score KnightOnQueen       = S(19,10,12,11);
+  Score LongDiagonalBishop  = S(39,1,-6,0);
+  Score MinorBehindPawn     = S(17,3,-9,10);
+  Score PassedFile          = S(11,9,-1,-2);
+  Score PawnlessFlank       = S(20,119,9,-8);
+  Score QueenInfiltration   = S(-2,14,-2,-13);
+  Score ReachableOutpost    = S(21,19,9,0);
+  Score RestrictedPiece     = S(6,8,4,-3);
   Score RookOnKingRing      = S(15,2,-1,2);
-  Score RookOnQueenFile     = S(5,12,11,0);
-  Score SliderOnQueen       = S(82,17,-21,5);
-  Score ThreatByKing        = S(20,89,7,4);
-  Score ThreatByPawnPush    = S(49,37,17,7);
-  Score ThreatBySafePawn    = S(150,84,-3,-3);
-  Score TrappedRook         = S(56,13,15,-4);
-  Score WeakQueenProtection = S(17,-1,9,8
-  Score WeakQueen           = S(57,19,4,13);
+  Score RookOnQueenFile     = S(5,11,12,3);
+  Score SliderOnQueen       = S(83,17,-17,3);
+  Score ThreatByKing        = S(20,89,6,2);
+  Score ThreatByPawnPush    = S(48,37,18,10);
+  Score ThreatBySafePawn    = S(152,85,-3,-3);
+  Score TrappedRook         = S(57,13,16,-4);
+  Score WeakQueenProtection = S(17,0,5,6);
+  Score WeakQueen           = S(57,19,1,12);
 
   Range normalRange(int v) { return v != 0 ? default_range(v) : std::make_pair(-10, +10); }
 
