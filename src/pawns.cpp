@@ -166,8 +166,20 @@ namespace {
         }
 
         else if (backward)
+        {
+            bool backbone = opposed;
+            if (backbone)
+            {
+                if (file_of(s) < FILE_H)
+                    backbone = backbone && neighbours & shift<EAST>(file_bb(s));
+                else if (file_of(s) > FILE_A)
+                    backbone = backbone && neighbours & shift<WEST>(file_bb(s));
+            }
+
+            if (!backbone)
             score -=  Backward
                     + WeakUnopposed * !opposed;
+        }
 
         if (!support)
             score -=  Doubled * doubled
