@@ -696,7 +696,7 @@ namespace {
                 sideMoves = attackedBy[Us][KING] & ~shift<WEST>(attackedBy[Us][KING]);
             }
             if (!(sideMoves & ~(attackedBy[Them][ALL_PIECES] | pos.pieces())))
-                bonus -= make_score(0,10);
+                bonus -= make_score(0,20);
         }
 
         score += bonus - PassedFile * edge_distance(file_of(s));
