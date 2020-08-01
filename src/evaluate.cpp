@@ -685,7 +685,7 @@ namespace {
         } // r > RANK_3
 
         Bitboard sideMoves;
-        if (file_of(s) != file_of(pos.square<KING>(Us)))
+        if (std::abs(file_of(s) - file_of(pos.square<KING>(Us))) > 1)
         {
             if (file_of(s) < file_of(pos.square<KING>(Us)))
             {
