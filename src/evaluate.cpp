@@ -723,8 +723,8 @@ namespace {
     behind |= shift<Down+Down>(behind);
 
     int bonus = popcount(safe) + popcount(behind & safe & ~attackedBy[Them][ALL_PIECES]);
-    int weight = pos.count<ALL_PIECES>(Us) - 8 + std::min(pe->blocked_count(), 9);
-    Score score = make_score(bonus * weight * weight * weight / 50, 0);
+    int weight = pos.count<ALL_PIECES>(Us) - 3 + std::min(pe->blocked_count(), 9);
+    Score score = make_score(bonus * bonus * weight * weight / 166, 0);
 
     if (T)
         Trace::add(SPACE, Us, score);
