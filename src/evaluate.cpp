@@ -434,7 +434,7 @@ namespace {
     // Enemy rooks checks
     rookChecks = b1 & attackedBy[Them][ROOK] & safe;
     if (rookChecks)
-        kingDanger += SafeCheck[ROOK][more_than_one(rookChecks)];
+        kingDanger += SafeCheck[ROOK][more_than_one(rookChecks) || bool(rookChecks & attackedBy[Us][KING])];
     else
         unsafeChecks |= b1 & attackedBy[Them][ROOK];
 
@@ -443,7 +443,7 @@ namespace {
     queenChecks =  (b1 | b2) & attackedBy[Them][QUEEN] & safe
                  & ~(attackedBy[Us][QUEEN] | rookChecks);
     if (queenChecks)
-        kingDanger += SafeCheck[QUEEN][more_than_one(queenChecks)];
+        kingDanger += SafeCheck[QUEEN][more_than_one(queenChecks) || bool(queenChecks & attackedBy[Us][KING])];
 
     // Enemy bishops checks: count them only if they are from squares from which
     // opponent cannot give a queen check, because queen checks are more valuable.
