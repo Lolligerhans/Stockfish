@@ -678,7 +678,7 @@ namespace {
 
                 // Assign a larger bonus if the block square is defended
                 if ((pos.pieces(Us) & bb) || (attackedBy[Us][ALL_PIECES] & blockSq))
-                    k += 5 + 3 * !(attackedBy[Them][ALL_PIECES] & s);
+                    k += 5 + 5 * !(attackedBy[Them][ALL_PIECES] & s);
 
                 bonus += make_score(k * w, k * w);
             }
