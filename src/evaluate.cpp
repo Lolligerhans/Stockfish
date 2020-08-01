@@ -647,6 +647,7 @@ namespace {
         if (r > RANK_3)
         {
             int w = 5 * r - 13;
+            int k = 0;
             Square blockSq = s + Up;
 
             // Adjust bonus based on the king's proximity
@@ -658,12 +659,11 @@ namespace {
                 bonus -= make_score(0, king_proximity(Us, blockSq + Up) * w);
 
             // If the pawn is free to advance, then increase the bonus
+            bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN);
             if (pos.empty(blockSq))
             {
                 squaresToQueen = forward_file_bb(Us, s);
                 unsafeSquares = passed_pawn_span(Us, s);
-
-                bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN);
 
                 if (!(pos.pieces(Them) & bb))
                     unsafeSquares &= attackedBy[Them][ALL_PIECES];
@@ -671,17 +671,18 @@ namespace {
                 // If there are no enemy attacks on passed pawn span, assign a big bonus.
                 // Otherwise assign a smaller bonus if the path to queen is not attacked
                 // and even smaller bonus if it is attacked but block square is not.
-                int k = !unsafeSquares                    ? 35 :
+                k     = !unsafeSquares                    ? 35 :
                         !(unsafeSquares & squaresToQueen) ? 20 :
                         !(unsafeSquares & blockSq)        ?  9 :
                                                              0 ;
+            }
 
                 // Assign a larger bonus if the block square is defended
                 if ((pos.pieces(Us) & bb) || (attackedBy[Us][ALL_PIECES] & blockSq))
                     k += 5;
 
                 bonus += make_score(k * w, k * w);
-            }
+
         } // r > RANK_3
 
         score += bonus - PassedFile * edge_distance(file_of(s));
