@@ -644,9 +644,8 @@ namespace {
 
         Score bonus = PassedRank[r];
 
-        if (r > RANK_3)
         {
-            int w = 5 * r - 13;
+            int w = r > RANK_4 ? 5 * r - 13 : 1;
             Square blockSq = s + Up;
 
             // Adjust bonus based on the king's proximity
