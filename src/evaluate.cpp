@@ -680,24 +680,24 @@ namespace {
                 if ((pos.pieces(Us) & bb) || (attackedBy[Us][ALL_PIECES] & blockSq))
                     k += 5;
 
+                Bitboard sideMoves;
+                if (file_of(s) != file_of(pos.square<KING>(Us)))
+                {
+                    if (file_of(s) < file_of(pos.square<KING>(Us)))
+                    {
+                        sideMoves = attackedBy[Us][KING] & ~shift<EAST>(attackedBy[Us][KING]);
+                    }
+                    else // if (file_of(s) > file_of(pos.square<KING>(Us)))
+                    {
+                        sideMoves = attackedBy[Us][KING] & ~shift<WEST>(attackedBy[Us][KING]);
+                    }
+                    if (!(sideMoves & ~(attackedBy[Them][ALL_PIECES] | pos.pieces())))
+                        w -= 2;
+                }
+
                 bonus += make_score(k * w, k * w);
             }
         } // r > RANK_3
-
-        Bitboard sideMoves;
-        if (file_of(s) != file_of(pos.square<KING>(Us)))
-        {
-            if (file_of(s) < file_of(pos.square<KING>(Us)))
-            {
-                sideMoves = attackedBy[Us][KING] & ~shift<EAST>(attackedBy[Us][KING]);
-            }
-            else // if (file_of(s) > file_of(pos.square<KING>(Us)))
-            {
-                sideMoves = attackedBy[Us][KING] & ~shift<WEST>(attackedBy[Us][KING]);
-            }
-            if (!(sideMoves & ~(attackedBy[Them][ALL_PIECES] | pos.pieces())))
-                bonus -= make_score(0,10);
-        }
 
         score += bonus - PassedFile * edge_distance(file_of(s));
     }
