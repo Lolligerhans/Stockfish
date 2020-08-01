@@ -596,6 +596,13 @@ namespace {
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]) * (1 + queenImbalance);
     }
 
+    if (pos.count<PAWN>(Us) >= 4)
+    {
+        auto pawnCnt = pos.count<PAWN>(Us);
+        auto pieceCnt = pos.count<ALL_PIECES>(Us) - pawnCnt - 1 + pos.count<BISHOP>(Us) + pos.count<KNIGHT>(Us);
+        score += make_score(1,1) * (pawnCnt * pieceCnt * pieceCnt / 4);
+    }
+
     if (T)
         Trace::add(THREAT, Us, score);
 
