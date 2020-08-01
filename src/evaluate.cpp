@@ -845,8 +845,9 @@ namespace {
 
     // Early exit if score is high
     auto lazy_skip = [&](Value lazyThreshold) {
-        return abs(mg_value(score)*(                     me->game_phase())
-                  +eg_value(score)*(int(PHASE_MIDGAME) - me->game_phase())
+        return abs( ( mg_value(score)*(                     me->game_phase())
+                    + eg_value(score)*(int(PHASE_MIDGAME) - me->game_phase()))
+                  / PHASE_MIDGAME
                   ) > lazyThreshold + pos.non_pawn_material() / 64;
     };
 
