@@ -681,6 +681,8 @@ namespace {
                     k += 5;
 
                 bonus += make_score(k * w, k * w);
+                if (!(attackedBy[Them][ALL_PIECES] & s))
+                    bonus = bonus * 3 / 2;
             }
         } // r > RANK_3
 
