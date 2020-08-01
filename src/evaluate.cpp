@@ -618,6 +618,7 @@ namespace {
 
     Bitboard b, bb, squaresToQueen, unsafeSquares, blockedPassers, helpers;
     Score score = SCORE_ZERO;
+    bool doCutking = true;
 
     b = pe->passed_pawns(Us);
 
@@ -685,6 +686,7 @@ namespace {
         } // r > RANK_3
 
         Bitboard sideMoves;
+        if (doCutking)
         if (file_of(s) != file_of(pos.square<KING>(Us)))
         {
             if (file_of(s) < file_of(pos.square<KING>(Us)))
@@ -696,7 +698,7 @@ namespace {
                 sideMoves = attackedBy[Us][KING] & ~shift<WEST>(attackedBy[Us][KING]);
             }
             if (!(sideMoves & ~(attackedBy[Them][ALL_PIECES] | pos.pieces())))
-                bonus -= make_score(0,40);
+                bonus -= make_score(0,40), doCutking = false;
         }
 
         score += bonus - PassedFile * edge_distance(file_of(s));
