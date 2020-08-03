@@ -165,7 +165,7 @@ namespace {
       // average offset
       -2,
       // PNBRQ
-      20,
+      12+2,
       4,
       7,
       4,
