@@ -160,7 +160,7 @@ namespace {
   constexpr Score WeakQueenProtection = S( 14,  0);
   constexpr Score WeakQueen           = S( 56, 15);
 
-  constexpr int PieceInit[] =
+  int PieceInit[] =
   {
       // average offset
       0,
@@ -171,6 +171,7 @@ namespace {
       0,
       0
   };
+  TUNE(SetRange(-50,50), PieceInit);
 
 
 #undef S
