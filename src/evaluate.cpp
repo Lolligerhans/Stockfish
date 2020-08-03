@@ -163,13 +163,13 @@ namespace {
   constexpr int PieceInit[] =
   {
       // average offset
-      0,
+      -2,
       // PNBRQ
-      12,
-      0,
-      0,
-      0,
-      0
+      20,
+      4,
+      7,
+      4,
+      4
   };
 
 
