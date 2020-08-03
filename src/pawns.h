@@ -36,6 +36,7 @@ struct Entry {
   Score pawn_score(Color c) const { return scores[c]; }
   Bitboard pawn_attacks(Color c) const { return pawnAttacks[c]; }
   Bitboard passed_pawns(Color c) const { return passedPawns[c]; }
+  Bitboard passed_pawns() const { return passedPawns[WHITE] | passedPawns[BLACK]; }
   Bitboard pawn_attacks_span(Color c) const { return pawnAttacksSpan[c]; }
   int passed_count() const { return popcount(passedPawns[WHITE] | passedPawns[BLACK]); }
   int blocked_count() const { return blockedCount; }
