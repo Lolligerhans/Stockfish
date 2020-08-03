@@ -888,7 +888,8 @@ make_v:
     }
 
     // Evaluation grain
-    v = (v / 16) * 16;
+    if (std::abs(v) < 16)
+        v = VALUE_ZERO;
 
     // Side to move point of view
     v = (pos.side_to_move() == WHITE ? v : -v) + Tempo;
