@@ -764,12 +764,17 @@ namespace {
 
     Value mg = mg_value(score);
     Value eg = eg_value(score);
+    Value mg_, eg_;
+    mg_ = mg > 0 ? std::max(mg - 64, VALUE_ZERO)
+                 : std::min(mg + 64, VALUE_ZERO);
+    eg_ = eg > 0 ? std::max(eg - 64, VALUE_ZERO)
+                 : std::min(eg + 64, VALUE_ZERO);
 
     // Now apply the bonus: note that we find the attacking side by extracting the
     // sign of the midgame or endgame values, and that we carefully cap the bonus
     // so that the midgame and endgame scores do not change sign after the bonus.
-    int u = ((mg > 0) - (mg < 0)) * Utility::clamp(complexity + 50, -abs(mg), 0);
-    int v = ((eg > 0) - (eg < 0)) * std::max(complexity, -abs(eg));
+    int u = ((mg_ > 0) - (mg_ < 0)) * Utility::clamp(complexity + 50, -abs(mg_), 0);
+    int v = ((eg_ > 0) - (eg_ < 0)) * std::max(complexity, -abs(eg_));
 
     mg += u;
     eg += v;
