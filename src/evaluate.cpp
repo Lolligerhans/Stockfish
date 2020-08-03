@@ -160,6 +160,18 @@ namespace {
   constexpr Score WeakQueenProtection = S( 14,  0);
   constexpr Score WeakQueen           = S( 56, 15);
 
+  constexpr int PieceInit[] =
+  {
+      // average offset
+      0,
+      // PNBRQ
+      12,
+      0,
+      0,
+      0,
+      0
+  };
+
 
 #undef S
 
@@ -754,7 +766,13 @@ namespace {
 
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
-                    + 12 * pos.count<PAWN>()
+                  /*+ 12 * pos.count<PAWN>()*/
+                    + PieceInit[0] * (pos.count<ALL_PIECES>() - 2)
+                    + PieceInit[1] * pos.count<PAWN>()
+                    + PieceInit[2] * pos.count<KNIGHT>()
+                    + PieceInit[3] * pos.count<BISHOP>()
+                    + PieceInit[4] * pos.count<ROOK>()
+                    + PieceInit[5] * pos.count<QUEEN>()
                     +  9 * outflanking
                     + 21 * pawnsOnBothFlanks
                     + 24 * infiltration
