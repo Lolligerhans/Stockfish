@@ -684,13 +684,13 @@ namespace {
             }
         } // r > RANK_3
 
-        if (relative_rank(Us, pos.square<KING>(Us)) < r)
+        if (relative_rank(Us, pos.square<KING>(Them)) < r)
         {
             const
-            Bitboard upMoves = attackedBy[Us][KING] & ~shift<Down>(attackedBy[Us][KING]);
+            Bitboard upMoves = attackedBy[Them][KING] & ~shift<Down>(attackedBy[Them][KING]);
 
-            if (!(upMoves & ~(attackedBy[Them][ALL_PIECES] | pos.pieces())))
-                bonus -= make_score(0,20);
+            if (!(upMoves & ~(attackedBy[Us][ALL_PIECES] | pos.pieces(Them))))
+                bonus += make_score(0,100);
         }
 
         score += bonus - PassedFile * edge_distance(file_of(s));
