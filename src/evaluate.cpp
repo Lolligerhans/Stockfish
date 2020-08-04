@@ -686,7 +686,7 @@ namespace {
             }
         } // r > RANK_3
 
-        score += bonus - PassedFile * edge_distance(file_of(s));
+        score += (bonus - PassedFile * edge_distance(file_of(s))) / (1 + flag);
 
         if (flag) break; flag = true;
     }
