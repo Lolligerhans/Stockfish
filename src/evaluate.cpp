@@ -635,10 +635,9 @@ namespace {
             | shift<EAST>(helpers);
     }
 
-    while (b)
+    if (b)
     {
         Square s = frontmost_sq(Us, b);
-        b ^= square_bb(s);
 
         assert(!(pos.pieces(Them, PAWN) & forward_file_bb(Us, s + Up)));
 
@@ -686,9 +685,7 @@ namespace {
             }
         } // r > RANK_3
 
-        score += (bonus - PassedFile * edge_distance(file_of(s))) / (1 + flag);
-
-        if (flag) break; flag = true;
+        score += bonus - PassedFile * edge_distance(file_of(s));
     }
 
     if (T)
