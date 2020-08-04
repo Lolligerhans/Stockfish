@@ -674,15 +674,30 @@ namespace {
                 int k = !unsafeSquares                    ? 35 :
                         !(unsafeSquares & squaresToQueen) ? 20 :
                         !(unsafeSquares & blockSq)        ?  9 :
-                                                             0 ;
+                                                             1 ;
 
                 // Assign a larger bonus if the block square is defended
                 if ((pos.pieces(Us) & bb) || (attackedBy[Us][ALL_PIECES] & blockSq))
-                    k += 5;
+                    k += 5 + 3 * !(attackedBy[Them][ALL_PIECES] & s);
 
                 bonus += make_score(k * w, k * w);
             }
         } // r > RANK_3
+
+        Bitboard sideMoves;
+        if (file_of(s) != file_of(pos.square<KING>(Us)))
+        {
+            if (file_of(s) < file_of(pos.square<KING>(Us)))
+            {
+                sideMoves = attackedBy[Us][KING] & ~shift<EAST>(attackedBy[Us][KING]);
+            }
+            else // if (file_of(s) > file_of(pos.square<KING>(Us)))
+            {
+                sideMoves = attackedBy[Us][KING] & ~shift<WEST>(attackedBy[Us][KING]);
+            }
+            if (!(sideMoves & ~(attackedBy[Them][ALL_PIECES] | pos.pieces())))
+                bonus -= make_score(0,20);
+        }
 
         score += bonus - PassedFile * edge_distance(file_of(s));
     }
