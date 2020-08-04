@@ -769,6 +769,7 @@ namespace {
     CapturePieceToHistory& captureHistory = thisThread->captureHistory;
 
     // Step 6. Static evaluation of the position
+    constexpr Value Eps = Value(31);
     if (ss->inCheck)
     {
         // Skip early pruning when in check
@@ -811,8 +812,8 @@ namespace {
         &&  eval <= alpha - RazorMargin)
         return qsearch<NT>(pos, ss, alpha, beta);
 
-    improving =  (ss-2)->staticEval == VALUE_NONE ? (ss->staticEval > (ss-4)->staticEval
-              || (ss-4)->staticEval == VALUE_NONE) : ss->staticEval > (ss-2)->staticEval;
+    improving =  (ss-2)->staticEval == VALUE_NONE ? (ss->staticEval > (ss-4)->staticEval+Eps
+              || (ss-4)->staticEval == VALUE_NONE) : ss->staticEval > (ss-2)->staticEval+Eps;
 
     // Step 8. Futility pruning: child node (~50 Elo)
     if (   !PvNode
