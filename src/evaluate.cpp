@@ -684,18 +684,12 @@ namespace {
             }
         } // r > RANK_3
 
-        Bitboard sideMoves;
-        if (file_of(s) != file_of(pos.square<KING>(Us)))
+        if (relative_rank(Us, pos.square<KING>(Us)) < r)
         {
-            if (file_of(s) < file_of(pos.square<KING>(Us)))
-            {
-                sideMoves = attackedBy[Us][KING] & ~shift<EAST>(attackedBy[Us][KING]);
-            }
-            else // if (file_of(s) > file_of(pos.square<KING>(Us)))
-            {
-                sideMoves = attackedBy[Us][KING] & ~shift<WEST>(attackedBy[Us][KING]);
-            }
-            if (!(sideMoves & ~(attackedBy[Them][ALL_PIECES] | pos.pieces())))
+            const
+            Bitboard upMoves = attackedBy[Us][KING] & ~shift<Down>(attackedBy[Us][KING]);
+
+            if (!(upMoves & ~(attackedBy[Them][ALL_PIECES] | pos.pieces())))
                 bonus -= make_score(0,20);
         }
 
