@@ -769,7 +769,7 @@ namespace {
     CapturePieceToHistory& captureHistory = thisThread->captureHistory;
 
     // Step 6. Static evaluation of the position
-    constexpr Value Eps = Value(31);
+    constexpr Value Eps = Value(15);
     if (ss->inCheck)
     {
         // Skip early pruning when in check
