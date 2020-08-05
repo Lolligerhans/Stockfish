@@ -799,7 +799,8 @@ namespace {
             sf = 37 + 3 * (pos.count<QUEEN>(WHITE) == 1 ? pos.count<BISHOP>(BLACK) + pos.count<KNIGHT>(BLACK)
                                                         : pos.count<BISHOP>(WHITE) + pos.count<KNIGHT>(WHITE));
         else
-            sf = std::min(sf, 36 + 7 * pos.count<PAWN>(strongSide));
+            sf = std::min(sf, 36 + 6 * pos.count<PAWN>(strongSide)
+                                 + 2 * pe->weak[~strongSide]);
     }
 
     // Interpolate between the middlegame and (scaled by 'sf') endgame score

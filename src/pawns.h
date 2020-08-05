@@ -60,6 +60,7 @@ struct Entry {
   Square kingSquares[COLOR_NB];
   Score kingSafety[COLOR_NB];
   int castlingRights[COLOR_NB];
+  int weak[COLOR_NB];
   int blockedCount;
 };
 
