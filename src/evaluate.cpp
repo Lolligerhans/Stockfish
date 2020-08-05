@@ -745,6 +745,10 @@ namespace {
 
     bool pawnsOnBothFlanks =   (pos.pieces(PAWN) & QueenSide)
                             && (pos.pieces(PAWN) & KingSide);
+    constexpr Bitboard QueenFlank = FileABB | FileBBB | FileCBB;
+    constexpr Bitboard KingFlank = FileHBB | FileGBB | FileFBB;
+    bool pawnsOnOutwardFlanks =  pos.pieces(PAWN) & QueenFlank
+                              && pos.pieces(PAWN) & KingFlank;
 
     bool almostUnwinnable =   outflanking < 0
                            && !pawnsOnBothFlanks;
@@ -756,7 +760,8 @@ namespace {
     int complexity =   9 * pe->passed_count()
                     + 12 * pos.count<PAWN>()
                     +  9 * outflanking
-                    + 21 * pawnsOnBothFlanks
+                    + (21 - 10) * pawnsOnBothFlanks
+                    + 10 * pawnsOnOutwardFlanks
                     + 24 * infiltration
                     + 51 * !pos.non_pawn_material()
                     - 43 * almostUnwinnable
