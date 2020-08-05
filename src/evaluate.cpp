@@ -385,15 +385,32 @@ namespace {
 
         if (Pt == QUEEN)
         {
+//            dbg_mean_of<2>(mob);
             // Penalty if any relative pin or discovered attack against the queen
             Bitboard queenPinners;
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
 
             // Bonus for queen on weak square in enemy camp
+            constexpr Bitboard TheirHalf = Us == WHITE ? forward_ranks_bb(WHITE, SQ_D4)
+                    : forward_ranks_bb(BLACK, SQ_D5);
             if (relative_rank(Us, s) > RANK_4 && (~pe->pawn_attacks_span(Them) & s)
-                    && b & QueenSide && b & KingSide)
+                    && popcount(b & mobilityArea[Us] & TheirHalf) >= 10)
+            {
                 score += QueenInfiltration;
+//                dbg_mean_of(mob);
+//                dbg_mean_of<1>(popcount(b & mobilityArea[Us] & TheirHalf));
+
+                // normal:
+                //  [0] Samples 3979124 Mean 14.6354 o 4.11065
+                //  [1] Samples 3979124 Mean 10.4593 o 3.3377
+                //  [2] Samples 23777595 Mean 11.4074 o 3.77296
+                // closed:
+                //  [0] Samples 2343541 Mean 10.6713 o 2.93452
+                //  [1] Samples 2343541 Mean 7.35531 o 2.64397
+                //  [2] Samples 80638601 Mean 8.63265 o 2.24925
+            }
+
         }
     }
     if (T)
