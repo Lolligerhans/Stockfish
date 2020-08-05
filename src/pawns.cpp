@@ -38,7 +38,12 @@ namespace {
   constexpr Score WeakLever     = S( 0, 56);
   constexpr Score WeakUnopposed = S(13, 27);
 
-  constexpr Score BlockedStorm[RANK_NB]  = {S( 0, 0), S( 0, 0), S( 76, 78), S(-10, 15), S(-7, 10), S(-4, 6), S(-1, 2)};
+  // Bonus for blocked pawns at 5th or 6th rank
+  constexpr Score BlockedPawn[2] = { S(-11, -4), S(-3, 4) };
+
+  constexpr Score BlockedStorm[RANK_NB] = {
+    S(0, 0), S(0, 0), S(76, 78), S(-10, 15), S(-7, 10), S(-4, 6), S(-1, 2)
+  };
 
   // Connected pawn bonus
   constexpr int Connected[RANK_NB] = { 0, 7, 8, 12, 29, 48, 86 };
@@ -65,6 +70,12 @@ namespace {
 
   #undef S
   #undef V
+
+
+  /// evaluate() calculates a score for the static pawn structure of the given position.
+  /// We cannot use the location of pieces or king in this function, as the evaluation
+  /// of the pawn structure will be stored in a small cache for speed reasons, and will
+  /// be re-used even when the pieces have moved.
 
   template<Color Us>
   Score evaluate(const Position& pos, Pawns::Entry* e) {
@@ -137,7 +148,7 @@ namespace {
         // Score this pawn
         if (support | phalanx)
         {
-            int v =  Connected[r] * (4 + 2 * bool(phalanx) - 2 * bool(opposed) - bool(blocked)) / 2
+            int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed))
                    + 21 * popcount(support);
 
             score += make_score(v, v * (r - 2) / 4);
@@ -150,17 +161,20 @@ namespace {
                 && !(theirPawns & adjacent_files_bb(s)))
                 score -= Doubled;
             else
-                score -=   Isolated
-                         + WeakUnopposed * !opposed;
+                score -=  Isolated
+                        + WeakUnopposed * !opposed;
         }
 
         else if (backward)
-            score -=   Backward
-                     + WeakUnopposed * !opposed;
+            score -=  Backward
+                    + WeakUnopposed * !opposed;
 
         if (!support)
-            score -=   Doubled * doubled
-                     + WeakLever * more_than_one(lever);
+            score -=  Doubled * doubled
+                    + WeakLever * more_than_one(lever);
+
+        if (blocked && r > RANK_4)
+            score += BlockedPawn[r-4];
     }
 
     return score;
@@ -169,6 +183,7 @@ namespace {
 } // namespace
 
 namespace Pawns {
+
 
 /// Pawns::probe() looks up the current position's pawns configuration in
 /// the pawns hash table. It returns a pointer to the Entry if the position
@@ -196,7 +211,7 @@ Entry* probe(const Position& pos) {
 /// penalty for a king, looking at the king file and the two closest files.
 
 template<Color Us>
-Score Entry::evaluate_shelter(const Position& pos, Square ksq) {
+Score Entry::evaluate_shelter(const Position& pos, Square ksq) const {
 
   constexpr Color Them = ~Us;
 
