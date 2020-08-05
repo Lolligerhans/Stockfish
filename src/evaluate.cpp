@@ -162,14 +162,12 @@ namespace {
 
   constexpr int PieceInit[] =
   {
-      // average offset
-      -2,
       // PNBRQ
-      12+2,
-      4,
-      7,
-      4,
-      4
+      12,
+      2,
+      5,
+      2,
+      2
   };
 
 
@@ -767,12 +765,11 @@ namespace {
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
                   /*+ 12 * pos.count<PAWN>()*/
-                    + PieceInit[0] * (pos.count<ALL_PIECES>() - 2)
-                    + PieceInit[1] * pos.count<PAWN>()
-                    + PieceInit[2] * pos.count<KNIGHT>()
-                    + PieceInit[3] * pos.count<BISHOP>()
-                    + PieceInit[4] * pos.count<ROOK>()
-                    + PieceInit[5] * pos.count<QUEEN>()
+                    + PieceInit[0] * pos.count<PAWN>()
+                    + PieceInit[1] * pos.count<KNIGHT>()
+                    + PieceInit[2] * pos.count<BISHOP>()
+                    + PieceInit[3] * pos.count<ROOK>()
+                    + PieceInit[4] * pos.count<QUEEN>()
                     +  9 * outflanking
                     + 21 * pawnsOnBothFlanks
                     + 24 * infiltration
