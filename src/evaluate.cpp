@@ -761,7 +761,7 @@ namespace {
                     + 12 * pos.count<PAWN>()
                     +  9 * outflanking
                     + (21 - 10) * pawnsOnBothFlanks
-                    + 10 * pawnsOnOutwardFlanks
+                    + 20 * pawnsOnOutwardFlanks
                     + 24 * infiltration
                     + 51 * !pos.non_pawn_material()
                     - 43 * almostUnwinnable
