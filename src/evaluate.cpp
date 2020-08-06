@@ -315,21 +315,17 @@ namespace {
             bb = OutpostRanks & (attackedBy[Us][PAWN] | shift<Down>(pos.pieces(PAWN))) & ~pe->pawn_attacks_span(Them);
             Bitboard targets = pos.pieces(Them) & ~pos.pieces(PAWN);
 
-            Bitboard c;
-            const bool protec = attackedBy[Us][PAWN] & s;
-            bool used = false;
             if (   Pt == KNIGHT
                 && bb & s & ~CenterFiles // on a side outpost
                 && !(b & targets)        // no relevant attacks
                 && (!more_than_one(targets & (s & QueenSide ? QueenSide : KingSide))))
-                score += BadOutpost, used = !protec;
+                score += BadOutpost;
             else if (bb & s)
-                score += Outpost[Pt == BISHOP], used = !protec;
-            else if (Pt == KNIGHT && (bb = bb & b & ~pos.pieces(Us)))
-                score += ReachableOutpost, used = !(bb & attackedBy[Us][PAWN]);
+                score += Outpost[Pt == BISHOP];
+            else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
+                score += ReachableOutpost;
 
             // Bonus for a knight or bishop shielded by pawn
-            if (not used)
             if (shift<Down>(pos.pieces(PAWN)) & s)
                 score += MinorBehindPawn;
 
