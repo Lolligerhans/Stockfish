@@ -326,7 +326,7 @@ namespace {
                 score += ReachableOutpost;
 
             // Bonus for a knight or bishop shielded by pawn
-            if (shift<Down>(pos.pieces(PAWN)) & s)
+            if (shift<Down>(pos.pieces(PAWN)) & ~pe->pawn_attacks_span(Them) & s)
                 score += MinorBehindPawn;
 
             // Penalty if the piece is far from the king
