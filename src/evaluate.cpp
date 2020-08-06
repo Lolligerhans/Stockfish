@@ -308,7 +308,7 @@ namespace {
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
-        constexpr Score WannabeOutpost = make_score(5,5);
+        constexpr Score WannabeOutpost = make_score(20,10);
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if the piece is on an outpost square or can reach one
