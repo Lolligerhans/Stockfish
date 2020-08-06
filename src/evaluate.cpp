@@ -512,8 +512,6 @@ namespace {
                  - 100 * bool(attackedBy[Us][KNIGHT] & attackedBy[Us][KING])
                  -   6 * mg_value(score) / 8
                  -   4 * kingFlankDefense
-                 - 100 * !(pe->pawn_attacks_span(Them) & KingFlank[file_of(ksq)] & (Rank1BB | Rank8BB))
-                       * popcount(pos.pieces(Them, PAWN) & KingFlank[file_of(ksq)])
                  +  37;
 
     // Transform the kingDanger units into a Score, and subtract it from the evaluation
@@ -526,6 +524,9 @@ namespace {
 
     // Penalty if king flank is under attack, potentially moving toward the king
     score -= FlankAttacks * kingFlankAttack;
+
+    if (!(pe->pawn_attacks_span(Them) & KingFlank[file_of(ksq)] & (Rank1BB | Rank8BB)))
+        score += make_score(20, 5) * popcount(pos.pieces(Them, PAWN) & KingFlank[file_of(ksq)]);
 
     if (T)
         Trace::add(KING, Us, score);
