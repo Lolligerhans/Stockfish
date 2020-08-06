@@ -482,7 +482,7 @@ namespace {
                  - 100 * bool(attackedBy[Us][KNIGHT] & attackedBy[Us][KING])
                  -   6 * mg_value(score) / 8
                  -   4 * kingFlankDefense
-                 -  30 * !(pe->pawn_attacks_span(Them) & KingFlank[file_of(ksq)] & (Rank1BB | Rank8BB))
+                 - 100 * !(pe->pawn_attacks_span(Them) & KingFlank[file_of(ksq)] & (Rank1BB | Rank8BB))
                        * popcount(pos.pieces(Them, PAWN) & KingFlank[file_of(ksq)])
                  +  37;
 
