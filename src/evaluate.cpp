@@ -308,6 +308,7 @@ namespace {
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
+        constexpr Score WannabeOutpost = make_score(5,5);
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if the piece is on an outpost square or can reach one
@@ -324,6 +325,8 @@ namespace {
                 score += Outpost[Pt == BISHOP];
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
                 score += ReachableOutpost;
+            else if (s & ~pe->pawn_attacks_span(Them))
+                    score += WannabeOutpost;
 
             // Bonus for a knight or bishop shielded by pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
@@ -362,7 +365,10 @@ namespace {
                                                                                   : CorneredBishop;
                 }
             }
-        }
+        } // Knight or Bishop
+        else // Queen or Rook
+            if (s & ~pe->pawn_attacks_span(Them))
+                score += WannabeOutpost;
 
         if (Pt == ROOK)
         {
