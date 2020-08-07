@@ -208,7 +208,7 @@ namespace {
 
   private:
     template<Color Us> void initialize();
-    template<Color Us, PieceType Pt> Score pieces();
+    template<Color Us, PieceType Pt> Score pieces(bool SecondGo = false);
     template<Color Us> Score king() const;
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
@@ -250,6 +250,9 @@ namespace {
     // a white knight on g5 and black's king is on g8, this white knight adds 2
     // to kingAttacksCount[WHITE].
     int kingAttacksCount[COLOR_NB];
+    Bitboard  _a[COLOR_NB][15] = {0};
+    Bitboard* _b[COLOR_NB] = {&_a[WHITE][0], &_a[BLACK][0]};
+    void resetAttacks() { _b[WHITE] = _a[WHITE]; _b[BLACK] = _a[BLACK]; }
   };
 
 
@@ -297,7 +300,7 @@ namespace {
   // Evaluation::pieces() scores pieces of a given color and type
 
   template<Tracing T> template<Color Us, PieceType Pt>
-  Score Evaluation<T>::pieces() {
+  Score Evaluation<T>::pieces(bool SecondGo) {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Down = -pawn_push(Us);
@@ -308,21 +311,33 @@ namespace {
     Bitboard b, bb;
     Score score = SCORE_ZERO;
 
+    if (!SecondGo)
     attackedBy[Us][Pt] = 0;
 
     for (Square s = *pl; s != SQ_NONE; s = *++pl)
     {
-        // Find attacked squares, including x-ray attacks for bishops and rooks
-        b = Pt == BISHOP ? attacks_bb<BISHOP>(s, pos.pieces() ^ pos.pieces(QUEEN))
-          : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
-                         : attacks_bb<Pt>(s, pos.pieces());
+        if (!SecondGo)
+        {
+            // Find attacked squares, including x-ray attacks for bishops and rooks
+            b = Pt == BISHOP ? attacks_bb<BISHOP>(s, pos.pieces() ^ pos.pieces(QUEEN))
+              : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
+                             : attacks_bb<Pt>(s, pos.pieces());
 
-        if (pos.blockers_for_king(Us) & s)
-            b &= line_bb(pos.square<KING>(Us), s);
+            if (pos.blockers_for_king(Us) & s)
+                b &= line_bb(pos.square<KING>(Us), s);
 
-        attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
-        attackedBy[Us][Pt] |= b;
-        attackedBy[Us][ALL_PIECES] |= b;
+            *_b[Us] ++= b;
+
+            attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
+            attackedBy[Us][Pt] |= b;
+            attackedBy[Us][ALL_PIECES] |= b;
+
+            continue;
+        }
+        else
+        {
+            b =* _b[Us]++;
+        }
 
         if (b & kingRing[Them])
         {
@@ -887,10 +902,15 @@ namespace {
 
     // Pieces evaluated first (also populates attackedBy, attackedBy2).
     // Note that the order of evaluation of the terms is left unspecified.
-    score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
-            + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
-            + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
-            + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
+    score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>();
+    score +=  pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>() ;
+    score +=  pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >() ;
+    score +=  pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
+    resetAttacks();
+    score +=  pieces<WHITE, KNIGHT>(true) - pieces<BLACK, KNIGHT>(true);
+    score +=  pieces<WHITE, BISHOP>(true) - pieces<BLACK, BISHOP>(true);
+    score +=  pieces<WHITE, ROOK  >(true) - pieces<BLACK, ROOK  >(true);
+    score +=  pieces<WHITE, QUEEN >(true) - pieces<BLACK, QUEEN >(true);
 
     score += mobility[WHITE] - mobility[BLACK];
 
