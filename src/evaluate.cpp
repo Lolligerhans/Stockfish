@@ -630,31 +630,22 @@ namespace {
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]) * (1 + queenImbalance);
     }
 
-    if (attackedBy[Them][KING] & attackedBy[Us][ALL_PIECES])
+    auto kingMoves = attackedBy[Them][KING] & ~(attackedBy[Us][ALL_PIECES] | pos.pieces(Them));
+    const auto kingMoveCount = popcount(kingMoves);
+    if (0 < kingMoveCount && kingMoveCount < 3)
     {
-        constexpr Score LastNail = make_score(10,50);
-        auto kingMoves = attackedBy[Them][KING] & ~(attackedBy[Us][ALL_PIECES] | pos.pieces(Them));
-        const auto kingMoveCount = popcount(kingMoves);
-        if (0 < kingMoveCount && kingMoveCount < 3)
+        Square s1 = pop_lsb(&kingMoves);
+        bool possible = pos.pieces(Us, BISHOP) & (s1 & DarkSquares ? DarkSquares : ~DarkSquares);
+        if (kingMoveCount == 2)
         {
-            // Find the sqaures our bishop must move to
-            Bitboard squaresWhichSeeEscapeSquares;
-            // Exclude their rook/queen since winning material is often just as good
-            squaresWhichSeeEscapeSquares = attacks_bb<BISHOP>(lsb(kingMoves), pos.pieces() ^ pos.pieces(Them, ROOK, QUEEN));
-            if (kingMoveCount == 2)
-            {
-                // There may be some corner cases where our pieces occupy s1 or s2 but we ignore these
-
-                // Only squares which align with both escape squares are considered
-                Square s1 = pop_lsb(&kingMoves), s2 = lsb(kingMoves);
-                squaresWhichSeeEscapeSquares &= line_bb(s1, s2);
-            }
-
-            // Give bonus if our bishop attacks the required square and can move there
-            const auto safeForBishop = ~pos.pieces(Us) & ~attackedBy[Them][PAWN] & (~attackedBy[Them][ALL_PIECES] | attackedBy2[Us]);
-            if (squaresWhichSeeEscapeSquares & attackedBy[Us][BISHOP] & safe)
-                score += LastNail;
+            Square s2 = lsb(kingMoves);
+            // s1 is lsb so rank of s2 is at least the rank of s1
+            bool diagonal =  (rank_of(s2) - rank_of(s1))
+                          == std::abs(file_of(s2) - file_of(s1));
+            possible &= diagonal;
         }
+        if (possible)
+            score += make_score(0,25);
     }
 
     if (T)
