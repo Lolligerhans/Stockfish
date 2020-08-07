@@ -630,6 +630,32 @@ namespace {
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]) * (1 + queenImbalance);
     }
 
+    constexpr Score LastNail = make_score(0, 25);
+
+    auto kingMoves = attackedBy[Them][KING] & ~(attackedBy[Us][ALL_PIECES] | pos.pieces(Them));
+    const auto kingMoveCount = popcount(kingMoves);
+    if (0 < kingMoveCount && kingMoveCount < 3)
+    {
+        // Find the sqaures our bishop must move to
+        Bitboard squaresWhichSeeEscapeSquares;
+        if (kingMoveCount == 1)
+        {
+            // Exclude their rook/queen since winning material is often just as good
+            squaresWhichSeeEscapeSquares = attacks_bb<BISHOP>(lsb(kingMoves), pos.pieces() ^ pos.pieces(Them, ROOK, QUEEN));
+
+        }
+        else // if (kingMoveCount == 2)
+        {
+            Square s1 = pop_lsb(&kingMoves), s2 = lsb(kingMoves);
+            squaresWhichSeeEscapeSquares = line_bb(s1, s2);
+        }
+
+        // Give bonus if our bishop attacks the required square and can move there
+        const auto safeForBishop = ~pos.pieces(Us) & ~attackedBy[Them][PAWN] & (~attackedBy[Them][ALL_PIECES] | attackedBy2[Us]);
+        if (squaresWhichSeeEscapeSquares & attackedBy[Us][BISHOP] & safe)
+            score += LastNail;
+    }
+
     if (T)
         Trace::add(THREAT, Us, score);
 
