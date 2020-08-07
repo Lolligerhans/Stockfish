@@ -304,8 +304,14 @@ namespace {
         else if (Pt == BISHOP && (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & kingRing[Them]))
             score += BishopOnKingRing;
 
-        int mob = popcount(b & mobilityArea[Us]);
-
+        int mob;
+        if (Pt == QUEEN && pos.count<QUEEN>(Them) <= 1)
+        {
+            auto atkByThem = attackedBy[Them][ALL_PIECES] & (~attackedBy[Them][QUEEN] | attackedBy2[Them]);
+            auto possibleMoves = b & ~(atkByThem | pos.pieces(Us));
+            mob = popcount(possibleMoves & mobilityArea[Us]);
+        }
+        else mob = popcount(b & mobilityArea[Us]);
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         if (Pt == BISHOP || Pt == KNIGHT)
@@ -389,15 +395,6 @@ namespace {
             Bitboard queenPinners;
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
-
-            if (pos.count<QUEEN>(Them) <= 1)
-            {
-                auto atkByThem = attackedBy[Them][ALL_PIECES] & (~attackedBy[Them][QUEEN] | attackedBy2[Them]);
-                auto possibleMoves = b & ~(atkByThem | pos.pieces(Us));
-                auto n = popcount(possibleMoves);
-                if (n <= 1) score -= make_score(20, 30);
-                if (n <= 2) score -= make_score(20, 30);
-            }
 
             // Bonus for queen on weak square in enemy camp
             if (relative_rank(Us, s) > RANK_4 && (~pe->pawn_attacks_span(Them) & s))
