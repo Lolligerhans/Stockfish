@@ -465,10 +465,13 @@ namespace {
     b1 = attacks_bb<ROOK  >(ksq, pos.pieces() ^ pos.pieces(Us, QUEEN));
     b2 = attacks_bb<BISHOP>(ksq, pos.pieces() ^ pos.pieces(Us, QUEEN));
 
+    bool trapped = !(attackedBy[Us][KING] & ~(attackedBy[Them][ALL_PIECES] | pos.pieces(Us)));
+
     // Enemy rooks checks
     rookChecks = b1 & attackedBy[Them][ROOK] & safe;
     if (rookChecks)
-        kingDanger += SafeCheck[ROOK][more_than_one(rookChecks)];
+        kingDanger += (trapped ? SafeCheck[ROOK][more_than_one(rookChecks)] *3/2
+                               : SafeCheck[ROOK][more_than_one(rookChecks)]);
     else
         unsafeChecks |= b1 & attackedBy[Them][ROOK];
 
@@ -477,14 +480,16 @@ namespace {
     queenChecks =  (b1 | b2) & attackedBy[Them][QUEEN] & safe
                  & ~(attackedBy[Us][QUEEN] | rookChecks);
     if (queenChecks)
-        kingDanger += SafeCheck[QUEEN][more_than_one(queenChecks)];
+        kingDanger += (trapped ? SafeCheck[QUEEN][more_than_one(queenChecks)] *3/2
+                               : SafeCheck[QUEEN][more_than_one(queenChecks)]);
 
     // Enemy bishops checks: count them only if they are from squares from which
     // opponent cannot give a queen check, because queen checks are more valuable.
     bishopChecks =  b2 & attackedBy[Them][BISHOP] & safe
                   & ~queenChecks;
     if (bishopChecks)
-        kingDanger += SafeCheck[BISHOP][more_than_one(bishopChecks)];
+        kingDanger += (trapped ? SafeCheck[BISHOP][more_than_one(bishopChecks)] *3/2
+                               : SafeCheck[BISHOP][more_than_one(bishopChecks)]);
 
     else
         unsafeChecks |= b2 & attackedBy[Them][BISHOP];
@@ -492,7 +497,8 @@ namespace {
     // Enemy knights checks
     knightChecks = attacks_bb<KNIGHT>(ksq) & attackedBy[Them][KNIGHT];
     if (knightChecks & safe)
-        kingDanger += SafeCheck[KNIGHT][more_than_one(knightChecks & safe)];
+        kingDanger += (trapped ? SafeCheck[KNIGHT][more_than_one(knightChecks & safe)] *3/2
+                               : SafeCheck[KNIGHT][more_than_one(knightChecks & safe)]);
     else
         unsafeChecks |= knightChecks;
 
