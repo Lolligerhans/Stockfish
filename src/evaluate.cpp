@@ -638,16 +638,15 @@ namespace {
     {
         // Find the sqaures our bishop must move to
         Bitboard squaresWhichSeeEscapeSquares;
-        if (kingMoveCount == 1)
+        // Exclude their rook/queen since winning material is often just as good
+        squaresWhichSeeEscapeSquares = attacks_bb<BISHOP>(lsb(kingMoves), pos.pieces() ^ pos.pieces(Them, ROOK, QUEEN));
+        if (kingMoveCount == 2)
         {
-            // Exclude their rook/queen since winning material is often just as good
-            squaresWhichSeeEscapeSquares = attacks_bb<BISHOP>(lsb(kingMoves), pos.pieces() ^ pos.pieces(Them, ROOK, QUEEN));
+            // There may be some corner cases where our pieces occupy s1 or s2 but we ignore these
 
-        }
-        else // if (kingMoveCount == 2)
-        {
+            // Only squares which align with both escape squares are considered
             Square s1 = pop_lsb(&kingMoves), s2 = lsb(kingMoves);
-            squaresWhichSeeEscapeSquares = line_bb(s1, s2);
+            squaresWhichSeeEscapeSquares &= line_bb(s1, s2);
         }
 
         // Give bonus if our bishop attacks the required square and can move there
