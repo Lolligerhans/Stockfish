@@ -337,6 +337,24 @@ namespace {
         else
         {
             b =* _b[Us]++;
+
+            // Correct attacks if we attack a haning piece
+            auto const hanging = b & pos.pieces(Them) & ~attackedBy[Them][ALL_PIECES];
+            if (hanging)
+            {
+                // Re-compute attacks, but excuding hanign pieces
+                // Find attacked squares, including x-ray attacks for bishops and rooks
+                b = Pt == BISHOP ? attacks_bb<BISHOP>(s, (pos.pieces() ^ pos.pieces(QUEEN)) & ~hanging)
+                  : Pt ==   ROOK ? attacks_bb<  ROOK>(s, (pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK)) & ~hanging)
+                                 : attacks_bb<Pt>(s, pos.pieces() & ~hanging);
+                if (pos.blockers_for_king(Us) & s)
+                    b &= line_bb(pos.square<KING>(Us), s);
+            }
+
+            // Sadly, we cannot update attacks bitboard easily without
+            // unsequenced interfering with the hanging correction, but we have
+            // some corrections for mobility and other bonuses within
+            // ::pieces()
         }
 
         if (b & kingRing[Them])
