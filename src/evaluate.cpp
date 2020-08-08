@@ -361,7 +361,8 @@ namespace {
             // Bonus if the piece is on an outpost square or can reach one
             // Reduced bonus for knights (BadOutpost) if few relevant targets
             bb = OutpostRanks & (attackedBy[Us][PAWN] | shift<Down>(pos.pieces(PAWN)))
-                              & ~pe->pawn_attacks_span(Them);
+                              & ~pe->pawn_attacks_span(Them)
+                              & ~(attackedBy[Them][BISHOP] | attackedBy[Them][KNIGHT]);
             Bitboard targets = pos.pieces(Them) & ~pos.pieces(PAWN);
 
             if (   Pt == KNIGHT
