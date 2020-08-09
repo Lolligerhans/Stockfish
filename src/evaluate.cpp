@@ -153,7 +153,7 @@ namespace {
   constexpr Score Outpost[2][2][2] =
   {
       {    // knight ,   bishop
-          { S(56, 36), S(30, 23) }, // protec = 0, shield = 0
+          { S(0,0), S(0,0) }, // protec = 0, shield = 0
           { S(56, 36), S(30, 23) }, // protec = 0, shield = 1
       },
       {
@@ -186,7 +186,7 @@ namespace {
   constexpr Score BadOutpost[2][2]          =
   {
       {
-          S( -7, 36),
+          S(0,0),
           S( -7, 36)
       },
       {
@@ -208,7 +208,7 @@ namespace {
   constexpr Score ReachableOutpost[2][2]    =
   {
       {
-          S( 31, 22),
+          S(0,0),
           S( 31, 22)
       },
       {
