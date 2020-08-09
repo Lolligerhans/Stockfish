@@ -150,7 +150,17 @@ namespace {
 
   // Outpost[knight/bishop] contains bonuses for each knight or bishop occupying a
   // pawn protected square on rank 4 to 6 which is also safe from a pawn attack.
-  constexpr Score Outpost[] = { S(56, 36), S(30, 23) };
+  constexpr Score Outpost[2][2][2] =
+  {
+      {    // knight ,   bishop
+          { S(56, 36), S(30, 23) }, // protec = 0, shield = 0
+          { S(56, 36), S(30, 23) }, // protec = 0, shield = 1
+      },
+      {
+          { S(56, 36), S(30, 23) }, // protec = 1, shield = 0
+          { S(56, 36), S(30, 23) }, // protec = 1, shield = 1
+      }
+  };
 
   // PassedRank[Rank] contains a bonus according to the rank of a passed pawn
   constexpr Score PassedRank[RANK_NB] = {
@@ -173,7 +183,17 @@ namespace {
   };
 
   // Assorted bonuses and penalties
-  constexpr Score BadOutpost          = S( -7, 36);
+  constexpr Score BadOutpost[2][2]          =
+  {
+      {
+          S( -7, 36),
+          S( -7, 36)
+      },
+      {
+          S( -7, 36),
+          S( -7, 36)
+      }
+  };
   constexpr Score BishopOnKingRing    = S( 24,  0);
   constexpr Score BishopPawns         = S(  3,  7);
   constexpr Score BishopXRayPawns     = S(  4,  5);
@@ -185,7 +205,17 @@ namespace {
   constexpr Score MinorBehindPawn     = S( 18,  3);
   constexpr Score PassedFile          = S( 11,  8);
   constexpr Score PawnlessFlank       = S( 17, 95);
-  constexpr Score ReachableOutpost    = S( 31, 22);
+  constexpr Score ReachableOutpost[2][2]    =
+  {
+      {
+          S( 31, 22),
+          S( 31, 22)
+      },
+      {
+          S( 31, 22),
+          S( 31, 22)
+      }
+  };
   constexpr Score RestrictedPiece     = S(  7,  7);
   constexpr Score RookOnKingRing      = S( 16,  0);
   constexpr Score RookOnQueenFile     = S(  6, 11);
@@ -352,16 +382,22 @@ namespace {
             bb = OutpostRanks & (attackedBy[Us][PAWN] | shift<Down>(pos.pieces(PAWN)))
                               & ~pe->pawn_attacks_span(Them);
             Bitboard targets = pos.pieces(Them) & ~pos.pieces(PAWN);
+            bool protec = attackedBy[Us][PAWN] & s;
+            bool shield = shift<Down>(pos.pieces(PAWN)) & s;
 
             if (   Pt == KNIGHT
                 && bb & s & ~CenterFiles // on a side outpost
                 && !(b & targets)        // no relevant attacks
                 && (!more_than_one(targets & (s & QueenSide ? QueenSide : KingSide))))
-                score += BadOutpost;
+                score += BadOutpost[protec][shield];
             else if (bb & s)
-                score += Outpost[Pt == BISHOP];
-            else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
-                score += ReachableOutpost;
+                score += Outpost[protec][shield][Pt == BISHOP];
+            else if (Pt == KNIGHT && (bb = bb & b & ~pos.pieces(Us)))
+            {
+                bool p = bb & attackedBy[Us][PAWN];
+                bool sh = bb & shift<Down>(pos.pieces(PAWN));
+                score += ReachableOutpost[p][sh];
+            }
 
             // Bonus for a knight or bishop shielded by pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
