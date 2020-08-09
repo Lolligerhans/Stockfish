@@ -372,7 +372,7 @@ namespace {
 
             if (Pt == BISHOP)
             {
-                score += make_score(5,5) * pos.count<BISHOP>(Us) * pe->passed_count();
+                score += make_score(2,2) * pos.count<BISHOP>(Us) * pe->passed_count();
 
                 // Penalty according to the number of our pawns on the same color square as the
                 // bishop, bigger when the center files are blocked with pawns and smaller
