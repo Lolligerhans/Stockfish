@@ -357,15 +357,15 @@ namespace {
                 && bb & s & ~CenterFiles // on a side outpost
                 && !(b & targets)        // no relevant attacks
                 && (!more_than_one(targets & (s & QueenSide ? QueenSide : KingSide))))
-                score += BadOutpost;
+                score += (Pt == KNIGHT || Pt == BISHOP ? BadOutpost : BadOutpost/2);
             else if (bb & s)
                 score += Outpost[Pt != KNIGHT];
             else if (Pt != BISHOP && bb & b & ~pos.pieces(Us))
-                score += ReachableOutpost;
+                score += (Pt == KNIGHT || Pt == BISHOP ? ReachableOutpost : ReachableOutpost/2);
 
             // Bonus for a knight or bishop shielded by pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
-                score += MinorBehindPawn;
+                score += (Pt == KNIGHT || Pt == BISHOP ? MinorBehindPawn : MinorBehindPawn/2);
         }
         if (Pt == KNIGHT || Pt == BISHOP)
         {
