@@ -345,7 +345,7 @@ namespace {
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
-        if (Pt == BISHOP || Pt == KNIGHT)
+        if (Pt == BISHOP || Pt == KNIGHT || pos.count<KNIGHT>(Them) + pos.count<BISHOP>(Them) == 0)
         {
             // Bonus if the piece is on an outpost square or can reach one
             // Reduced bonus for knights (BadOutpost) if few relevant targets
@@ -359,14 +359,16 @@ namespace {
                 && (!more_than_one(targets & (s & QueenSide ? QueenSide : KingSide))))
                 score += BadOutpost;
             else if (bb & s)
-                score += Outpost[Pt == BISHOP];
-            else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
+                score += Outpost[Pt != KNIGHT];
+            else if (Pt != BISHOP && bb & b & ~pos.pieces(Us))
                 score += ReachableOutpost;
 
             // Bonus for a knight or bishop shielded by pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
                 score += MinorBehindPawn;
-
+        }
+        if (Pt == KNIGHT || Pt == BISHOP)
+        {
             // Penalty if the piece is far from the king
             score -= KingProtector[Pt == BISHOP] * distance(pos.square<KING>(Us), s);
 
