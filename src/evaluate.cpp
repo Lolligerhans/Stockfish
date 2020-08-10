@@ -370,8 +370,13 @@ namespace {
             // Penalty if the piece is far from the king
             score -= KingProtector[Pt == BISHOP] * distance(pos.square<KING>(Us), s);
 
+            if (Pt == KNIGHT)
+            {
+                score -= make_score(2,2) * pos.count<KNIGHT>(Us) * pe->passed_count();
+            }
             if (Pt == BISHOP)
             {
+
                 // Penalty according to the number of our pawns on the same color square as the
                 // bishop, bigger when the center files are blocked with pawns and smaller
                 // when the bishop is outside the pawn chain.
