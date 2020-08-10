@@ -360,7 +360,7 @@ namespace {
                 score += BadOutpost;
             else if (OutpostRanks & bb & s)
                 score += Outpost[Pt == BISHOP];
-            else if (Pt == KNIGHT && shift<-Down>(OutpostRanks) & bb & b & ~pos.pieces(Us))
+            else if (Pt == KNIGHT && (shift<-Down>(OutpostRanks) | shift<Down>(OutpostRanks)) & bb & b & ~pos.pieces(Us))
                 score += ReachableOutpost;
 
             // Bonus for a knight or bishop shielded by pawn
