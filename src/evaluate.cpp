@@ -183,15 +183,15 @@ namespace {
   };
 
   // Assorted bonuses and penalties
-  constexpr Score BadOutpost[2][2]          =
+  constexpr Score BadOutpost[2][2][2]          =
   {
       {
-          S(0,0),
-          S( -7, 36)
+          {S(  0,  0), S(0,0)},
+          {S( -7, 36), S(30,23)}
       },
       {
-          S( -7, 36),
-          S( -7, 36)
+          {S( -7, 36), S(30,23)},
+          {S( -7, 36), S(30,23)}
       }
   };
   constexpr Score BishopOnKingRing    = S( 24,  0);
@@ -205,15 +205,15 @@ namespace {
   constexpr Score MinorBehindPawn     = S( 18,  3);
   constexpr Score PassedFile          = S( 11,  8);
   constexpr Score PawnlessFlank       = S( 17, 95);
-  constexpr Score ReachableOutpost[2][2]    =
+  constexpr Score ReachableOutpost[2][2][2]    =
   {
       {
-          S(0,0),
-          S( 31, 22)
+          {S(  0,  0), S(0, 0)},
+          {S( 31, 22), S(0, 0)}
       },
       {
-          S( 31, 22),
-          S( 31, 22)
+          {S( 31, 22), S(0,0)},
+          {S( 31, 22), S(0,0)}
       }
   };
   constexpr Score RestrictedPiece     = S(  7,  7);
@@ -385,18 +385,21 @@ namespace {
             bool protec = attackedBy[Us][PAWN] & s;
             bool shield = shift<Down>(pos.pieces(PAWN)) & s;
 
-            if (   Pt == KNIGHT
-                && bb & s & ~CenterFiles // on a side outpost
+            if (    bb & s & ~CenterFiles // on a side outpost
                 && !(b & targets)        // no relevant attacks
                 && (!more_than_one(targets & (s & QueenSide ? QueenSide : KingSide))))
-                score += BadOutpost[protec][shield];
+            {
+                score += BadOutpost[protec][shield][Pt == BISHOP];
+            }
             else if (bb & s)
+            {
                 score += Outpost[protec][shield][Pt == BISHOP];
-            else if (Pt == KNIGHT && (bb = bb & b & ~pos.pieces(Us)))
+            }
+            else if ((bb = bb & b & ~pos.pieces(Us)))
             {
                 bool p = bb & attackedBy[Us][PAWN];
                 bool sh = bb & shift<Down>(pos.pieces(PAWN));
-                score += ReachableOutpost[p][sh];
+                score += ReachableOutpost[p][sh][Pt == BISHOP];
             }
 
             // Bonus for a knight or bishop shielded by pawn
