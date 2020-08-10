@@ -150,7 +150,7 @@ namespace {
 
   // Outpost[knight/bishop] contains bonuses for each knight or bishop occupying a
   // pawn protected square on rank 4 to 6 which is also safe from a pawn attack.
-  constexpr Score Outpost[2][2][2] =
+  Score Outpost[2][2][2] =
   {
       {    // knight ,   bishop
           { S(0,0), S(0,0) }, // protec = 0, shield = 0
@@ -183,7 +183,7 @@ namespace {
   };
 
   // Assorted bonuses and penalties
-  constexpr Score BadOutpost[2][2][2]          =
+  Score BadOutpost[2][2][2]          =
   {
       {
           {S(  0,  0), S(0,0)},
@@ -205,7 +205,7 @@ namespace {
   constexpr Score MinorBehindPawn     = S( 18,  3);
   constexpr Score PassedFile          = S( 11,  8);
   constexpr Score PawnlessFlank       = S( 17, 95);
-  constexpr Score ReachableOutpost[2][2][2]    =
+  Score ReachableOutpost[2][2][2]    =
   {
       {
           {S(  0,  0), S(0, 0)},
@@ -229,6 +229,18 @@ namespace {
 
 
 #undef S
+
+  Range outpostRange(int v)
+  {
+      // Tune new parameters and the mg == -7 from BadOutpost anew.
+      if (std::abs(v) < 10)
+          return Range(-50,50);
+
+      // Tune existing values in range 0,2 * v.
+      else
+          return default_range(v);
+  }
+  TUNE(SetRange(outpostRange), Outpost, BadOutpost, ReachableOutpost);
 
   // Evaluation class computes and stores attacks tables and other working data
   template<Tracing T>
