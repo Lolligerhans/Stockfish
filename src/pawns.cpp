@@ -154,7 +154,7 @@ namespace {
         }
         else
         {
-        score -= (weakness += make_score(2,2));
+        score -= (weakness += make_score(1,1));
         if (!neighbours)
         {
             if (     opposed
