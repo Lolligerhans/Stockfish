@@ -936,10 +936,11 @@ make_v:
 /// evaluate() is the evaluator for the outer world. It returns a static
 /// evaluation of the position from the point of view of the side to move.
 
-Value Eval::evaluate(const Position& pos) {
+Value Eval::evaluate(const Position& pos, bool nn) {
 
   bool classical = !Eval::useNNUE
                 ||  abs(eg_value(pos.psq_score())) >= NNUEThreshold;
+  classical = !nn;
   Value v = classical ? Evaluation<NO_TRACE>(pos).value()
                       : NNUE::evaluate(pos) * 5 / 4 + Tempo;
 
