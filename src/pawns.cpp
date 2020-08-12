@@ -86,6 +86,7 @@ namespace {
     Square s;
     bool backward, passed, doubled;
     Score score = SCORE_ZERO;
+    Score weakness = SCORE_ZERO;
     const Square* pl = pos.squares<PAWN>(Us);
 
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
@@ -151,8 +152,10 @@ namespace {
 
             score += make_score(v, v * (r - 2) / 4);
         }
-
-        else if (!neighbours)
+        else
+        {
+        score -= (weakness += make_score(2,2));
+        if (!neighbours)
         {
             if (     opposed
                 &&  (ourPawns & forward_file_bb(Them, s))
@@ -166,6 +169,7 @@ namespace {
         else if (backward)
             score -=  Backward
                     + WeakUnopposed * !opposed;
+        }
 
         if (!support)
             score -=  Doubled * doubled
