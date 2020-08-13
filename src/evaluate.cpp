@@ -774,6 +774,7 @@ namespace {
   template<Tracing T>
   Value Evaluation<T>::winnable(Score score) const {
 
+    /*
     int outflanking =  distance<File>(pos.square<KING>(WHITE), pos.square<KING>(BLACK))
                      - distance<Rank>(pos.square<KING>(WHITE), pos.square<KING>(BLACK));
 
@@ -795,10 +796,12 @@ namespace {
                     + 51 * !pos.non_pawn_material()
                     - 43 * almostUnwinnable
                     -110 ;
+    */
 
     Value mg = mg_value(score);
     Value eg = eg_value(score);
 
+    /*
     // Now apply the bonus: note that we find the attacking side by extracting the
     // sign of the midgame or endgame values, and that we carefully cap the bonus
     // so that the midgame and endgame scores do not change sign after the bonus.
@@ -807,6 +810,7 @@ namespace {
 
     mg += u;
     eg += v;
+    */
 
     // Compute the scale factor for the winning side
     Color strongSide = eg > VALUE_DRAW ? WHITE : BLACK;
@@ -837,13 +841,14 @@ namespace {
     }
 
     // Interpolate between the middlegame and (scaled by 'sf') endgame score
+    int
     v =  mg * int(me->game_phase())
        + eg * int(PHASE_MIDGAME - me->game_phase()) * ScaleFactor(sf) / SCALE_FACTOR_NORMAL;
     v /= PHASE_MIDGAME;
 
     if (T)
     {
-        Trace::add(WINNABLE, make_score(u, eg * ScaleFactor(sf) / SCALE_FACTOR_NORMAL - eg_value(score)));
+//        Trace::add(WINNABLE, make_score(u, eg * ScaleFactor(sf) / SCALE_FACTOR_NORMAL - eg_value(score)));
         Trace::add(TOTAL, make_score(mg, eg * ScaleFactor(sf) / SCALE_FACTOR_NORMAL));
     }
 
