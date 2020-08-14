@@ -943,10 +943,11 @@ Value Eval::evaluate(const Position& pos) {
 
   if (Eval::useNNUE)
   {
-      Value v = eg_value(pos.psq_score());
-      // Take NNUE eval only on balanced positions
-      if (abs(v) < NNUEThreshold)
-         return NNUE::evaluate(pos) + Tempo;
+      // Take NNUE eval only on around current best estimate
+      Value v     = eg_value(pos.psq_score());
+      Value vRoot = pos.this_thread()->rootMoves[pos.this_thread()->pvIdx].previousScore;
+      if (abs(v - vRoot) < NNUEThreshold)
+          return NNUE::evaluate(pos) + Tempo;
   }
   return Evaluation<NO_TRACE>(pos).value();
 }
