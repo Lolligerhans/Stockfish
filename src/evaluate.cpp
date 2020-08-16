@@ -150,17 +150,28 @@ namespace {
 
   // Outpost[knight/bishop] contains bonuses for each knight or bishop occupying a
   // pawn protected square on rank 4 to 6 which is also safe from a pawn attack.
-  Score Outpost[2][2][2] =
+  constexpr Score Outpost[2][2][2] =
   {
-      {    // knight ,   bishop
-          { S(0,0), S(0,0) }, // protec = 0, shield = 0
-          { S(56, 36), S(30, 23) }, // protec = 0, shield = 1
+      {
+          { S(-3,-3), S(-2,-6) },
+          { S(62,34), S(30,23) }
       },
       {
-          { S(56, 36), S(30, 23) }, // protec = 1, shield = 0
-          { S(56, 36), S(30, 23) }, // protec = 1, shield = 1
+          { S(58,36), S(30,23) },
+          { S(54,36), S(31,24) }
       }
   };
+//  Score Outpost[2][2][2] =
+//  {
+//      {    // knight ,   bishop
+//          { S(0,0), S(0,0) }, // protec = 0, shield = 0
+//          { S(56, 36), S(30, 23) }, // protec = 0, shield = 1
+//      },
+//      {
+//          { S(56, 36), S(30, 23) }, // protec = 1, shield = 0
+//          { S(56, 36), S(30, 23) }, // protec = 1, shield = 1
+//      }
+//  };
 
   // PassedRank[Rank] contains a bonus according to the rank of a passed pawn
   constexpr Score PassedRank[RANK_NB] = {
@@ -183,17 +194,29 @@ namespace {
   };
 
   // Assorted bonuses and penalties
-  Score BadOutpost[2][2][2]          =
+  constexpr Score BadOutpost[2][2][2] =
   {
       {
-          {S(  0,  0), S(0,0)},
-          {S( -7, 36), S(30,23)}
+          { S(1,4), S(-2,4) },
+          { S(-8,35), S(27,24) }
       },
       {
-          {S( -7, 36), S(30,23)},
-          {S( -7, 36), S(30,23)}
+          { S(-7,36), S(31,23) },
+          { S(-9,38), S(33,23) }
       }
   };
+
+//  Score BadOutpost[2][2][2]          =
+//  {
+//      {
+//          {S(  0,  0), S(0,0)},
+//          {S( -7, 36), S(30,23)}
+//      },
+//      {
+//          {S( -7, 36), S(30,23)},
+//          {S( -7, 36), S(30,23)}
+//      }
+//  };
   constexpr Score BishopOnKingRing    = S( 24,  0);
   constexpr Score BishopPawns         = S(  3,  7);
   constexpr Score BishopXRayPawns     = S(  4,  5);
@@ -205,17 +228,28 @@ namespace {
   constexpr Score MinorBehindPawn     = S( 18,  3);
   constexpr Score PassedFile          = S( 11,  8);
   constexpr Score PawnlessFlank       = S( 17, 95);
-  Score ReachableOutpost[2][2][2]    =
+  constexpr Score ReachableOutpost[2][2][2] =
   {
       {
-          {S(  0,  0), S(0, 0)},
-          {S( 31, 22), S(0, 0)}
+          { S(4,2), S(-2,6) },
+          { S(30,23), S(-2,2) }
       },
       {
-          {S( 31, 22), S(0,0)},
-          {S( 31, 22), S(0,0)}
+          { S(33,20), S(-1,5) },
+          { S(33,23), S(3,4) }
       }
   };
+//  Score ReachableOutpost[2][2][2]    =
+//  {
+//      {
+//          {S(  0,  0), S(0, 0)},
+//          {S( 31, 22), S(0, 0)}
+//      },
+//      {
+//          {S( 31, 22), S(0,0)},
+//          {S( 31, 22), S(0,0)}
+//      }
+//  };
   constexpr Score RestrictedPiece     = S(  7,  7);
   constexpr Score RookOnKingRing      = S( 16,  0);
   constexpr Score RookOnQueenFile     = S(  6, 11);
