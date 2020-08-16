@@ -264,18 +264,6 @@ namespace {
 
 #undef S
 
-  Range outpostRange(int v)
-  {
-      // Tune new parameters and the mg == -7 from BadOutpost anew.
-      if (std::abs(v) < 10)
-          return Range(-50,50);
-
-      // Tune existing values in range 0,2 * v.
-      else
-          return default_range(v);
-  }
-  TUNE(SetRange(outpostRange), Outpost, BadOutpost, ReachableOutpost);
-
   // Evaluation class computes and stores attacks tables and other working data
   template<Tracing T>
   class Evaluation {
