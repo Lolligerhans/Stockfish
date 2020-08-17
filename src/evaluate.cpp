@@ -918,7 +918,7 @@ make_v:
     // closed:
     // [0] Samples 19399652 Mean 1.9e+02 o 1.8e+02
     // [1] Total 19399652 Hits 3603854 hit rate (%) 19
-    if (Eval::useNNUE) if (std::abs(eg_value(score) - mg_value(score)) > 300)
+    if (Eval::useNNUE) if (std::abs(eg_value(score) - mg_value(score)) > 500)
         return Eval::nn(pos);
 
     // Derive single value from mg and eg parts of score
