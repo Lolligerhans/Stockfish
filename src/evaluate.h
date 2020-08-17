@@ -44,6 +44,9 @@ namespace Eval {
 
   } // namespace NNUE
 
+  inline Value nn(Position const& pos) { return NNUE::evaluate(pos) * 5/4 + Tempo; }
+
+
 } // namespace Eval
 
 #endif // #ifndef EVALUATE_H_INCLUDED

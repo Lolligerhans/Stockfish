@@ -909,6 +909,18 @@ namespace {
             + space<  WHITE>() - space<  BLACK>();
 
 make_v:
+
+    //    dbg_mean_of(std::abs(eg_value(score) - mg_value(score)));
+    //    dbg_hit_on<1>(std::abs(eg_value(score) - mg_value(score)) > 300);
+    // normal:
+    // [0] Samples 17682969 Mean 3.2e+02 o 4.1e+02
+    // [1] Total 17682969 Hits 5798574 hit rate (%) 33
+    // closed:
+    // [0] Samples 19399652 Mean 1.9e+02 o 1.8e+02
+    // [1] Total 19399652 Hits 3603854 hit rate (%) 19
+    if (Eval::useNNUE) if (std::abs(eg_value(score) - mg_value(score)) > 300)
+        return Eval::nn(pos);
+
     // Derive single value from mg and eg parts of score
     Value v = winnable(score);
 
@@ -941,7 +953,7 @@ Value Eval::evaluate(const Position& pos) {
   bool classical = !Eval::useNNUE
                 ||  abs(eg_value(pos.psq_score())) >= NNUEThreshold * (16 + pos.rule50_count()) / 16;
   Value v = classical ? Evaluation<NO_TRACE>(pos).value()
-                      : NNUE::evaluate(pos) * 5 / 4 + Tempo;
+                      : nn(pos);
 
   // Damp down the evaluation linearly when shuffling
   v = v * (100 - pos.rule50_count()) / 100;
