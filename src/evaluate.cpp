@@ -153,25 +153,14 @@ namespace {
   constexpr Score Outpost[2][2][2] =
   {
       {
-          { S(-3,-3), S(-2,-6) },
-          { S(62,34), S(30,23) }
+          { S(-6,-6), S(-4,-12) },
+          { S(68,32), S(30,23) }
       },
       {
-          { S(58,36), S(30,23) },
-          { S(54,36), S(31,24) }
+          { S(60,36), S(30,23) },
+          { S(52,36), S(32,25) }
       }
   };
-//  Score Outpost[2][2][2] =
-//  {
-//      {    // knight ,   bishop
-//          { S(0,0), S(0,0) }, // protec = 0, shield = 0
-//          { S(56, 36), S(30, 23) }, // protec = 0, shield = 1
-//      },
-//      {
-//          { S(56, 36), S(30, 23) }, // protec = 1, shield = 0
-//          { S(56, 36), S(30, 23) }, // protec = 1, shield = 1
-//      }
-//  };
 
   // PassedRank[Rank] contains a bonus according to the rank of a passed pawn
   constexpr Score PassedRank[RANK_NB] = {
@@ -197,26 +186,15 @@ namespace {
   constexpr Score BadOutpost[2][2][2] =
   {
       {
-          { S(1,4), S(-2,4) },
-          { S(-8,35), S(27,24) }
+          { S(2,8), S(-4,8) },
+          { S(-9,34), S(24,25) }
       },
       {
-          { S(-7,36), S(31,23) },
-          { S(-9,38), S(33,23) }
+          { S(-7,36), S(32,23) },
+          { S(-11,40), S(36,23) }
       }
   };
 
-//  Score BadOutpost[2][2][2]          =
-//  {
-//      {
-//          {S(  0,  0), S(0,0)},
-//          {S( -7, 36), S(30,23)}
-//      },
-//      {
-//          {S( -7, 36), S(30,23)},
-//          {S( -7, 36), S(30,23)}
-//      }
-//  };
   constexpr Score BishopOnKingRing    = S( 24,  0);
   constexpr Score BishopPawns         = S(  3,  7);
   constexpr Score BishopXRayPawns     = S(  4,  5);
@@ -231,25 +209,14 @@ namespace {
   constexpr Score ReachableOutpost[2][2][2] =
   {
       {
-          { S(4,2), S(-2,6) },
-          { S(30,23), S(-2,2) }
+          { S(8,4), S(-4,12) },
+          { S(29,24), S(-4,4) }
       },
       {
-          { S(33,20), S(-1,5) },
-          { S(33,23), S(3,4) }
+          { S(35,18), S(-2,10) },
+          { S(35,24), S(6,8) }
       }
   };
-//  Score ReachableOutpost[2][2][2]    =
-//  {
-//      {
-//          {S(  0,  0), S(0, 0)},
-//          {S( 31, 22), S(0, 0)}
-//      },
-//      {
-//          {S( 31, 22), S(0,0)},
-//          {S( 31, 22), S(0,0)}
-//      }
-//  };
   constexpr Score RestrictedPiece     = S(  7,  7);
   constexpr Score RookOnKingRing      = S( 16,  0);
   constexpr Score RookOnQueenFile     = S(  6, 11);
