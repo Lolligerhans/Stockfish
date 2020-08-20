@@ -344,7 +344,10 @@ namespace {
 
         int mob = popcount(b & mobilityArea[Us]);
 
-        mobility[Us] += MobilityBonus[Pt - 2][mob];
+        auto mb = MobilityBonus[Pt - 2][mob];
+        if (relative_rank(Us, s) >= RANK_4)
+            mb = make_score(std::max<int>(0, mg_value(mb)), std::max<int>(0, eg_value(mb)));;
+        mobility[Us] += mb;
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
