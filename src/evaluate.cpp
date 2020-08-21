@@ -330,6 +330,8 @@ namespace {
         attackedBy[Us][Pt] |= b;
         attackedBy[Us][ALL_PIECES] |= b;
 
+        score += make_score(1,1) * popcount(~pe->pawn_attacks_span(Them) & (pos.pieces(Them, PAWN) | shift<Down>(pos.pieces(Them, PAWN))));
+
         if (b & kingRing[Them])
         {
             kingAttackersCount[Us]++;
