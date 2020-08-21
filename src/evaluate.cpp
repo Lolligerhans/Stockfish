@@ -369,7 +369,7 @@ namespace {
             if (shift<Down>(pos.pieces(PAWN)) & s)
                 score += MinorBehindPawn;
 
-            score += make_score(1,1) * popcount(~pe->pawn_attacks_span(Them) & (pos.pieces(Them, PAWN) | shift<Down>(pos.pieces(Them, PAWN))));
+            score += make_score(2,2) * popcount(~pe->pawn_attacks_span(Them) & (pos.pieces(Them, PAWN) | shift<Down>(pos.pieces(Them, PAWN))));
 
             // Penalty if the piece is far from the king
             score -= KingProtector[Pt == BISHOP] * distance(pos.square<KING>(Us), s);
