@@ -609,7 +609,7 @@ namespace {
     b &= ~attackedBy[Them][PAWN] & safe;
 
     // Bonus for safe pawn threats on the next move
-    b = pawn_attacks_bb<Us>(b) & nonPawnEnemies & ~pos.pieces(BISHOP);
+    b = pawn_attacks_bb<Us>(b) & nonPawnEnemies & (pos.count<BISHOP>(Them) == 1 ? ~pos.pieces(BISHOP) : AllSquares);
     score += ThreatByPawnPush * popcount(b);
 
     // Bonus for threats on the next moves against enemy queen
