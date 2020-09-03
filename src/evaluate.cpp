@@ -458,6 +458,10 @@ namespace {
                                      * (!(attackedBy[Us][PAWN] & s) + popcount(blocked & CenterFiles));
 
                 // Penalty for all enemy pawns x-rayed
+                // Only if not opposed by their bishop
+                if (not ((s & DarkSquares ? DarkSquares : ~DarkSquares)
+                        &(pos.pieces(Them, BISHOP))
+                        ))
                 score -= BishopXRayPawns * popcount(attacks_bb<BISHOP>(s) & pos.pieces(Them, PAWN));
 
                 // Bonus for bishop on a long diagonal which can "see" both center squares
