@@ -864,6 +864,7 @@ namespace {
                        || rank_of(pos.square<KING>(BLACK)) < RANK_5;
 
     // Compute the initiative bonus for the attacking side
+    Value eg = eg_value(score);
     int complexity =   9 * pe->passed_count()
                     + 12 * pos.count<PAWN>()
                     +  9 * outflanking
@@ -871,10 +872,10 @@ namespace {
                     + 24 * infiltration
                     + 51 * !pos.non_pawn_material()
                     - 43 * almostUnwinnable
+                    + std::abs(eg)/10
                     -110 ;
 
     Value mg = mg_value(score);
-    Value eg = eg_value(score);
 
     // Now apply the bonus: note that we find the attacking side by extracting the
     // sign of the midgame or endgame values, and that we carefully cap the bonus
