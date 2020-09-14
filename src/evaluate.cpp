@@ -426,7 +426,9 @@ namespace {
         {
             // Bonus if the piece is on an outpost square or can reach one
             // Reduced bonus for knights (BadOutpost) if few relevant targets
-            bb = OutpostRanks & (attackedBy[Us][PAWN] | shift<Down>(pos.pieces(PAWN)))
+            bb = OutpostRanks & ( attackedBy[Us][PAWN]
+                                | shift<Down>(pos.pieces(PAWN))
+                                | (Pt == KNIGHT ? attackedBy[Us][BISHOP] : 0))
                               & ~pe->pawn_attacks_span(Them);
             Bitboard targets = pos.pieces(Them) & ~pos.pieces(PAWN);
 
@@ -968,8 +970,8 @@ namespace {
 
     // Pieces evaluated first (also populates attackedBy, attackedBy2).
     // Note that the order of evaluation of the terms is left unspecified.
+    score += pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>();
     score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
-            + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
