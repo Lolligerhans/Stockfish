@@ -684,8 +684,8 @@ namespace {
                            & shift<Down>( pos.pieces()
                                         | ( attackedBy2[Them]               // This is new
                                           &~attackedBy2[Us]  )              //
+                                        | ~safe // == atk[them] & ~atk[us]  //
                                         );
-                                     /* | ~safe */
     // Rest is basically identical:
     constexpr Bitboard colorBB[COLOR_NB] = {~DarkSquares, DarkSquares};
     for (const auto squareColor : {WHITE, BLACK})
