@@ -683,7 +683,7 @@ namespace {
     const Bitboard blocked = pos.pieces(Us, PAWN)
                            & shift<Down>( pos.pieces()
                                         | ( attackedBy2[Them]               // This is new
-                                          & ~attackedBy[Us][ALL_PIECES] )   //
+                                          &~attackedBy2[Us]  )              //
                                         );
                                      /* | ~safe */
     // Rest is basically identical:
