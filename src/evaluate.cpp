@@ -449,14 +449,6 @@ namespace {
 
             if (Pt == BISHOP)
             {
-                // Penalty according to the number of our pawns on the same color square as the
-                // bishop, bigger when the center files are blocked with pawns and smaller
-                // when the bishop is outside the pawn chain.
-                Bitboard blocked = pos.pieces(Us, PAWN) & shift<Down>(pos.pieces());
-
-                score -= BishopPawns * pos.pawns_on_same_color_squares(Us, s)
-                                     * (!(attackedBy[Us][PAWN] & s) + popcount(blocked & CenterFiles));
-
                 // Penalty for all enemy pawns x-rayed
                 score -= BishopXRayPawns * popcount(attacks_bb<BISHOP>(s) & pos.pieces(Them, PAWN));
 
@@ -686,6 +678,24 @@ namespace {
     // Bonus for safe pawn threats on the next move
     b = pawn_attacks_bb<Us>(b) & nonPawnEnemies;
     score += ThreatByPawnPush * popcount(b);
+
+    constexpr auto Down = -Up;
+    const Bitboard blocked = pos.pieces(Us, PAWN)
+                           & shift<Down>( pos.pieces()
+                                        | ( attackedBy2[Them]               // This is new
+                                          & ~attackedBy[Us][ALL_PIECES] )   //
+                                        );
+                                     /* | ~safe */
+    // Rest is basically identical:
+    constexpr Bitboard colorBB[COLOR_NB] = {~DarkSquares, DarkSquares};
+    for (const auto squareColor : {WHITE, BLACK})
+    {
+        if (const auto bishop = pos.pieces(Us, BISHOP) & colorBB[squareColor]; bishop)
+        {
+            score -= BishopPawns * pos.pawns_on_same_color_squares(Us, squareColor)
+                                 * (!(attackedBy[Us][PAWN] & bishop) + popcount(blocked & CenterFiles));
+        }
+    }
 
     // Bonus for threats on the next moves against enemy queen
     if (pos.count<QUEEN>(Them) == 1)
