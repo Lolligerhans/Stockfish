@@ -959,7 +959,7 @@ namespace {
         return abs(mg_value(score) + eg_value(score)) / 2 > lazyThreshold + pos.non_pawn_material() / 64;
     };
 
-    if (rarelyRandom || lazy_skip(LazyThreshold1))
+    if (lazy_skip(LazyThreshold1))
         goto make_v;
 
     // Main evaluation begins here
@@ -979,7 +979,7 @@ namespace {
     score +=  king<   WHITE>() - king<   BLACK>()
             + passed< WHITE>() - passed< BLACK>();
 
-    if (lazy_skip(LazyThreshold2))
+    if (rarelyRandom || lazy_skip(LazyThreshold2))
         goto make_v;
 
     score +=  threats<WHITE>() - threats<BLACK>()
