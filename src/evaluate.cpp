@@ -401,6 +401,12 @@ namespace {
         if (pos.blockers_for_king(Us) & s)
             b &= line_bb(pos.square<KING>(Us), s);
 
+        auto bAndMob = b & mobilityArea[Us];
+        score += make_score(1,2) * popcount(bAndMob & attackedBy[Us][ALL_PIECES]);
+
+        int mob = popcount(bAndMob);
+        mobility[Us] += MobilityBonus[Pt - 2][mob];
+
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
         attackedBy[Us][Pt] |= b;
         attackedBy[Us][ALL_PIECES] |= b;
@@ -417,10 +423,6 @@ namespace {
 
         else if (Pt == BISHOP && (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & kingRing[Them]))
             score += BishopOnKingRing;
-
-        int mob = popcount(b & mobilityArea[Us]);
-
-        mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
@@ -968,10 +970,11 @@ namespace {
 
     // Pieces evaluated first (also populates attackedBy, attackedBy2).
     // Note that the order of evaluation of the terms is left unspecified.
-    score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
-            + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
-            + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
-            + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
+    // (Must prohibit concurrent side effects within a color now)
+    score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>();
+    score +=  pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>();
+    score +=  pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >();
+    score +=  pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
     score += mobility[WHITE] - mobility[BLACK];
 
