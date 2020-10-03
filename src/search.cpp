@@ -71,8 +71,11 @@ namespace {
   // Reductions lookup table, initialized at startup
   int Reductions[MAX_MOVES]; // [depth or moveNumber]
 
-  Depth reduction(bool i, Depth d, int mn) {
+  Depth reduction(bool i, Depth d, int mn, Value base = VALUE_DRAW) {
     int r = Reductions[d] * Reductions[mn];
+    r -= std::abs(static_cast<int>(base)) * 4;
+    r = std::max(0, r);
+    assert(std::abs(int(base)) <= VALUE_INFINITE);
     return (r + 509) / 1024 + (!i && r > 894);
   }
 
@@ -1016,7 +1019,9 @@ moves_loop: // When in check, search starts from here
           moveCountPruning = moveCount >= futility_move_count(improving, depth);
 
           // Reduced depth of the next LMR search
-          int lmrDepth = std::max(newDepth - reduction(improving, depth, moveCount), 0);
+          int lmrDepth = std::max(newDepth - reduction(improving, depth, moveCount,
+                                                       thisThread->rootMoves[thisThread->pvIdx].previousScore),
+                                  0);
 
           if (   !captureOrPromotion
               && !givesCheck)
