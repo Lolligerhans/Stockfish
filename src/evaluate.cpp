@@ -1002,7 +1002,7 @@ make_v:
     v = (v / 16) * 16;
 
     // Side to move point of view
-    constexpr Value TMg = 2*Tempo, TEg = VALUE_ZERO;
+    constexpr Value TMg = Tempo*3/2, TEg = Tempo/2;
     Value tempo = ( TMg * int(                me->game_phase())
                   + TEg * int(PHASE_MIDGAME - me->game_phase()) )
                 / PHASE_MIDGAME;
