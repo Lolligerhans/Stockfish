@@ -1002,7 +1002,11 @@ make_v:
     v = (v / 16) * 16;
 
     // Side to move point of view
-    v = (pos.side_to_move() == WHITE ? v : -v) + Tempo;
+    constexpr Value TMg = 2*Tempo, TEg = VALUE_ZERO;
+    Value tempo = ( TMg * int(                me->game_phase())
+                  + TEg * int(PHASE_MIDGAME - me->game_phase()) )
+                / PHASE_MIDGAME;
+    v = (pos.side_to_move() == WHITE ? v : -v) + tempo;
 
     return v;
   }
