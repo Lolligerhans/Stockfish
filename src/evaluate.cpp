@@ -285,7 +285,7 @@ namespace {
     Evaluation() = delete;
     explicit Evaluation(const Position& p) : pos(p) {}
     Evaluation& operator=(const Evaluation&) = delete;
-    Value value();
+    Value value(bool rarelyRandom = false);
 
   private:
     template<Color Us> void initialize();
@@ -933,7 +933,7 @@ namespace {
   // of view of the side to move.
 
   template<Tracing T>
-  Value Evaluation<T>::value() {
+  Value Evaluation<T>::value(bool rarelyRandom) {
 
     assert(!pos.checkers());
 
@@ -959,7 +959,7 @@ namespace {
         return abs(mg_value(score) + eg_value(score)) / 2 > lazyThreshold + pos.non_pawn_material() / 64;
     };
 
-    if (lazy_skip(LazyThreshold1))
+    if (rarelyRandom || lazy_skip(LazyThreshold1))
         goto make_v;
 
     // Main evaluation begins here
@@ -1033,7 +1033,7 @@ Value Eval::evaluate(const Position& pos) {
       bool  largePsq = psq * 16 > (NNUEThreshold1 + pos.non_pawn_material() / 64) * r50;
       bool  classical = largePsq || (psq > PawnValueMg / 4 && !(pos.this_thread()->nodes & 0xB));
 
-      v = classical ? Evaluation<NO_TRACE>(pos).value() : adjusted_NNUE();
+      v = classical ? Evaluation<NO_TRACE>(pos).value(!largePsq) : adjusted_NNUE();
 
       // If the classical eval is small and imbalance large, use NNUE nevertheless.
       // For the case of opposite colored bishops, switch to NNUE eval with
