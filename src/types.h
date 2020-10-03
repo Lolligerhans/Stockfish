@@ -185,8 +185,7 @@ enum Value : int {
   QueenValueMg  = 2538,  QueenValueEg  = 2682,
   Tempo = 28,
 
-  MidgameLimit  = 15258 - (18620 - 15258)/2, EndgameLimit  = 391 *3/2
-  //                       ^ material in starting position
+  MidgameLimit  = 15258 - 300, EndgameLimit  = 391 + 300
 };
 
 enum PieceType {
