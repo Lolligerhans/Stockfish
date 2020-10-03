@@ -325,7 +325,8 @@ inline bool Position::advanced_pawn_push(Move m) const {
 }
 
 inline int Position::pawns_on_same_color_squares(Color c, Square s) const {
-  return popcount(pieces(c, PAWN) & ((DarkSquares & s) ? DarkSquares : ~DarkSquares));
+  constexpr Bitboard advancedSquares[COLOR_NB] = { ~(Rank2BB|Rank3BB), ~(Rank7BB|Rank6BB) };
+  return popcount(pieces(c, PAWN) & ((DarkSquares & s) ? DarkSquares : ~DarkSquares) & advancedSquares[c]);
 }
 
 inline Key Position::key() const {
