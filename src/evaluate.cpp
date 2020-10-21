@@ -437,7 +437,7 @@ namespace {
             else if (bb & s)
                 score += Outpost[Pt == BISHOP];
             else if (Pt == KNIGHT
-                    && (bb | pos.pieces(Them, PAWN) & ~pe->pawn_attacks_span(Them))
+                    && (bb | (pos.pieces(Them, PAWN) & ~pe->pawn_attacks_span(Them)))
                     & b & ~pos.pieces(Us))
                 score += ReachableOutpost;
 
