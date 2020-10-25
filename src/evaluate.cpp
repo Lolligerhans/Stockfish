@@ -390,6 +390,12 @@ namespace {
 
     attackedBy[Us][Pt] = 0;
 
+    // points of interest
+    Bitboard poi = pos.pieces(Them) & ~attackedBy[Them][PAWN];
+    poi |= shift<Down>(pos.pieces(Them, PAWN))
+         & ~pe->pawn_attacks_span(Them)
+         & ~pos.pieces(Us, PAWN);
+
     for (Square s = *pl; s != SQ_NONE; s = *++pl)
     {
         // Find attacked squares, including x-ray attacks for bishops and rooks
@@ -420,8 +426,9 @@ namespace {
         int mob = popcount(b & mobilityArea[Us]);
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
-        if (more_than_one(b & pos.pieces(Them)))
-            score += make_score(15,15);
+        if (Pt != QUEEN)
+        if (more_than_one(b & poi))
+            score += make_score(10,10);
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
