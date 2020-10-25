@@ -395,6 +395,7 @@ namespace {
     poi |= shift<Down>(pos.pieces(Them, PAWN))
          & ~pe->pawn_attacks_span(Them)
          & ~pos.pieces(Us, PAWN);
+    poi |= pos.pieces(Us, PAWN) & ~pe->pawn_attacks_span(Us);
 
     for (Square s = *pl; s != SQ_NONE; s = *++pl)
     {
