@@ -418,8 +418,10 @@ namespace {
             score += BishopOnKingRing;
 
         int mob = popcount(b & mobilityArea[Us]);
-
         mobility[Us] += MobilityBonus[Pt - 2][mob];
+
+        if (more_than_one(b & pos.pieces(Them)))
+            score += make_score(15,15);
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
