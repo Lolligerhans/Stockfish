@@ -165,7 +165,8 @@ namespace {
 
         else if (backward)
             score -=  Backward
-                    + WeakUnopposed * !opposed * bool(~(FileABB | FileHBB) & s);
+                    + ((FileABB | FileHBB) & s ? WeakUnopposed/2 * !opposed
+                                               : WeakUnopposed   * !opposed);
 
         if (!support)
             score -=  Doubled * doubled
