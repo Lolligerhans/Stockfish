@@ -336,7 +336,7 @@ namespace {
     // to kingAttacksCount[WHITE].
     int kingAttacksCount[COLOR_NB];
 
-    mutable bool queenTempo[COLOR_NB] = {false, false};
+    mutable bool queenTempo[COLOR_NB];
   };
 
 
