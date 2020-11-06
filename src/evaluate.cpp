@@ -851,11 +851,17 @@ namespace {
   template<Tracing T>
   Value Evaluation<T>::winnable(Score score) const {
 
+    Value mg = mg_value(score);
+    Value eg = eg_value(score);
+
     int outflanking =  distance<File>(pos.square<KING>(WHITE), pos.square<KING>(BLACK))
                      - distance<Rank>(pos.square<KING>(WHITE), pos.square<KING>(BLACK));
 
     bool pawnsOnBothFlanks =   (pos.pieces(PAWN) & QueenSide)
                             && (pos.pieces(PAWN) & KingSide);
+    Color c = Color(mg + eg < 0);
+    bool const farSplit    =  pos.pieces(c, PAWN) & (FileABB|FileBBB)
+                           && pos.pieces(c, PAWN) & (FileGBB|FileHBB);
 
     bool almostUnwinnable =   outflanking < 0
                            && !pawnsOnBothFlanks;
@@ -868,13 +874,11 @@ namespace {
                     + 12 * pos.count<PAWN>()
                     +  9 * outflanking
                     + 21 * pawnsOnBothFlanks
+                    + 15 * farSplit
                     + 24 * infiltration
                     + 51 * !pos.non_pawn_material()
                     - 43 * almostUnwinnable
                     -110 ;
-
-    Value mg = mg_value(score);
-    Value eg = eg_value(score);
 
     // Now apply the bonus: note that we find the attacking side by extracting the
     // sign of the midgame or endgame values, and that we carefully cap the bonus
