@@ -621,6 +621,7 @@ namespace {
 
     constexpr Color     Them     = ~Us;
     constexpr Direction Up       = pawn_push(Us);
+    constexpr auto Down = -Up;
     constexpr Bitboard  TRank3BB = (Us == WHITE ? Rank3BB : Rank6BB);
 
     Bitboard b, weak, defended, nonPawnEnemies, stronglyProtected, safe;
@@ -706,6 +707,9 @@ namespace {
 
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]) * (1 + queenImbalance);
     }
+
+    Bitboard backwarded = pe->backwardable[Us] & shift<Down>(pos.pieces(Them));
+    score -= make_score( 8, 25) * popcount(backwarded);
 
     if (T)
         Trace::add(THREAT, Us, score);
