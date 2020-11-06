@@ -144,15 +144,18 @@ namespace {
             e->passedPawns[Us] |= s;
 
         // Score this pawn
-        if (support | phalanx)
+        if (neighbours)
         {
             int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed))
                    + 22 * popcount(support);
 
             score += make_score(v, v * (r - 2) / 4);
-        }
 
-        else if (!neighbours)
+            if (backward && ~(phalanx | support))
+                score -=  Backward
+                        + WeakUnopposed * !opposed;
+        }
+        else
         {
             if (     opposed
                 &&  (ourPawns & forward_file_bb(Them, s))
@@ -162,10 +165,6 @@ namespace {
                 score -=  Isolated
                         + WeakUnopposed * !opposed;
         }
-
-        else if (backward)
-            score -=  Backward
-                    + WeakUnopposed * !opposed;
 
         if (!support)
             score -=  Doubled * doubled
