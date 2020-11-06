@@ -335,6 +335,8 @@ namespace {
     // a white knight on g5 and black's king is on g8, this white knight adds 2
     // to kingAttacksCount[WHITE].
     int kingAttacksCount[COLOR_NB];
+
+    mutable bool queenTempo[COLOR_NB] = {false, false};
   };
 
 
@@ -551,8 +553,9 @@ namespace {
 
     // Enemy queen safe checks: count them only if the checks are from squares from
     // which opponent cannot give a rook check, because rook checks are more valuable.
-    queenChecks =  (b1 | b2) & attackedBy[Them][QUEEN] & safe
-                 & ~(attackedBy[Us][QUEEN] | rookChecks);
+    queenChecks =  (b1 | b2) & attackedBy[Them][QUEEN] & safe;
+    queenTempo[Them] = queenChecks;
+    queenChecks &= ~(attackedBy[Us][QUEEN] | rookChecks);
     if (queenChecks)
         kingDanger += SafeCheck[QUEEN][more_than_one(queenChecks)];
 
@@ -688,7 +691,7 @@ namespace {
     score += ThreatByPawnPush * popcount(b);
 
     // Bonus for threats on the next moves against enemy queen
-    if (pos.count<QUEEN>(Them) == 1)
+    if (pos.count<QUEEN>(Them) == 1 && !queenTempo[Them])
     {
         bool queenImbalance = pos.count<QUEEN>() == 1;
 
