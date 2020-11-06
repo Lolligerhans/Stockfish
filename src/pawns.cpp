@@ -35,6 +35,7 @@ namespace {
   constexpr Score Isolated      = S( 3, 15);
   constexpr Score WeakLever     = S( 3, 55);
   constexpr Score WeakUnopposed = S(13, 25);
+  constexpr Score WeakUnopposedEdge[] = {S(13, 25),S(13, 25),S(13, 25),S(13, 25)};
 
   // Bonus for blocked pawns at 5th or 6th rank
   constexpr Score BlockedPawn[2] = { S(-13, -4), S(-5, 2) };
@@ -165,8 +166,7 @@ namespace {
 
         else if (backward)
             score -=  Backward
-                    + ((FileABB | FileHBB) & s ? WeakUnopposed/2 * !opposed
-                                               : WeakUnopposed   * !opposed);
+                    + WeakUnopposedEdge[edge_distance(file_of(s))] * !opposed;
 
         if (!support)
             score -=  Doubled * doubled
