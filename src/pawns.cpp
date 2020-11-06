@@ -160,7 +160,8 @@ namespace {
                 score -= Doubled;
             else
                 score -=  Isolated
-                        + WeakUnopposed * !opposed * bool(~(FileABB | FileHBB) & s);
+                        + ((FileABB | FileHBB) & s ? WeakUnopposed/2 * !opposed
+                                                   : WeakUnopposed   * !opposed);
         }
 
         else if (backward)
