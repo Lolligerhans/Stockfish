@@ -36,7 +36,7 @@ namespace {
   constexpr Score WeakLever     = S( 3, 55);
   constexpr Score WeakUnopposed = S(13, 25);
             Score WeakUnopposedEdge[] = {S(13, 25),S(13, 25),S(13, 25),S(13, 25)};
-  TUNE(WeakUnopposedEdge, SetRange(-10, 40));
+  TUNE(SetRange(-10, 40), WeakUnopposedEdge);
 
   // Bonus for blocked pawns at 5th or 6th rank
   constexpr Score BlockedPawn[2] = { S(-13, -4), S(-5, 2) };
