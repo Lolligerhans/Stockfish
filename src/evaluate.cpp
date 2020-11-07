@@ -336,7 +336,7 @@ namespace {
     // to kingAttacksCount[WHITE].
     int kingAttacksCount[COLOR_NB];
 
-    mutable bool queenTempo[COLOR_NB] = {false, false};
+    mutable bool queenTempo[COLOR_NB];
   };
 
 
@@ -691,7 +691,7 @@ namespace {
     score += ThreatByPawnPush * popcount(b);
 
     // Bonus for threats on the next moves against enemy queen
-    if (pos.count<QUEEN>(Them) == 1 && !queenTempo[Them])
+    if (Score scoreQ = SCORE_ZERO; pos.count<QUEEN>(Them) == 1)
     {
         bool queenImbalance = pos.count<QUEEN>() == 1;
 
@@ -702,12 +702,13 @@ namespace {
 
         b = attackedBy[Us][KNIGHT] & attacks_bb<KNIGHT>(s);
 
-        score += KnightOnQueen * popcount(b & safe) * (1 + queenImbalance);
+        scoreQ += KnightOnQueen * popcount(b & safe) * (1 + queenImbalance);
 
         b =  (attackedBy[Us][BISHOP] & attacks_bb<BISHOP>(s, pos.pieces()))
            | (attackedBy[Us][ROOK  ] & attacks_bb<ROOK  >(s, pos.pieces()));
 
-        score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]) * (1 + queenImbalance);
+        scoreQ += SliderOnQueen * popcount(b & safe & attackedBy2[Us]) * (1 + queenImbalance);
+        score += queenTempo[Them] ? scoreQ/2 : scoreQ;
     }
 
     if (T)
