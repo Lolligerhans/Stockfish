@@ -554,7 +554,7 @@ namespace {
     // Enemy queen safe checks: count them only if the checks are from squares from
     // which opponent cannot give a rook check, because rook checks are more valuable.
     queenChecks =  (b1 | b2) & attackedBy[Them][QUEEN] & safe;
-    queenTempo[Them] = more_than_one(queenChecks);
+    queenTempo[Them] = queenChecks;
     queenChecks &= ~(attackedBy[Us][QUEEN] | rookChecks);
     if (queenChecks)
         kingDanger += SafeCheck[QUEEN][more_than_one(queenChecks)];
