@@ -336,7 +336,7 @@ namespace {
     // to kingAttacksCount[WHITE].
     int kingAttacksCount[COLOR_NB];
 
-    mutable bool queenTempo[COLOR_NB];
+    mutable Bitboard pieceTempo[COLOR_NB] = {0, 0};
   };
 
 
@@ -444,7 +444,7 @@ namespace {
             else if (bb & s)
                 score += Outpost[Pt == BISHOP];
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
-                score += ReachableOutpost;
+                score += ReachableOutpost, pieceTempo[Us] |= s;
 
             // Bonus for a knight or bishop shielded by pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
@@ -554,7 +554,7 @@ namespace {
     // Enemy queen safe checks: count them only if the checks are from squares from
     // which opponent cannot give a rook check, because rook checks are more valuable.
     queenChecks =  (b1 | b2) & attackedBy[Them][QUEEN] & safe;
-    queenTempo[Them] = queenChecks;
+    pieceTempo[Them] |= queenChecks && pos.count<QUEEN>(Them) == 1 ? square_bb(pos.square<QUEEN>(Them)) : Bitboard(0);
     queenChecks &= ~(attackedBy[Us][QUEEN] | rookChecks);
     if (queenChecks)
         kingDanger += SafeCheck[QUEEN][more_than_one(queenChecks)];
@@ -687,15 +687,16 @@ namespace {
     b &= ~attackedBy[Them][PAWN] & safe;
 
     // Bonus for safe pawn threats on the next move
-    b = pawn_attacks_bb<Us>(b) & nonPawnEnemies;
+    b = pawn_attacks_bb<Us>(b) & nonPawnEnemies & ~pieceTempo[Them];
     score += ThreatByPawnPush * popcount(b);
 
     // Bonus for threats on the next moves against enemy queen
-    if (pos.count<QUEEN>(Them) == 1 && !queenTempo[Them])
+
+    if (pos.count<QUEEN>(Them) == 1)
+    if (Square s = pos.square<QUEEN>(Them); !(pieceTempo[Them] & s))
     {
         bool queenImbalance = pos.count<QUEEN>() == 1;
 
-        Square s = pos.square<QUEEN>(Them);
         safe =   mobilityArea[Us]
               & ~pos.pieces(Us, PAWN)
               & ~stronglyProtected;
