@@ -81,11 +81,10 @@ namespace {
   /// be re-used even when the pieces have moved.
 
   template<Color Us>
-  Score evaluate(const Position& pos, Pawns::Entry* e) {
+  Score evaluate(const Position& pos, Pawns::Entry* e, Bitboard& inDanger) {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Up   = pawn_push(Us);
-    constexpr auto Down = -Up;
 
     Bitboard neighbours, stoppers, support, phalanx, opposed;
     Bitboard lever, leverPush, blocked;
@@ -99,11 +98,11 @@ namespace {
 
     Bitboard doubleAttackThem = pawn_double_attacks_bb<Them>(theirPawns);
 
+    inDanger = 0;
     e->passedPawns[Us] = 0;
     e->kingSquares[Us] = SQ_NONE;
     e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
     e->blockedCount += popcount(shift<Up>(ourPawns) & (theirPawns | doubleAttackThem));
-    Bitboard inDanger = 0;
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -123,10 +122,11 @@ namespace {
         phalanx    = neighbours & rank_bb(s);
         support    = neighbours & rank_bb(s - Up);
 
-        // Collect squares where we would happily capture w/o splitting pawns
+        // Pawns which we would happily trade, because it is on the edge of
+        // a pawn chain.
         auto col = file_bb(s);
         if (!(neighbours & shift<WEST>(col)) || !(neighbours & shift<EAST>(col)))
-            inDanger |= PawnAttacks[Us][s];  // Abuse inDanger bb
+            inDanger |= s;  // Abuse inDanger bb
 
         // A pawn is backward when it is behind all pawns of the same color on
         // the adjacent files and cannot safely advance.
@@ -187,10 +187,8 @@ namespace {
             score += BlockedPawn[r-4];
     }
 
-    // Squares we CAN attack but do NOT HAPPILY so are squares where we don't
-    // want their pawns to appear
-    inDanger ^= e->pawnAttacks[Us];
-    score -= make_score(10, 10) * popcount(inDanger & shift<Down>(theirPawns));
+    // Pawns which we do NOT happily tryde
+    inDanger ^= ourPawns;
 
     return score;
   }
@@ -215,8 +213,20 @@ Entry* probe(const Position& pos) {
 
   e->key = key;
   e->blockedCount = 0;
-  e->scores[WHITE] = evaluate<WHITE>(pos, e);
-  e->scores[BLACK] = evaluate<BLACK>(pos, e);
+  Bitboard inDanger[COLOR_NB];
+  e->scores[WHITE] = evaluate<WHITE>(pos, e, inDanger[WHITE]);
+  e->scores[BLACK] = evaluate<BLACK>(pos, e, inDanger[BLACK]);
+
+  auto atb = [](Color colo){ return colo == WHITE ? pawn_attacks_bb<WHITE> : pawn_attacks_bb<BLACK>; };
+  for (auto c : {WHITE, BLACK})
+  {
+      e->scores[c] -= make_score(10,10) * popcount
+          (
+           // Pawn tension that is favourable for them. Because we do not want
+           // to take, but they might.
+           inDanger[c] & atb(~c)(pos.pieces(~c, PAWN) ^ inDanger[~c])
+          );
+  }
 
   return e;
 }
