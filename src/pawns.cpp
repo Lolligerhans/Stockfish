@@ -102,7 +102,7 @@ namespace {
     e->kingSquares[Us] = SQ_NONE;
     e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
     e->blockedCount += popcount(shift<Up>(ourPawns) & (theirPawns | doubleAttackThem));
-    e->inDanger[Us] = 0;
+    Bitboard inDanger = 0;
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -125,7 +125,7 @@ namespace {
         // Collect squares where we would happily capture w/o splitting pawns
         auto col = file_bb(s);
         if (!(neighbours & shift<WEST>(col)) || !(neighbours & shift<EAST>(col)))
-            e->inDanger[Us] |= PawnAttacks[Us][s];  // Abuse inDanger bb
+            inDanger |= PawnAttacks[Us][s];  // Abuse inDanger bb
 
         // A pawn is backward when it is behind all pawns of the same color on
         // the adjacent files and cannot safely advance.
@@ -188,7 +188,7 @@ namespace {
 
     // Squares we CAN attack but do NOT HAPPILY so are squares where we don't
     // want their pawns to appear
-    e->inDanger[Us] ^= e->pawnAttacks[Us];
+    inDanger ^= e->pawnAttacks[Us];
 
     return score;
   }
