@@ -85,6 +85,7 @@ namespace {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Up   = pawn_push(Us);
+    constexpr auto Down = -Up;
 
     Bitboard neighbours, stoppers, support, phalanx, opposed;
     Bitboard lever, leverPush, blocked;
@@ -189,6 +190,7 @@ namespace {
     // Squares we CAN attack but do NOT HAPPILY so are squares where we don't
     // want their pawns to appear
     inDanger ^= e->pawnAttacks[Us];
+    score -= make_score(10, 10) * popcount(inDanger & shift<Down>(theirPawns));
 
     return score;
   }
