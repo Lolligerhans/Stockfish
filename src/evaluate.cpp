@@ -863,18 +863,22 @@ namespace {
     bool infiltration =   rank_of(pos.square<KING>(WHITE)) > RANK_4
                        || rank_of(pos.square<KING>(BLACK)) < RANK_5;
 
+    Value mg = mg_value(score);
+    Value eg = eg_value(score);
+
+    auto c_ = Color(eg < 0);
+    auto shift_ = c_ ? shift<SOUTH> : shift<NORTH>; // How pawns move
+
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
                     + 12 * pos.count<PAWN>()
+                    - 20 * !(shift_(pos.pieces(c_, PAWN)) & ~pos.pieces())  // All pawns blocked
                     +  9 * outflanking
                     + 21 * pawnsOnBothFlanks
                     + 24 * infiltration
                     + 51 * !pos.non_pawn_material()
                     - 43 * almostUnwinnable
                     -110 ;
-
-    Value mg = mg_value(score);
-    Value eg = eg_value(score);
 
     // Now apply the bonus: note that we find the attacking side by extracting the
     // sign of the midgame or endgame values, and that we carefully cap the bonus
