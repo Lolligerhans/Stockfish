@@ -423,8 +423,20 @@ namespace {
             score += BishopOnKingRing;
 
         int mob = popcount(b & mobilityArea[Us]);
-
         mobility[Us] += MobilityBonus[Pt - 2][mob];
+
+        if (Pt == KNIGHT)
+        {
+            dbg_mean_of<0>(mob);
+            dbg_mean_of<1>(mg_value(MobilityBonus[Pt - 2][mob]));
+            dbg_mean_of<2>(eg_value(MobilityBonus[Pt - 2][mob]));
+        }
+        if (Pt == BISHOP)
+        {
+            dbg_mean_of<3>(mob);
+            dbg_mean_of<4>(mg_value(MobilityBonus[Pt - 2][mob]));
+            dbg_mean_of<5>(eg_value(MobilityBonus[Pt - 2][mob]));
+        }
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
