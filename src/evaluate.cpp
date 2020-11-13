@@ -338,7 +338,20 @@ namespace {
     Bitboard  _a[COLOR_NB][15] = {0};
     Bitboard* _b[COLOR_NB] = {&_a[WHITE][0], &_a[BLACK][0]};
     void resetAttacks() { _b[WHITE] = _a[WHITE]; _b[BLACK] = _a[BLACK]; }
+    void interAttacks(); // whatever preparation is needed for 2nd go
   };
+
+  template<Tracing T>
+  void Evaluation<T>::interAttacks()
+  {
+      for (auto c : {WHITE,BLACK})
+      {
+          // restrictions that would be scored symmetrically inthe existing restriction bonus: attacked with exactly 1 piece by both sides
+          this->restricted[c] =  attackedBy [~c][ALL_PIECES] &  attackedBy [c][ALL_PIECES]
+                              & ~attackedBy2[~c]             & ~attackedBy2[c]
+                              & ~attackedBy [~c][PAWN];
+      }
+  }
 
 
   // Evaluation::initialize() computes king and pawn attacks, and the king ring
@@ -438,7 +451,6 @@ namespace {
             score += BishopOnKingRing;
 
         int mob = popcount(b & mobilityArea[Us]);
-
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         if (Pt == BISHOP || Pt == KNIGHT)
@@ -985,15 +997,15 @@ namespace {
 
     // Pieces evaluated first (also populates attackedBy, attackedBy2).
     // Note that the order of evaluation of the terms is left unspecified.
-    score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>();
-    score +=  pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>() ;
-    score +=  pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >() ;
-    score +=  pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
-    resetAttacks();
-    score +=  pieces<WHITE, KNIGHT>(true) - pieces<BLACK, KNIGHT>(true);
-    score +=  pieces<WHITE, BISHOP>(true) - pieces<BLACK, BISHOP>(true);
-    score +=  pieces<WHITE, ROOK  >(true) - pieces<BLACK, ROOK  >(true);
-    score +=  pieces<WHITE, QUEEN >(true) - pieces<BLACK, QUEEN >(true);
+    score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>();            // - build attacks BBs
+    score +=  pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>();            //    .
+    score +=  pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >();            //    .
+    score +=  pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();            //    .
+    resetAttacks(); interAttacks();                                         // - Prepare usage of attacks
+    score +=  pieces<WHITE, KNIGHT>(true) - pieces<BLACK, KNIGHT>(true);    // - Use attacks BBs
+    score +=  pieces<WHITE, BISHOP>(true) - pieces<BLACK, BISHOP>(true);    //    .
+    score +=  pieces<WHITE, ROOK  >(true) - pieces<BLACK, ROOK  >(true);    //    .
+    score +=  pieces<WHITE, QUEEN >(true) - pieces<BLACK, QUEEN >(true);    //    .
 
     score += mobility[WHITE] - mobility[BLACK];
 
