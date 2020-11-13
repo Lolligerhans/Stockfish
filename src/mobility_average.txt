@@ -1,0 +1,42 @@
+PieceType
+    [] mobility average
+    [] mg_value(mob_score)
+    [] eg_value(mob_score)
+
+--------------------------------------------------------------------------------
+
+Normal Bench:
+N
+    [0] Samples 27990025 Mean 4.89282 o 1.70351
+    [1] Samples 27990025 Mean 10.3955 o 17.098
+    [2] Samples 27990025 Mean 5.80485 o 19.5101
+B
+    [3] Samples 34729251 Mean 5.45412 o 2.47425
+    [4] Samples 34729251 Mean 46.5972 o 22.4707
+    [5] Samples 34729251 Mean 38.6385 o 28.7876
+R
+    [0] Samples 57912210 Mean 7.94203 o 3.29612
+    [1] Samples 57912210 Mean 32.1945 o 19.6693
+    [2] Samples 57912210 Mean 123.047 o 41.7905
+Q
+    [3] Samples 19981994 Mean 11.3747 o 3.78507
+    [4] Samples 19981994 Mean 60.6382 o 17.3237
+    [5] Samples 19981994 Mean 106.442 o 28.8876
+
+Closed Bench:
+N
+    [0] Samples 91837730 Mean 3.91414 o 1.44863
+    [1] Samples 91837730 Mean 2.03305 o 15.7382
+    [2] Samples 91837730 Mean -3.38964 o 20.7246
+B
+    [3] Samples 94871547 Mean 3.54524 o 1.67549
+    [4] Samples 94871547 Mean 29.7554 o 22.9268
+    [5] Samples 94871547 Mean 15.8256 o 24.8471
+R
+    [0] Samples 114317843 Mean 4.02249 o 1.87714
+    [1] Samples 114317843 Mean 8.43074 o 12.3138
+    [2] Samples 114317843 Mean 66.191 o 39.9308
+Q
+    [3] Samples 55308432 Mean 8.53818 o 2.22573
+    [4] Samples 55308432 Mean 47.5173 o 16.7464
+    [5] Samples 55308432 Mean 84.2144 o 21.1884
