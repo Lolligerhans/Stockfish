@@ -25,13 +25,13 @@
 /// TTEntry struct is the 10 bytes transposition table entry, defined as below:
 ///
 /// key        16 bit
-/// move       16 bit
-/// value      16 bit
-/// eval value 16 bit
+/// depth       8 bit
 /// generation  5 bit
 /// pv node     1 bit
 /// bound type  2 bit
-/// depth       8 bit
+/// move       16 bit
+/// value      16 bit
+/// eval value 16 bit
 
 struct TTEntry {
 
@@ -47,11 +47,11 @@ private:
   friend class TranspositionTable;
 
   uint16_t key16;
+  uint8_t  depth8;
+  uint8_t  genBound8;
   uint16_t move16;
   int16_t  value16;
   int16_t  eval16;
-  uint8_t  genBound8;
-  uint8_t  depth8;
 };
 
 
@@ -73,7 +73,7 @@ class TranspositionTable {
   static_assert(sizeof(Cluster) == 32, "Unexpected Cluster size");
 
 public:
- ~TranspositionTable() { aligned_ttmem_free(mem); }
+ ~TranspositionTable() { aligned_large_pages_free(table); }
   void new_search() { generation8 += 8; } // Lower 3 bits are used by PV flag and Bound
   TTEntry* probe(const Key key, bool& found) const;
   int hashfull() const;
@@ -89,7 +89,6 @@ private:
 
   size_t clusterCount;
   Cluster* table;
-  void* mem;
   uint8_t generation8; // Size must be not bigger than TTEntry::genBound8
 };
 

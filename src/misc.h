@@ -24,6 +24,7 @@
 #include <ostream>
 #include <string>
 #include <vector>
+#include <cstdint>
 
 #include "types.h"
 
@@ -33,8 +34,8 @@ void prefetch(void* addr);
 void start_logger(const std::string& fname);
 void* std_aligned_alloc(size_t alignment, size_t size);
 void std_aligned_free(void* ptr);
-void* aligned_ttmem_alloc(size_t size, void*& mem);
-void aligned_ttmem_free(void* mem); // nop if mem == nullptr
+void* aligned_large_pages_alloc(size_t size); // memory aligned by page size, min alignment: 4096 bytes
+void aligned_large_pages_free(void* mem); // nop if mem == nullptr
 
 void dbg_hit_on(bool b);
 void dbg_hit_on(bool c, bool b);
@@ -42,9 +43,7 @@ void dbg_mean_of(int v);
 void dbg_print();
 
 typedef std::chrono::milliseconds::rep TimePoint; // A value in milliseconds
-
 static_assert(sizeof(TimePoint) == sizeof(int64_t), "TimePoint should be 64 bits");
-
 inline TimePoint now() {
   return std::chrono::duration_cast<std::chrono::milliseconds>
         (std::chrono::steady_clock::now().time_since_epoch()).count();
@@ -65,13 +64,16 @@ std::ostream& operator<<(std::ostream&, SyncCout);
 #define sync_cout std::cout << IO_LOCK
 #define sync_endl std::endl << IO_UNLOCK
 
-namespace Utility {
+// `ptr` must point to an array of size at least
+// `sizeof(T) * N + alignment` bytes, where `N` is the
+// number of elements in the array.
+template <uintptr_t Alignment, typename T>
+T* align_ptr_up(T* ptr)
+{
+  static_assert(alignof(T) < Alignment);
 
-/// Clamp a value between lo and hi. Available in c++17.
-template<class T> constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
-  return v < lo ? lo : v > hi ? hi : v;
-}
-
+  const uintptr_t ptrint = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(ptr));
+  return reinterpret_cast<T*>(reinterpret_cast<char*>((ptrint + (Alignment - 1)) / Alignment * Alignment));
 }
 
 /// xorshift64star Pseudo-Random Number Generator
@@ -132,6 +134,13 @@ inline uint64_t mul_hi64(uint64_t a, uint64_t b) {
 
 namespace WinProcGroup {
   void bindThisThread(size_t idx);
+}
+
+namespace CommandLine {
+  void init(int argc, char* argv[]);
+
+  extern std::string binaryDirectory;  // path of the executable directory
+  extern std::string workingDirectory; // path of the working directory
 }
 
 #endif // #ifndef MISC_H_INCLUDED

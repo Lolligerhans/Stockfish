@@ -25,13 +25,14 @@
 
 namespace Eval::NNUE {
 
+  // The accumulator of a StateInfo without parent is set to the INIT state
+  enum AccumulatorState { EMPTY, COMPUTED, INIT };
+
   // Class that holds the result of affine transformation of input features
-  struct alignas(32) Accumulator {
+  struct alignas(kCacheLineSize) Accumulator {
     std::int16_t
         accumulation[2][kRefreshTriggers.size()][kTransformedFeatureDimensions];
-    Value score;
-    bool computed_accumulation;
-    bool computed_score;
+    AccumulatorState state[2];
   };
 
 }  // namespace Eval::NNUE

@@ -54,7 +54,6 @@ public:
   void idle_loop();
   void start_searching();
   void wait_for_search_finished();
-  int best_move_count(Move move) const;
 
   Pawns::Table pawnsTable;
   Material::Table materialTable;
@@ -65,6 +64,7 @@ public:
   std::atomic<uint64_t> nodes, tbHits, bestMoveChanges;
 
   Position rootPos;
+  StateInfo rootState;
   Search::RootMoves rootMoves;
   Depth rootDepth, completedDepth;
   CounterMoveHistory counterMoves;
@@ -73,6 +73,7 @@ public:
   CapturePieceToHistory captureHistory;
   ContinuationHistory continuationHistory[2][2];
   Score contempt;
+  int failedHighCnt;
 };
 
 

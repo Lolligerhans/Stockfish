@@ -37,18 +37,19 @@ void TTEntry::save(Key k, Value v, bool pv, Bound b, Depth d, Move m, Value ev) 
   if (m || (uint16_t)k != key16)
       move16 = (uint16_t)m;
 
-  // Overwrite less valuable entries
-  if ((uint16_t)k != key16
-      || d - DEPTH_OFFSET > depth8 - 4
-      || b == BOUND_EXACT)
+  // Overwrite less valuable entries (cheapest checks first)
+  if (b == BOUND_EXACT
+      || (uint16_t)k != key16
+      || d - DEPTH_OFFSET > depth8 - 4)
   {
-      assert(d >= DEPTH_OFFSET);
+      assert(d > DEPTH_OFFSET);
+      assert(d < 256 + DEPTH_OFFSET);
 
       key16     = (uint16_t)k;
+      depth8    = (uint8_t)(d - DEPTH_OFFSET);
+      genBound8 = (uint8_t)(TT.generation8 | uint8_t(pv) << 2 | b);
       value16   = (int16_t)v;
       eval16    = (int16_t)ev;
-      genBound8 = (uint8_t)(TT.generation8 | uint8_t(pv) << 2 | b);
-      depth8    = (uint8_t)(d - DEPTH_OFFSET);
   }
 }
 
@@ -61,11 +62,12 @@ void TranspositionTable::resize(size_t mbSize) {
 
   Threads.main()->wait_for_search_finished();
 
-  aligned_ttmem_free(mem);
+  aligned_large_pages_free(table);
 
   clusterCount = mbSize * 1024 * 1024 / sizeof(Cluster);
-  table = static_cast<Cluster*>(aligned_ttmem_alloc(clusterCount * sizeof(Cluster), mem));
-  if (!mem)
+
+  table = static_cast<Cluster*>(aligned_large_pages_alloc(clusterCount * sizeof(Cluster)));
+  if (!table)
   {
       std::cerr << "Failed to allocate " << mbSize
                 << "MB for transposition table." << std::endl;
@@ -119,11 +121,11 @@ TTEntry* TranspositionTable::probe(const Key key, bool& found) const {
   const uint16_t key16 = (uint16_t)key;  // Use the low 16 bits as key inside the cluster
 
   for (int i = 0; i < ClusterSize; ++i)
-      if (!tte[i].key16 || tte[i].key16 == key16)
+      if (tte[i].key16 == key16 || !tte[i].depth8)
       {
           tte[i].genBound8 = uint8_t(generation8 | (tte[i].genBound8 & 0x7)); // Refresh
 
-          return found = (bool)tte[i].key16, &tte[i];
+          return found = (bool)tte[i].depth8, &tte[i];
       }
 
   // Find an entry to be replaced according to the replacement strategy
@@ -149,7 +151,7 @@ int TranspositionTable::hashfull() const {
   int cnt = 0;
   for (int i = 0; i < 1000; ++i)
       for (int j = 0; j < ClusterSize; ++j)
-          cnt += (table[i].entry[j].genBound8 & 0xF8) == generation8;
+          cnt += table[i].entry[j].depth8 && (table[i].entry[j].genBound8 & 0xF8) == generation8;
 
   return cnt / ClusterSize;
 }
