@@ -36,6 +36,7 @@
 #include "uci.h"
 #include "incbin/incbin.h"
 
+#include "offset.h"
 
 // Macro to embed the default NNUE file data in the engine binary (using incbin.h, by Dale Weiler).
 // This macro invocation will declare the following three variables
@@ -207,19 +208,19 @@ namespace {
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
   constexpr Score MobilityBonus[][32] = {
-    { S(-62,-79), S(-53,-57), S(-12,-31), S( -3,-17), S(  3,  7), S( 12, 13), // Knight
-      S( 21, 16), S( 28, 21), S( 37, 26) },
-    { S(-47,-59), S(-20,-25), S( 14, -8), S( 29, 12), S( 39, 21), S( 53, 40), // Bishop
-      S( 53, 56), S( 60, 58), S( 62, 65), S( 69, 72), S( 78, 78), S( 83, 87),
-      S( 91, 88), S( 96, 98) },
-    { S(-60,-82), S(-24,-15), S(  0, 17) ,S(  3, 43), S(  4, 72), S( 14,100), // Rook
-      S( 20,102), S( 30,122), S( 41,133), S(41 ,139), S( 41,153), S( 45,160),
-      S( 57,165), S( 58,170), S( 67,175) },
-    { S(-29,-49), S(-16,-29), S( -8, -8), S( -8, 17), S( 18, 39), S( 25, 54), // Queen
-      S( 23, 59), S( 37, 73), S( 41, 76), S( 54, 95), S( 65, 95) ,S( 68,101),
-      S( 69,124), S( 70,128), S( 70,132), S( 70,133) ,S( 71,136), S( 72,140),
-      S( 74,147), S( 76,149), S( 90,153), S(104,169), S(105,171), S(106,171),
-      S(112,178), S(114,185), S(114,187), S(119,221) }
+    { S(-62,-79) + mobOffset(KNIGHT), S(-53,-57) + mobOffset(KNIGHT), S(-12,-31) + mobOffset(KNIGHT), S( -3,-17) + mobOffset(KNIGHT), S(  3,  7) + mobOffset(KNIGHT), S( 12, 13) + mobOffset(KNIGHT), // Knight
+      S( 21, 16) + mobOffset(KNIGHT), S( 28, 21) + mobOffset(KNIGHT), S( 37, 26) + mobOffset(KNIGHT) },
+    { S(-47,-59) + mobOffset(BISHOP), S(-20,-25) + mobOffset(BISHOP), S( 14, -8) + mobOffset(BISHOP), S( 29, 12) + mobOffset(BISHOP), S( 39, 21) + mobOffset(BISHOP), S( 53, 40) + mobOffset(BISHOP), // Bishop
+      S( 53, 56) + mobOffset(BISHOP), S( 60, 58) + mobOffset(BISHOP), S( 62, 65) + mobOffset(BISHOP), S( 69, 72) + mobOffset(BISHOP), S( 78, 78) + mobOffset(BISHOP), S( 83, 87) + mobOffset(BISHOP),
+      S( 91, 88) + mobOffset(BISHOP), S( 96, 98) + mobOffset(BISHOP) },
+    { S(-60,-82) + mobOffset(ROOK), S(-24,-15) + mobOffset(ROOK), S(  0, 17) + mobOffset(ROOK) ,S(  3, 43) + mobOffset(ROOK), S(  4, 72) + mobOffset(ROOK), S( 14,100) + mobOffset(ROOK), // Rook
+      S( 20,102) + mobOffset(ROOK), S( 30,122) + mobOffset(ROOK), S( 41,133) + mobOffset(ROOK), S(41 ,139) + mobOffset(ROOK), S( 41,153) + mobOffset(ROOK), S( 45,160) + mobOffset(ROOK),
+      S( 57,165) + mobOffset(ROOK), S( 58,170) + mobOffset(ROOK), S( 67,175) + mobOffset(ROOK) },
+    { S(-29,-49) + mobOffset(QUEEN), S(-16,-29) + mobOffset(QUEEN), S( -8, -8) + mobOffset(QUEEN), S( -8, 17) + mobOffset(QUEEN), S( 18, 39) + mobOffset(QUEEN), S( 25, 54) + mobOffset(QUEEN), // Queen
+      S( 23, 59) + mobOffset(QUEEN), S( 37, 73) + mobOffset(QUEEN), S( 41, 76) + mobOffset(QUEEN), S( 54, 95) + mobOffset(QUEEN), S( 65, 95) + mobOffset(QUEEN) ,S( 68,101) + mobOffset(QUEEN),
+      S( 69,124) + mobOffset(QUEEN), S( 70,128) + mobOffset(QUEEN), S( 70,132) + mobOffset(QUEEN), S( 70,133) + mobOffset(QUEEN) ,S( 71,136) + mobOffset(QUEEN), S( 72,140) + mobOffset(QUEEN),
+      S( 74,147) + mobOffset(QUEEN), S( 76,149) + mobOffset(QUEEN), S( 90,153) + mobOffset(QUEEN), S(104,169) + mobOffset(QUEEN), S(105,171) + mobOffset(QUEEN), S(106,171) + mobOffset(QUEEN),
+      S(112,178) + mobOffset(QUEEN), S(114,185) + mobOffset(QUEEN), S(114,187) + mobOffset(QUEEN), S(119,221) + mobOffset(QUEEN) }
   };
 
   // BishopPawns[distance from edge] contains a file-dependent penalty for pawns on
@@ -422,7 +423,6 @@ namespace {
             score += BishopOnKingRing;
 
         int mob = popcount(b & mobilityArea[Us]);
-
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         if (Pt == BISHOP || Pt == KNIGHT)
