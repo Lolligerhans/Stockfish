@@ -458,7 +458,7 @@ namespace {
         mobility[Us] += mobScore;
 
         // Asymetric restriction bonus scaled w/ mobility
-        score += mobScore * popcount(b & this->restricted[Us]) / 8;
+        score += mobScore * popcount(b & this->restricted[Us]) / 16;
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
