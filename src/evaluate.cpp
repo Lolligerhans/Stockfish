@@ -320,6 +320,8 @@ namespace {
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
 
+    Bitboard restricted[COLOR_NB];
+
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
     int kingAttackersCount[COLOR_NB];
@@ -347,10 +349,10 @@ namespace {
   {
       for (auto c : {WHITE,BLACK})
       {
-          // restrictions that would be scored symmetrically inthe existing restriction bonus: attacked with exactly 1 piece by both sides
+          // Restrictions that would be scored symmetrically in the existing restriction bonus: attacked with exactly 1 piece by both sides.
           this->restricted[c] =  attackedBy [~c][ALL_PIECES] &  attackedBy [c][ALL_PIECES]
                               & ~attackedBy2[~c]             & ~attackedBy2[c]
-                              & ~attackedBy [~c][PAWN];
+                              & ~attackedBy [~c][PAWN];      /* ~(attackedby[c][PAWN]) implied in ::pieces() */
       }
   }
 
@@ -452,7 +454,11 @@ namespace {
             score += BishopOnKingRing;
 
         int mob = popcount(b & mobilityArea[Us]);
-        mobility[Us] += MobilityBonus[Pt - 2][mob];
+        auto const mobScore = MobilityBonus[Pt - 2][mob];
+        mobility[Us] += mobScore;
+
+        // Asymetric restriction bonus scaled w/ mobility
+        score += mobScore * popcount(b & this->restricted[Us]) / 8;
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
