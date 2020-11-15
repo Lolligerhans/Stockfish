@@ -102,6 +102,7 @@ namespace {
     e->kingSquares[Us] = SQ_NONE;
     e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
     e->blockedCount += popcount(shift<Up>(ourPawns) & (theirPawns | doubleAttackThem));
+    e->backwards[Us] = 0;
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -125,6 +126,9 @@ namespace {
         // the adjacent files and cannot safely advance.
         backward =  !(neighbours & forward_ranks_bb(Them, s + Up))
                   && (leverPush | blocked);
+
+        if (backward)
+            e->backwards[Us] |= s;
 
         // Compute additional span if pawn is not backward nor blocked
         if (!backward && !blocked)
