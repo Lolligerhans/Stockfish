@@ -457,6 +457,7 @@ namespace {
                 // bishop, bigger when the center files are blocked with pawns and smaller
                 // when the bishop is outside the pawn chain.
                 Bitboard blocked = pos.pieces(Us, PAWN) & shift<Down>(pos.pieces());
+                blocked |= pe->backwards[Us];
 
                 score -= BishopPawns[edge_distance(file_of(s))] * pos.pawns_on_same_color_squares(Us, s)
                                      * (!(attackedBy[Us][PAWN] & s) + popcount(blocked & CenterFiles));
