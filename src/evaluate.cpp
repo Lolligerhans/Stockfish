@@ -434,15 +434,16 @@ namespace {
                               & ~pe->pawn_attacks_span(Them);
             Bitboard targets = pos.pieces(Them) & ~pos.pieces(PAWN);
 
+            bool op = false;
             if (   Pt == KNIGHT
                 && bb & s & ~CenterFiles // on a side outpost
                 && !(b & targets)        // no relevant attacks
                 && (!more_than_one(targets & (s & QueenSide ? QueenSide : KingSide))))
                 score += BadOutpost;
             else if (bb & s)
-                score += Outpost[Pt == BISHOP];
+                score += Outpost[Pt == BISHOP], op = Pt == BISHOP;
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
-                score += ReachableOutpost;
+                score += ReachableOutpost, op = Pt == BISHOP;
 
             // Bonus for a knight or bishop shielded by pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
@@ -459,7 +460,7 @@ namespace {
                 Bitboard blocked = pos.pieces(Us, PAWN) & shift<Down>(pos.pieces());
 
                 score -= BishopPawns[edge_distance(file_of(s))] * pos.pawns_on_same_color_squares(Us, s)
-                                     * (!(attackedBy[Us][PAWN] & s) + popcount(blocked & CenterFiles));
+                                     * (!op + popcount(blocked & CenterFiles));
 
                 // Penalty for all enemy pawns x-rayed
                 score -= BishopXRayPawns * popcount(attacks_bb<BISHOP>(s) & pos.pieces(Them, PAWN));
