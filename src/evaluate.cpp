@@ -355,7 +355,7 @@ namespace {
 
     // Find our pawns that are blocked or on the first two ranks
     Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
-    Bitboard pwnDeny = pe->pawn_attacks(Them) & ~(shift<Up>(pe->backwards[Us]) & ~pos.pieces());
+    Bitboard pwnDeny = pe->pawn_attacks(Them) & ~(shift<Up>(pos.pieces(Us, PAWN) & ~pe->backwards[Us]) & ~pos.pieces());
 
     // Squares occupied by those pawns, by our king or queen, by blockers to attacks on our king
     // or controlled by enemy pawns are excluded from the mobility area.
