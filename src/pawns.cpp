@@ -70,6 +70,7 @@ namespace {
   // for king when the king is on a semi-open or open file.
   constexpr Score KingOnFile[2][2] = {{ S(-19,12), S(-6, 7)  },
                                      {  S(  0, 2), S( 6,-5) }};
+  constexpr Score PawnlessFlank       = S( 17, 95);
 
   #undef S
   #undef V
@@ -244,6 +245,10 @@ Score Entry::evaluate_shelter(const Position& pos, Square ksq) const {
 
   // King On File
   bonus -= KingOnFile[pos.is_on_semiopen_file(Us, ksq)][pos.is_on_semiopen_file(Them, ksq)];
+
+  // Penalty when our king is on a pawnless flank
+  if (!(pos.pieces(PAWN) & KingFlank[file_of(ksq)]))
+      bonus -= PawnlessFlank;
 
   return bonus;
 }
