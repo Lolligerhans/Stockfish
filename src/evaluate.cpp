@@ -335,7 +335,7 @@ namespace {
     // a white knight on g5 and black's king is on g8, this white knight adds 2
     // to kingAttacksCount[WHITE].
     int kingAttacksCount[COLOR_NB];
-    Bitboard  _a[COLOR_NB][15] = {0};
+    Bitboard  _a[COLOR_NB][15];
     Bitboard* _b[COLOR_NB] = {&_a[WHITE][0], &_a[BLACK][0]};
     void resetAttacks() { _b[WHITE] = _a[WHITE]; _b[BLACK] = _a[BLACK]; }
   };
