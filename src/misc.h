@@ -45,7 +45,7 @@ void* aligned_large_pages_alloc(size_t size); // memory aligned by page size, mi
 void aligned_large_pages_free(void* mem); // nop if mem == nullptr
 
 /// Debug functions used mainly to collect run-time statistics
-constexpr int DebugMax = 10;
+constexpr int DebugMax = 20;
 extern std::atomic<int64_t> hits[DebugMax][2];
 extern std::atomic<int64_t> means[DebugMax][2];
 extern std::atomic<double> dmeans[DebugMax];
