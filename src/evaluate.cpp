@@ -443,11 +443,13 @@ namespace {
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
+            auto const minorAtk = attackedBy[Them][KNIGHT] | attackedBy[Them][BISHOP];
+
             // Bonus if the piece is on an outpost square or can reach one
             // Reduced bonus for knights (BadOutpost) if few relevant targets
             bb = OutpostRanks & (attackedBy[Us][PAWN] | shift<Down>(pos.pieces(PAWN)))
                               & ~pe->pawn_attacks_span(Them);
-            bb &= ~attackedBy2[Them] | attackedBy2[Us];
+            bb &= ~(attackedBy2[Them] & minorAtk) | attackedBy2[Us];
             Bitboard targets = pos.pieces(Them) & ~pos.pieces(PAWN);
 
             if (   Pt == KNIGHT
