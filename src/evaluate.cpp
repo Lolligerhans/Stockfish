@@ -425,7 +425,7 @@ namespace {
         int mob = popcount(b & mobilityArea[Us]);
         int mob2 = popcount(attacks_bb<Pt>(s, pos.pieces(PAWN)) & mobilityArea[Us]);
 
-        mobility[Us] += make_score(mg_value(MobilityBonus[Pt - 2][mob2]),
+        mobility[Us] += make_score(eg_value(MobilityBonus[Pt - 2][mob2]),
                                    eg_value(MobilityBonus[Pt - 2][mob]));
 
         if (Pt == BISHOP || Pt == KNIGHT)
