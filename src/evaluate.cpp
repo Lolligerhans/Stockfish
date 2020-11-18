@@ -409,10 +409,10 @@ namespace {
         attackedBy[Us][Pt] |= b;
         attackedBy[Us][ALL_PIECES] |= b;
 
-        if (b & kingRing[Them])
+        if (Bitboard c = b & kingRing[Them]; c)
         {
             kingAttackersCount[Us]++;
-            kingAttackersWeight[Us] += KingAttackWeights[Pt];
+            kingAttackersWeight[Us] += c & ~attackedBy[Them][PAWN] ? KingAttackWeights[Pt]*5/4 : KingAttackWeights[Pt]*3/4;
             kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
         }
 
