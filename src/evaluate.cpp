@@ -488,8 +488,7 @@ namespace {
             // Bonus for rook on an open or semi-open file
             // Our unblocked passers do not prevent semiopen files
             if ( ( pos.pieces(Us, PAWN)
-                 & (~pe->passed_pawns(Us)
-                   | shift<Down>(pos.pieces()))
+                 & shift<Down>(attackedBy[Them][PAWN] | pos.pieces())
                  & file_bb(s)
                  ) == 0)
             {
