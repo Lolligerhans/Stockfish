@@ -292,7 +292,7 @@ namespace {
     Value value();
 
   private:
-    template<Color Us> void initialize();
+    template<Color Us> Score initialize();
     template<Color Us, PieceType Pt> Score pieces();
     template<Color Us> Score king() const;
     template<Color Us> Score threats() const;
@@ -342,7 +342,7 @@ namespace {
   // bitboard for a given color. This is done at the beginning of the evaluation.
 
   template<Tracing T> template<Color Us>
-  void Evaluation<T>::initialize() {
+  Score Evaluation<T>::initialize() {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Up   = pawn_push(Us);
@@ -352,6 +352,7 @@ namespace {
     const Square ksq = pos.square<KING>(Us);
 
     Bitboard dblAttackByPawn = pawn_double_attacks_bb<Us>(pos.pieces(Us, PAWN));
+    Score score = make_score(20, 20) * popcount(dblAttackByPawn & pos.pieces(Them));
 
     // Find our pawns that are blocked or on the first two ranks
     Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
@@ -376,6 +377,8 @@ namespace {
 
     // Remove from kingRing[] the squares defended by two pawns
     kingRing[Us] &= ~dblAttackByPawn;
+
+    return score;
   }
 
 
@@ -965,8 +968,8 @@ namespace {
         goto make_v;
 
     // Main evaluation begins here
-    initialize<WHITE>();
-    initialize<BLACK>();
+    score += initialize<WHITE>();
+    score -= initialize<BLACK>();
 
     // Pieces evaluated first (also populates attackedBy, attackedBy2).
     // Note that the order of evaluation of the terms is left unspecified.
