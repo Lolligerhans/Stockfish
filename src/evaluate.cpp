@@ -486,7 +486,13 @@ namespace {
         if (Pt == ROOK)
         {
             // Bonus for rook on an open or semi-open file
-            if (pos.is_on_semiopen_file(Us, s))
+
+            // Allow our pawns if they are clearly not blocked:
+            //  - they can capture
+            //  - move can push w/o facing their pawns
+            auto const okpawns = attackedBy[Them][PAWN] | ~(shift<Down>( pos.pieces(Them, PAWN)
+                                                                       | attackedBy[Them][PAWN]));
+            if (not (pos.pieces(Us, PAWN) & ~okpawns & file_bb(s)))
                 score += RookOnFile[pos.is_on_semiopen_file(Them, s)];
 
             // Penalty when trapped by the king, even more if the king cannot castle
