@@ -127,7 +127,7 @@ namespace {
         backward =  !(neighbours & forward_ranks_bb(Them, s + Up))
                   && (leverPush | blocked);
 
-        if (backward)
+        if (backward || !neighbours)
             e->backwards[Us] |= s;
 
         // Compute additional span if pawn is not backward nor blocked
