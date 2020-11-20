@@ -498,7 +498,7 @@ namespace {
                    & shift<Down>(pos.pieces())
                    & file_bb(s))
                 {
-                    score -= make_score(10, 5);
+                    score -= make_score(30, 15);
                 }
 
             // Penalty when trapped by the king, even more if the king cannot castle
