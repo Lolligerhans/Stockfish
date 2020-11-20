@@ -486,8 +486,15 @@ namespace {
         if (Pt == ROOK)
         {
             // Bonus for rook on an open or semi-open file
-            if (pos.is_on_semiopen_file(Us, s))
+            // Our unblocked passers do not prevent semiopen files
+            if ( ( pos.pieces(Us, PAWN)
+                 & (~pe->passed_pawns(Us)
+                   | shift<Down>(pos.pieces()))
+                 & file_bb(s)
+                 ) == 0)
+            {
                 score += RookOnFile[pos.is_on_semiopen_file(Them, s)];
+            }
 
             // Penalty when trapped by the king, even more if the king cannot castle
             else if (mob <= 3)
