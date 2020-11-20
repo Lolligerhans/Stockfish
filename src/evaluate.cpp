@@ -487,14 +487,27 @@ namespace {
         {
             // Bonus for rook on an open or semi-open file
             if (pos.is_on_semiopen_file(Us, s))
+            {
                 score += RookOnFile[pos.is_on_semiopen_file(Them, s)];
+            }
+
+            else // we have a pawn on the file
+            {
+                // If our pawn is hardstuck give extra penalty
+                if ( pos.pieces(Us, PAWN)
+                   & shift<Down>(pos.pieces())
+                   & file_bb(s))
+                {
+                    score -= make_score(10, 5);
+                }
 
             // Penalty when trapped by the king, even more if the king cannot castle
-            else if (mob <= 3)
+            if (mob <= 3)
             {
                 File kf = file_of(pos.square<KING>(Us));
                 if ((kf < FILE_E) == (file_of(s) < kf))
                     score -= TrappedRook * (1 + !pos.castling_rights(Us));
+            }
             }
         }
 
