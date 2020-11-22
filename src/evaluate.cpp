@@ -579,7 +579,10 @@ namespace {
     b2 = b1 & attackedBy2[Them];
     b3 = attackedBy[Us][ALL_PIECES] & KingFlank[file_of(ksq)] & Camp;
 
-    int kingFlankAttack  = popcount(b1) + popcount(b2);
+    auto const prettyBad = b1 & kingRing[Us] & (~attackedBy2[Us] | attackedBy2[Them]);
+    auto const notSoBad = b1 & kingRing[Us] & (attackedBy2[Us] | ~attackedBy2[Them]);
+
+    int kingFlankAttack  = popcount(b1) + popcount(b2) + popcount(prettyBad) - popcount(notSoBad);
     int kingFlankDefense = popcount(b3);
 
     kingDanger +=        kingAttackersCount[Them] * kingAttackersWeight[Them] // (~10 Elo)
