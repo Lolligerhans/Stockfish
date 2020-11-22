@@ -450,6 +450,7 @@ namespace {
 
             // Penalty if the piece is far from the king
             score -= KingProtector[Pt == BISHOP] * distance(pos.square<KING>(Us), s);
+            if (Pt == KNIGHT) score += KingProtector[0]/2 * (4 - distance(pos.square<KING>(Them), s));
 
             if (Pt == BISHOP)
             {
