@@ -587,7 +587,7 @@ namespace {
                  + 148 * popcount(unsafeChecks)                               // (~4 Elo)
                  +  98 * popcount(pos.blockers_for_king(Us))                  // (~2 Elo)
                  +  69 * kingAttacksCount[Them]                               // (~0.5 Elo)
-                 +   4 * kingFlankAttack * kingFlankAttack / 8                // (~0.5 Elo)
+                 +   5 * kingFlankAttack * kingFlankAttack / 8                // (~0.5 Elo)
                  +       mg_value(mobility[Them] - mobility[Us])              // (~0.5 Elo)
                  - 873 * !pos.count<QUEEN>(Them)                              // (~24 Elo)
                  - 100 * bool(attackedBy[Us][KNIGHT] & attackedBy[Us][KING])  // (~5 Elo)
