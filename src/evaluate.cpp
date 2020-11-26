@@ -241,7 +241,7 @@ namespace {
   };
 
   constexpr Score RookOnClosedFile = S(10, 5);
-  constexpr Score RookOnOpenFile[] = { S(19, 7), S(48, 27) };
+  constexpr Score RookOnOpenFile[] = { S(48, 27), S(19, 7)};
 
   // ThreatByMinor/ByRook[attacked PieceType] contains bonuses according to
   // which piece type attacks which one. Attacks on lesser pieces which are
@@ -485,16 +485,11 @@ namespace {
         if (Pt == ROOK)
         {
             // Bonuses for rook on a (semi-)open or closed file
-            if (pos.is_on_semiopen_file(Us, s))
-            {
-                score += RookOnOpenFile[pos.is_on_semiopen_file(Them, s)];
-            }
-            else
+            auto const fi = file_bb(s);
+            if (auto p = pos.pieces(Us, PAWN) & fi; p) // closed
             {
                 // If our pawn on this file is blocked, increase penalty
-                if ( pos.pieces(Us, PAWN)
-                   & shift<Down>(pos.pieces())
-                   & file_bb(s))
+                if (p & shift<Down>(pos.pieces()))
                 {
                     score -= RookOnClosedFile;
                 }
@@ -506,6 +501,10 @@ namespace {
                     if ((kf < FILE_E) == (file_of(s) < kf))
                         score -= TrappedRook * (1 + !pos.castling_rights(Us));
                 }
+            }
+            else // open
+            {
+                score += RookOnOpenFile[bool(pos.pieces(Them, PAWN) & fi)];
             }
         }
 
