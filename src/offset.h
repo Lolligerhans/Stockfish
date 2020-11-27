@@ -10,10 +10,10 @@ constexpr auto S = make_score;
 
 constexpr Score MobOffsets[] =
 {
-    S(-5, 0),
-    S(-35, -22),
-    S(-15, -14),
-    S(-50, -90) // Queen mobility is on average about S(50, 90).
+    S(-2, 3),
+    S(-30, -16),
+    S(-8, -66),
+    S(-48, -84) // Queen mobility is on average about S(50, 90).
 };
 
 }
