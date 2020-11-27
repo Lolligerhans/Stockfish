@@ -506,25 +506,33 @@ namespace {
                 const auto guilty = [&](Bitboard const& _)->bool{return block & shift<Down>(_); };
                 Score guilt = SCORE_ZERO;
                 int i = 0;
+                // Add 8 different versions and later divide by 8
                 if (guilty(pos.pieces(Them, PAWN) & attackedBy[Them][PAWN]))
-                    guilt += RC[i++];
+                    guilt += RC[i];
+                ++i;
                 if (guilty(pos.pieces(Them, PAWN) | pawn_double_attacks_bb<Them>(pos.pieces(Them, PAWN))))
-                    guilt += RC[i++];
+                    guilt += RC[i];
+                ++i;
                 if (guilty(pos.pieces(Them) & ~pe->pawn_attacks_span(Us)))
-                    guilt += RC[i++];
+                    guilt += RC[i];
+                ++i;
                 if (guilty(pos.pieces(Them, PAWN)))
-                    guilt += RC[i++];
+                    guilt += RC[i];
+                ++i;
                 if (guilty(pos.pieces(PAWN)))
-                    guilt += RC[i++];
+                    guilt += RC[i];
+                ++i;
                 if (guilty(pos.pieces(Them) & attackedBy[Them][PAWN]))
-                    guilt += RC[i++];
+                    guilt += RC[i];
+                ++i;
                 if (guilty(pos.pieces(Them)))
-                    guilt += RC[i++];
+                    guilt += RC[i];
+                ++i;
                 if (guilty(pos.pieces()))   // PR version: The least strictly blocking one
-                    guilt += RC[i++];
-                assert(i == TestCnt);
-                guilt -= RC[i]; // offset for compensation
-                score -= guilt/(16 * TestCnt);
+                    guilt += RC[i];
+                ++i;
+                guilt -= RC[i]; // offset for compensation (subtract to tune in same range)
+                score -= guilt/(16 * TestCnt); // 16 times inflated bonuses for tuning, adding 8 of them
 
                 // Penalty when trapped by the king, even more if the king cannot castle
                 if (mob <= 3)
