@@ -240,10 +240,17 @@ namespace {
     S(0, 0), S(9, 28), S(15, 31), S(17, 39), S(64, 70), S(171, 177), S(277, 260)
   };
 
-  constexpr Score RookOnClosedFile = S(10, 5);
+  //constexpr Score RookOnClosedFile = S(10, 5);
   // RookOnFile[semiopen/open] contains bonuses for each rook when there is
   // no (friendly) pawn on the rook file.
   constexpr Score RookOnOpenFile[] = { S(19, 7), S(48, 27) };
+  constexpr int TestCnt = 8;
+  Score RC[TestCnt+1] = { S(160, 80), S(160, 80), S(160, 80), S(160, 80),
+                  S(160, 80), S(160, 80), S(160, 80), S(160, 80),
+                  S(0, 0) // offset for compensation
+  };
+  Range largeRange(int i) { (void)i; return Range(-100, 500); }
+  TUNE(SetRange(largeRange), RC);
 
   // ThreatByMinor/ByRook[attacked PieceType] contains bonuses according to
   // which piece type attacks which one. Attacks on lesser pieces which are
@@ -494,12 +501,30 @@ namespace {
             else
             {
                 // If our pawn on this file is blocked, increase penalty
-                if ( pos.pieces(Us, PAWN)
-                   & shift<Down>(pos.pieces())
-                   & file_bb(s))
-                {
-                    score -= RookOnClosedFile;
-                }
+                auto block = pos.pieces(Us, PAWN)
+                           & file_bb(s);
+                const auto guilty = [&](Bitboard const& _)->bool{return block & shift<Down>(_); };
+                Score guilt = SCORE_ZERO;
+                int i = 0;
+                if (guilty(pos.pieces(Them, PAWN) & attackedBy[Them][PAWN]))
+                    guilt += RC[i++];
+                if (guilty(pos.pieces(Them, PAWN) | pawn_double_attacks_bb<Them>(pos.pieces(Them, PAWN))))
+                    guilt += RC[i++];
+                if (guilty(pos.pieces(Them) & ~pe->pawn_attacks_span(Us)))
+                    guilt += RC[i++];
+                if (guilty(pos.pieces(Them, PAWN)))
+                    guilt += RC[i++];
+                if (guilty(pos.pieces(PAWN)))
+                    guilt += RC[i++];
+                if (guilty(pos.pieces(Them) & attackedBy[Them][PAWN]))
+                    guilt += RC[i++];
+                if (guilty(pos.pieces(Them)))
+                    guilt += RC[i++];
+                if (guilty(pos.pieces()))   // PR version: The least strictly blocking one
+                    guilt += RC[i++];
+                assert(i == TestCnt);
+                guilt -= RC[i]; // offset for compensation
+                score -= guilt/(16 * TestCnt);
 
                 // Penalty when trapped by the king, even more if the king cannot castle
                 if (mob <= 3)
