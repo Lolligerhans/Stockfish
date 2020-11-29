@@ -434,10 +434,9 @@ namespace {
                 && !(b & targets)        // no relevant attacks
                 && (!more_than_one(targets & (s & QueenSide ? QueenSide : KingSide))))
             {
-                score += make_score(-25, 0);
+                score += make_score(-50, 0);
             }
-            else
-            {
+
             // Bonus if the piece is on an outpost square or can reach one
             // Reduced bonus for knights (BadOutpost) if few relevant targets
             bb = OutpostRanks & (attackedBy[Us][PAWN] | shift<Down>(pos.pieces(PAWN)))
@@ -446,7 +445,6 @@ namespace {
                 score += Outpost[Pt == BISHOP];
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
                 score += ReachableOutpost;
-            }
 
             // Bonus for a knight or bishop shielded by pawn
             if (shift<Down>(pos.pieces(PAWN)) & s)
