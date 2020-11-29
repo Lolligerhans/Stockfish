@@ -240,7 +240,7 @@ namespace {
     S(0, 0), S(9, 28), S(15, 31), S(17, 39), S(64, 70), S(171, 177), S(277, 260)
   };
 
-  constexpr Score RookOnClosedFile = S(15, 10);
+  constexpr Score RookOnClosedFile = S(12,6);
   constexpr Score RookOnOpenFile[] = { S(48, 27), S(19, 7)};
 
   // ThreatByMinor/ByRook[attacked PieceType] contains bonuses according to
@@ -489,7 +489,7 @@ namespace {
             if (auto const ourPawnsOnFile = pos.pieces(Us) & pawnsOnFile; ourPawnsOnFile) // closed
             {
                 // If our pawn on this file is blocked, increase penalty
-                if (ourPawnsOnFile & shift<Down>(pos.pieces(Them)))
+                if (ourPawnsOnFile & shift<Down>(pos.pieces(Them, PAWN)))
                 {
                     score -= RookOnClosedFile;
                 }
