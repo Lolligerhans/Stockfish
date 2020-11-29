@@ -434,7 +434,7 @@ namespace {
                 && !(b & targets)        // no relevant attacks
                 && (!more_than_one(targets & (s & QueenSide ? QueenSide : KingSide))))
             {
-                score += make_score(-40, 0);
+                score += make_score(-25, 0);
             }
             else
             {
