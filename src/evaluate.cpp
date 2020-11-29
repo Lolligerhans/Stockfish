@@ -433,7 +433,8 @@ namespace {
                 && !(b & targets)        // no relevant attacks
                 && (!more_than_one(targets & (s & QueenSide ? QueenSide : KingSide))))
             {
-                score += make_score(-25, 0);
+                const int pCount = popcount(pos.pieces(PAWN) & (s & QueenSide ? QueenSide : KingSide));
+                score += make_score(-8, 8 ) * pCount;
             }
             else
             {
