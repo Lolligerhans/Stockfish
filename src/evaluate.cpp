@@ -666,7 +666,7 @@ namespace {
             score += ThreatByKing;
 
         b =  ~attackedBy[Them][ALL_PIECES]
-           | (nonPawnEnemies & attackedBy2[Us]);
+           | ((nonPawnEnemies | (pe->passed_pawns(Them) & ~attackedBy[Them][PAWN])) & attackedBy2[Us]);
         score += Hanging * popcount(weak & b);
 
         // Additional bonus if weak piece is only protected by a queen
