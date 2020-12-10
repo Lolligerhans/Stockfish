@@ -396,9 +396,16 @@ namespace {
     while (b1) {
         Square s = pop_lsb(&b1);
 
+        bool const useXray = pos.side_to_move() == Us;
+        auto xrayAdjust = [&](Bitboard const& x) -> Bitboard
+        {
+            // Keep their pieces if their turn.
+            return useXray ? x : x & pos.pieces(Us);
+        };
+
         // Find attacked squares, including x-ray attacks for bishops and rooks
-        b = Pt == BISHOP ? attacks_bb<BISHOP>(s, pos.pieces() ^ pos.pieces(QUEEN))
-          : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
+        b = Pt == BISHOP ? attacks_bb<BISHOP>(s, pos.pieces() ^ xrayAdjust(pos.pieces(QUEEN)))
+          : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ xrayAdjust(pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK)))
                          : attacks_bb<Pt>(s, pos.pieces());
 
         if (pos.blockers_for_king(Us) & s)
