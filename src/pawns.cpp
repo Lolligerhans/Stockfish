@@ -206,7 +206,7 @@ Entry* probe(const Position& pos) {
   e->blockedCount = 0;
   auto adjust = [&](Score const& sc) -> Score
   {
-      return sc * (40 - pos.count<PAWN>()) / 32;
+      return sc * (24 - pos.count<PAWN>()) / 16;
   };
 
   e->scores[WHITE] = adjust(evaluate<WHITE>(pos, e));
