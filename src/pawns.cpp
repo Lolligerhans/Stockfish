@@ -208,7 +208,7 @@ Entry* probe(const Position& pos) {
   // 0 pawsns: factor 2.
   auto adjust = [&](Score const& sc) -> Score
   {
-      return sc * (pos.count<PAWN>()) / 8;
+      return sc * (8 + pos.count<PAWN>()) / 16;
   };
 
   e->scores[WHITE] = adjust(evaluate<WHITE>(pos, e));
