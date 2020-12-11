@@ -204,8 +204,15 @@ Entry* probe(const Position& pos) {
 
   e->key = key;
   e->blockedCount = 0;
-  e->scores[WHITE] = evaluate<WHITE>(pos, e);
-  e->scores[BLACK] = evaluate<BLACK>(pos, e);
+  // 16 pawns: factor 0.
+  // 0 pawsns: factor 2.
+  auto adjust = [&](Score const& sc) -> Score
+  {
+      return sc * (16 - pos.count<PAWN>()) / 8;
+  };
+
+  e->scores[WHITE] = adjust(evaluate<WHITE>(pos, e));
+  e->scores[BLACK] = adjust(evaluate<BLACK>(pos, e));
 
   return e;
 }
