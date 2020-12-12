@@ -846,7 +846,7 @@ namespace {
 
     // Compute space score based on the number of safe squares and number of our pieces
     // increased with number of total blocked pawns in position.
-    int bonus = popcount(safe) + popcount(behind & safe & ~attackedBy[Them][ALL_PIECES]);
+    int bonus = popcount(safe) + popcount(behind & safe & ~pe->pawn_attacks_span(Them));
     int weight = pos.count<ALL_PIECES>(Us) - 3 + std::min(pe->blocked_count(), 9);
     Score score = make_score(bonus * weight * weight / 16, 0);
 
