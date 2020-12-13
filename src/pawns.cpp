@@ -193,8 +193,8 @@ namespace {
     }
 
     // Double impact of best and worst pawn
-    totalScore -= make_score(0, (min <  VALUE_INFINITE ? min : 0)
-                              + (max > -VALUE_INFINITE ? max : 0)
+    totalScore += make_score(0, (min <  VALUE_INFINITE ? min : 0)
+                              - (max > -VALUE_INFINITE ? max : 0)
                             ) / 2;
 
     return totalScore;
