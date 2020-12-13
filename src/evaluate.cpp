@@ -787,8 +787,12 @@ namespace {
 
                 bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN);
 
+                // Ignore their knight attacks if passer is on A or H file
+                auto const defThem = attackedBy[Them][ALL_PIECES] &
+                    (edge_distance(file_of(s)) == 0 ? attackedBy2[Them] | ~attackedBy[Them][KNIGHT]
+                                           : AllSquares);
                 if (!(pos.pieces(Them) & bb))
-                    unsafeSquares &= attackedBy[Them][ALL_PIECES];
+                    unsafeSquares &= defThem;
 
                 // If there are no enemy attacks on passed pawn span, assign a big bonus.
                 // Otherwise assign a smaller bonus if the path to queen is not attacked
