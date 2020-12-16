@@ -489,9 +489,9 @@ namespace {
             if (auto p = pos.pieces(Us, PAWN) & fi; p) // closed
             {
                 // If our pawn on this file is blocked, increase penalty
-                if (p & attackedBy[Us][PAWN] & shift<Down>(pos.pieces()))
+                if ((bb = p & shift<Down>(pos.pieces())))
                 {
-                    score -= RookOnClosedFile;
+                    score -= (bb & attackedBy[Us][PAWN]) ? make_score(15,10) : RookOnClosedFile;
                 }
 
                 // Penalty when trapped by the king, even more if the king cannot castle
