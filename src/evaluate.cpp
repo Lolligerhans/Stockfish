@@ -489,7 +489,7 @@ namespace {
             if (auto p = pos.pieces(Us, PAWN) & fi; p) // closed
             {
                 // If our pawn on this file is blocked, increase penalty
-                if (p & shift<Down>(pos.pieces()))
+                if (p & attackedBy[Us][PAWN] & shift<Down>(pos.pieces()))
                 {
                     score -= RookOnClosedFile;
                 }
