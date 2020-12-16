@@ -485,11 +485,11 @@ namespace {
         if (Pt == ROOK)
         {
             // Bonuses for rook on a (semi-)open or closed file
-            auto const pawnsOnFile = pos.pieces(PAWN) & file_bb(s);
-            if (auto const ourPawnsOnFile = pos.pieces(Us) & pawnsOnFile; ourPawnsOnFile) // closed
+            auto const fi = file_bb(s);
+            if (auto p = pos.pieces(Us, PAWN) & fi; p) // closed
             {
                 // If our pawn on this file is blocked, increase penalty
-                if (ourPawnsOnFile & shift<Down>(pos.pieces()))
+                if (p & shift<Down>(pos.pieces()))
                 {
                     score -= RookOnClosedFile;
                 }
@@ -504,7 +504,7 @@ namespace {
             }
             else // open
             {
-                score += RookOnOpenFile[bool(pos.pieces(Them) & pawnsOnFile)];
+                score += RookOnOpenFile[bool(pos.pieces(Them, PAWN) & fi)];
             }
         }
 
