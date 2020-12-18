@@ -437,7 +437,8 @@ namespace {
                 && bb & s & ~CenterFiles // on a side outpost
                 && !(b & targets)        // no relevant attacks
                 && (!more_than_one(targets & (s & QueenSide ? QueenSide : KingSide))))
-                score += BadOutpost;
+                score += more_than_one(pos.pieces(PAWN) & (s & QueenSide ? QueenSide : KingSide))
+                       ? BadOutpost : BadOutpost/2;
             else if (bb & s)
                 score += Outpost[Pt == BISHOP];
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
