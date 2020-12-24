@@ -797,6 +797,7 @@ namespace {
                 int k = !unsafeSquares                    ? 36 :
                 !(unsafeSquares & ~attackedBy[Us][PAWN])  ? 30 :
                         !(unsafeSquares & squaresToQueen) ? 17 :
+                        !(unsafeSquares & squaresToQueen & ~attackedBy[Us][PAWN]) ? 14 :
                         !(unsafeSquares & blockSq)        ?  7 :
                                                              0 ;
 
