@@ -788,7 +788,8 @@ namespace {
                 bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN);
 
                 if (!(pos.pieces(Them) & bb))
-                    unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
+                    unsafeSquares &= attackedBy[Them][ALL_PIECES]
+                                   | (pos.pieces(Them) & (attackedBy2[Them] | ~attackedBy2[Us]));
 
                 // If there are no enemy pieces or attacks on passed pawn span, assign a big bonus.
                 // Or if there is some, but they are all attacked by our pawns, assign a bit smaller bonus.
