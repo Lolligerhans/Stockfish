@@ -869,20 +869,20 @@ namespace {
     int outflanking =  distance<File>(pos.square<KING>(WHITE), pos.square<KING>(BLACK))
                     + int(rank_of(pos.square<KING>(WHITE)) - rank_of(pos.square<KING>(BLACK)));
 
-    bool pawnsOnBothFlanks =   (pos.pieces(PAWN) & QueenSide)
-                            && (pos.pieces(PAWN) & KingSide);
+    int minBoth = std::min(popcount(pos.pieces(PAWN) & QueenSide),
+                           popcount(pos.pieces(PAWN) & KingSide ));
 
     bool almostUnwinnable =   outflanking < 0
-                           && !pawnsOnBothFlanks;
+                           && minBoth == 0;
 
     bool infiltration =   rank_of(pos.square<KING>(WHITE)) > RANK_4
                        || rank_of(pos.square<KING>(BLACK)) < RANK_5;
 
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
-                    + 12 * pos.count<PAWN>()
+                    + (10 + minBoth) * pos.count<PAWN>()
+                    + 21 * (minBoth > 0)
                     +  9 * outflanking
-                    + 21 * pawnsOnBothFlanks
                     + 24 * infiltration
                     + 51 * !pos.non_pawn_material()
                     - 43 * almostUnwinnable
@@ -936,10 +936,10 @@ namespace {
         // In every other case use scale factor based on
         // the number of pawns of the strong side reduced if pawns are on a single flank.
         else
-            sf = std::min(sf, 36 + 7 * pos.count<PAWN>(strongSide)) - 4 * !pawnsOnBothFlanks;
+            sf = std::min(sf, 36 + 7 * pos.count<PAWN>(strongSide)) - 4 * !minBoth;
 
         // Reduce scale factor in case of pawns being on a single flank
-        sf -= 4 * !pawnsOnBothFlanks;
+        sf -= 4 * !minBoth;
     }
 
     // Interpolate between the middlegame and (scaled by 'sf') endgame score
