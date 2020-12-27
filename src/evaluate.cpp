@@ -408,9 +408,10 @@ namespace {
         attackedBy[Us][Pt] |= b;
         attackedBy[Us][ALL_PIECES] |= b;
 
-        if (b & kingRing[Them])
+        if ((bb=b & kingRing[Them]))
         {
-            kingAttackersCount[Us]++;
+            if (bb & ~pos.pieces(Us, PAWN))
+                kingAttackersCount[Us]++;
             kingAttackersWeight[Us] += KingAttackWeights[Pt];
             kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
         }
