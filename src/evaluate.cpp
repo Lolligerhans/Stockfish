@@ -497,6 +497,10 @@ namespace {
                    & file_bb(s))
                 {
                     score -= RookOnClosedFile;
+
+                    // Invert Rook on king ring/king danger bonus when rook is badly placed
+                    if (Pt == ROOK && (file_bb(s) & kingRing[Them]))
+                        score -= RookOnKingRing;
                 }
 
                 // Penalty when trapped by the king, even more if the king cannot castle
