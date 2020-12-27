@@ -415,7 +415,7 @@ namespace {
             kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
         }
 
-        else if (Pt == ROOK && (file_bb(s) & kingRing[Them]))
+        else if (Pt == ROOK && (PseudoAttacks[ROOK][s] & kingRing[Them]))
             score += RookOnKingRing;
 
         else if (Pt == BISHOP && (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & kingRing[Them]))
