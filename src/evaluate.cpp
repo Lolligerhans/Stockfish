@@ -371,7 +371,8 @@ namespace {
     kingRing[Us] = attacks_bb<KING>(s) | s;
 
     kingAttackersCount[Them] = popcount(kingRing[Us] & pe->pawn_attacks(Them));
-    kingAttacksCount[Them] = kingAttackersWeight[Them] = 0;
+    kingAttacksCount[Them] = -1;
+    kingAttackersWeight[Them] = -20;
 
     // Remove from kingRing[] the squares defended by two pawns
     kingRing[Us] &= ~dblAttackByPawn;
@@ -593,7 +594,7 @@ namespace {
     int kingFlankAttack  = popcount(b1) + popcount(b2);
     int kingFlankDefense = popcount(b3);
 
-    kingDanger +=        kingAttackersCount[Them] * kingAttackersWeight[Them] // (~10 Elo)
+    kingDanger +=        std::max(0, kingAttackersCount[Them] * kingAttackersWeight[Them]) // (~10 Elo)
                  + 183 * popcount(kingRing[Us] & weak)                        // (~15 Elo)
                  + 148 * popcount(unsafeChecks)                               // (~4 Elo)
                  +  98 * popcount(pos.blockers_for_king(Us))                  // (~2 Elo)
