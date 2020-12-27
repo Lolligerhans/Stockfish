@@ -410,7 +410,12 @@ namespace {
 
         if ((bb=b & kingRing[Them]))
         {
-            if (bb & ~pos.pieces(Us, PAWN))
+            // Only increment attackers count if (at least one) attacked square
+            // in their king ring is also
+            //      - sideways from our rook or
+            //      - not occupied by our pawn
+            if (bb & ~( pos.pieces(Us, PAWN)
+                      | file_bb(s)))
                 kingAttackersCount[Us]++;
             kingAttackersWeight[Us] += KingAttackWeights[Pt];
             kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
