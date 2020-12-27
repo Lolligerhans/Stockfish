@@ -369,6 +369,10 @@ namespace {
     Square s = make_square(std::clamp(file_of(ksq), FILE_B, FILE_G),
                            std::clamp(rank_of(ksq), RANK_2, RANK_7));
     kingRing[Us] = attacks_bb<KING>(s) | s;
+    if (s != ksq)
+    {
+        kingRing[Us] &= ~attackedBy[Us][PAWN] | attacks_bb<KING>(ksq);
+    }
 
     kingAttackersCount[Them] = popcount(kingRing[Us] & pe->pawn_attacks(Them));
     kingAttacksCount[Them] = kingAttackersWeight[Them] = 0;
