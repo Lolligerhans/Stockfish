@@ -485,7 +485,7 @@ namespace {
         if (Pt == ROOK)
         {
             // Bonuses for rook on a (semi-)open or closed file
-            auto const fi = file_bb(s);
+            auto const fi = forward_file_bb(Us, s);
             if (auto p = pos.pieces(Us, PAWN) & fi; p) // closed
             {
                 // If our pawn on this file is blocked, increase penalty
