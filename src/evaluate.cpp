@@ -595,10 +595,9 @@ namespace {
 
     int const freeToMove = popcount(attackedBy[Us][KING] & ~(pos.pieces() | attackedBy[Them][ALL_PIECES]));
     int trapped = 8 - freeToMove;
-    trapped *= trapped;
+    trapped *= 5 * trapped;
 
     kingDanger +=        kingAttackersCount[Them] * kingAttackersWeight[Them] // (~10 Elo)
-                 +   5 * trapped
                  + 183 * popcount(kingRing[Us] & weak)                        // (~15 Elo)
                  + 148 * popcount(unsafeChecks)                               // (~4 Elo)
                  +  98 * popcount(pos.blockers_for_king(Us))                  // (~2 Elo)
@@ -612,8 +611,8 @@ namespace {
                  +  37;                                                       // (~0.5 Elo)
 
     // Transform the kingDanger units into a Score, and subtract it from the evaluation
-    if (kingDanger > 100)
-        score -= make_score(kingDanger * kingDanger / 4096, kingDanger / 16);
+    if ((kingDanger + trapped) > 100)
+        score -= make_score(kingDanger * kingDanger / 4096, (kingDanger + trapped) / 16);
 
     // Penalty when our king is on a pawnless flank
     if (!(pos.pieces(PAWN) & KingFlank[file_of(ksq)]))
