@@ -593,7 +593,11 @@ namespace {
     int kingFlankAttack  = popcount(b1) + popcount(b2);
     int kingFlankDefense = popcount(b3);
 
+    int selfBlock        = popcount(pos.pieces(Us) & attackedBy[Us][KING]);
+    selfBlock *= selfBlock;
+
     kingDanger +=        kingAttackersCount[Them] * kingAttackersWeight[Them] // (~10 Elo)
+                 +  10 * selfBlock
                  + 183 * popcount(kingRing[Us] & weak)                        // (~15 Elo)
                  + 148 * popcount(unsafeChecks)                               // (~4 Elo)
                  +  98 * popcount(pos.blockers_for_king(Us))                  // (~2 Elo)
