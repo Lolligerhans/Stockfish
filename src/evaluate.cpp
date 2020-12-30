@@ -877,10 +877,13 @@ namespace {
 
     bool infiltration =   rank_of(pos.square<KING>(WHITE)) > RANK_4
                        || rank_of(pos.square<KING>(BLACK)) < RANK_5;
+    int farpawns = 8 * popcount( (pos.pieces(WHITE, PAWN) & ~WhiteSide)
+                               | (pos.pieces(BLACK, PAWN) &  WhiteSide));
 
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
-                    + 12 * pos.count<PAWN>()
+                    + 8  * pos.count<PAWN>()
+                    +      farpawns
                     +  9 * outflanking
                     + 21 * pawnsOnBothFlanks
                     + 24 * infiltration
