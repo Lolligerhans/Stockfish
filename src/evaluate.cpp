@@ -593,7 +593,12 @@ namespace {
     int kingFlankAttack  = popcount(b1) + popcount(b2);
     int kingFlankDefense = popcount(b3);
 
+    int const freeToMove = popcount(attackedBy[Us][KING] & ~(pos.pieces() | attackedBy[Them][ALL_PIECES]));
+    int trapped = 8 - freeToMove;
+    trapped *= trapped;
+
     kingDanger +=        kingAttackersCount[Them] * kingAttackersWeight[Them] // (~10 Elo)
+                 +   5 * trapped
                  + 183 * popcount(kingRing[Us] & weak)                        // (~15 Elo)
                  + 148 * popcount(unsafeChecks)                               // (~4 Elo)
                  +  98 * popcount(pos.blockers_for_king(Us))                  // (~2 Elo)
