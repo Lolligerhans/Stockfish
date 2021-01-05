@@ -421,9 +421,18 @@ namespace {
         else if (Pt == BISHOP && (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & kingRing[Them]))
             score += BishopOnKingRing;
 
-        int mob = popcount(b & mobilityArea[Us]);
 
+        int mob = popcount((bb = b & mobilityArea[Us]));
         mobility[Us] += MobilityBonus[Pt - 2][mob];
+        if (Pt == QUEEN)
+        {
+            // Bonus for queen on weak square in enemy camp
+            constexpr Bitboard TheirHalf = (Us == WHITE ? Rank5BB|Rank6BB|Rank7BB|Rank8BB
+                                                        : Rank1BB|Rank2BB|Rank3BB|Rank4BB);
+            constexpr Score QueenInfiltration = make_score(0, 20);
+            if (popcount(bb & TheirHalf) >= 6)
+                score += QueenInfiltration;
+        }
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
@@ -515,17 +524,6 @@ namespace {
             Bitboard queenPinners;
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
-
-            // Bonus for queen on weak square in enemy camp
-            constexpr Bitboard TheirHalf = (Us == WHITE ? Rank5BB|Rank6BB|Rank7BB|Rank8BB
-                                                        : Rank1BB|Rank2BB|Rank3BB|Rank4BB);
-            constexpr Score QueenInfiltration = make_score(0, 20);
-            if (   relative_rank(Us, s) > RANK_4
-                && (~pe->pawn_attacks_span(Them) & s)
-                && popcount(b & mobilityArea[Us] & TheirHalf) >= 6)
-            {
-                score += QueenInfiltration;
-            }
         }
     }
     if (T)
