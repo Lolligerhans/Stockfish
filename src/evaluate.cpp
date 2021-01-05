@@ -667,7 +667,18 @@ namespace {
 
         b =  ~attackedBy[Them][ALL_PIECES]
            | (nonPawnEnemies & attackedBy2[Us]);
-        score += Hanging * popcount(weak & b);
+        auto const hangCount = popcount(weak & b);
+        score += Hanging * hangCount;
+        // Increase hanging threats if Queen is ready to cause havoc
+        if (pos.count<QUEEN>(Us))
+        {
+            auto const s = pos.square<QUEEN>(Us);
+            if (   relative_rank(Us, s) > RANK_4
+                && (~pe->pawn_attacks_span(Them) & s))
+            {
+                score += make_score(0, 20) * hangCount;
+            }
+        }
 
         // Additional bonus if weak piece is only protected by a queen
         score += WeakQueenProtection * popcount(weak & attackedBy[Them][QUEEN]);
@@ -716,17 +727,6 @@ namespace {
            | (attackedBy[Us][ROOK  ] & attacks_bb<ROOK  >(s, pos.pieces()));
 
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]) * (1 + queenImbalance);
-    }
-
-    // Increase threats if Queen is ready to cause havoc
-    if (pos.count<QUEEN>(Us))
-    {
-        auto const s = pos.square<QUEEN>(Us);
-        if (   relative_rank(Us, s) > RANK_4
-            && (~pe->pawn_attacks_span(Them) & s))
-        {
-            score += score/16;
-        }
     }
 
     if (T)
