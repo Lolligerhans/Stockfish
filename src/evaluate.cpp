@@ -515,16 +515,6 @@ namespace {
             Bitboard queenPinners;
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
-
-            // Bonus for queen on weak square in enemy camp
-            constexpr Score QueenInfiltration = make_score(0, 20);
-            bool const goodPawns = eg_value(pe->pawn_score(Us) - pe->pawn_score(Them)) > 0;
-            if (   relative_rank(Us, s) > RANK_4
-                && (~pe->pawn_attacks_span(Them) & s)
-                && goodPawns)
-            {
-                score += QueenInfiltration;
-            }
         }
     }
     if (T)
@@ -726,6 +716,17 @@ namespace {
            | (attackedBy[Us][ROOK  ] & attacks_bb<ROOK  >(s, pos.pieces()));
 
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]) * (1 + queenImbalance);
+    }
+
+    // Increase threats if Queen is ready to cause havoc
+    if (pos.count<QUEEN>(Us))
+    {
+        auto const s = pos.square<QUEEN>(Us);
+        if (   relative_rank(Us, s) > RANK_4
+            && (~pe->pawn_attacks_span(Them) & s))
+        {
+            score += score/16;
+        }
     }
 
     if (T)
