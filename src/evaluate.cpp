@@ -517,10 +517,12 @@ namespace {
                 score -= WeakQueen;
 
             // Bonus for queen on weak square in enemy camp
+            constexpr Bitboard TheirHalf = (Us == WHITE ? Rank5BB|Rank6BB|Rank7BB|Rank8BB
+                                                        : Rank1BB|Rank2BB|Rank3BB|Rank4BB);
             constexpr Score QueenInfiltration = make_score(0, 20);
             if (   relative_rank(Us, s) > RANK_4
-                && mob >= 9
-                && (~pe->pawn_attacks_span(Them) & s))
+                && (~pe->pawn_attacks_span(Them) & s)
+                && popcount(b & mobilityArea[Us] & TheirHalf) >= 6)
             {
                 score += QueenInfiltration;
             }
