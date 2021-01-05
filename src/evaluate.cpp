@@ -186,6 +186,13 @@ using namespace Trace;
 
 namespace {
 
+  int Outfl[2] = {-3, 5};
+  int Offset = -120;
+  int Bonus = 13;
+  TUNE(SetRange(-10, 20), Outfl);
+  TUNE(SetRange(-200, -50), Offset);
+  TUNE(SetRange(0, 50), Bonus);
+
   // Threshold for lazy and space evaluation
   constexpr Value LazyThreshold1 =  Value(1565);
   constexpr Value LazyThreshold2 =  Value(1102);
@@ -868,6 +875,7 @@ namespace {
 
     int outflanking =  distance<File>(pos.square<KING>(WHITE), pos.square<KING>(BLACK))
                     + int(rank_of(pos.square<KING>(WHITE)) - rank_of(pos.square<KING>(BLACK)));
+    outflanking = std::clamp(outflanking, Outfl[0], Outfl[1]);
 
     bool pawnsOnBothFlanks =   (pos.pieces(PAWN) & QueenSide)
                             && (pos.pieces(PAWN) & KingSide);
@@ -881,12 +889,12 @@ namespace {
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
                     + 12 * pos.count<PAWN>()
-                    +  9 * outflanking
+                    + Bonus * outflanking
                     + 21 * pawnsOnBothFlanks
                     + 24 * infiltration
                     + 51 * !pos.non_pawn_material()
                     - 43 * almostUnwinnable
-                    -110 ;
+                    - Offset ;
 
     Value mg = mg_value(score);
     Value eg = eg_value(score);
