@@ -515,6 +515,9 @@ namespace {
             Bitboard queenPinners;
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
+
+            if (!pos.count<QUEEN>(Them))
+                score += PSQT::psq[make_piece(Us, QUEEN)][s]/2;
         }
     }
     if (T)
