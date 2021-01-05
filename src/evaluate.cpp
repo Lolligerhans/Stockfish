@@ -518,10 +518,10 @@ namespace {
 
             // Bonus for queen on weak square in enemy camp
             constexpr Score QueenInfiltration = make_score(0, 20);
-            bool const goodPawns = eg_value(pe->pawn_score(Us) - pe->pawn_score(Them)) > 0;
+            bool const passersGiven = pe->passed_pawns(Us);
             if (   relative_rank(Us, s) > RANK_4
                 && (~pe->pawn_attacks_span(Them) & s)
-                && goodPawns)
+                && passersGiven)
             {
                 score += QueenInfiltration;
             }
