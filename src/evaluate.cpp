@@ -264,7 +264,6 @@ namespace {
   constexpr Score KnightOnQueen       = S( 18,  7);
   constexpr Score LongDiagonalBishop  = S( 45,  0);
   constexpr Score MinorBehindPawn     = S( 18,  3);
-  constexpr Score QueenInfiltration   = S( -2, 16);
   constexpr Score PassedFile          = S( 11,  8);
   constexpr Score PawnlessFlank       = S( 17, 95);
   constexpr Score ReachableOutpost    = S( 31, 22);
@@ -516,10 +515,16 @@ namespace {
             Bitboard queenPinners;
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, queenPinners))
                 score -= WeakQueen;
-                
+
             // Bonus for queen on weak square in enemy camp
-            if (relative_rank(Us, s) > RANK_4 && (~pe->pawn_attacks_span(Them) & s))
+            constexpr Score QueenInfiltration = make_score(0, 20);
+            bool const goodPawns = eg_value(pe->pawn_score(Us) - pe->pawn_score(Them)) > 0;
+            if (   relative_rank(Us, s) > RANK_4
+                && (~pe->pawn_attacks_span(Them) & s)
+                && goodPawns)
+            {
                 score += QueenInfiltration;
+            }
         }
     }
     if (T)
