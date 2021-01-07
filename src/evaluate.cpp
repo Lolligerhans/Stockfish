@@ -207,20 +207,20 @@ namespace {
 
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
-  constexpr Score MobilityBonus[][32] = {
-    { S(-62,-79) + mobOffset(KNIGHT), S(-53,-57) + mobOffset(KNIGHT), S(-12,-31) + mobOffset(KNIGHT), S( -3,-17) + mobOffset(KNIGHT), S(  3,  7) + mobOffset(KNIGHT), S( 12, 13) + mobOffset(KNIGHT), // Knight
-      S( 21, 16) + mobOffset(KNIGHT), S( 28, 21) + mobOffset(KNIGHT), S( 37, 26) + mobOffset(KNIGHT) },
-    { S(-47,-59) + mobOffset(BISHOP), S(-20,-25) + mobOffset(BISHOP), S( 14, -8) + mobOffset(BISHOP), S( 29, 12) + mobOffset(BISHOP), S( 39, 21) + mobOffset(BISHOP), S( 53, 40) + mobOffset(BISHOP), // Bishop
-      S( 53, 56) + mobOffset(BISHOP), S( 60, 58) + mobOffset(BISHOP), S( 62, 65) + mobOffset(BISHOP), S( 69, 72) + mobOffset(BISHOP), S( 78, 78) + mobOffset(BISHOP), S( 83, 87) + mobOffset(BISHOP),
-      S( 91, 88) + mobOffset(BISHOP), S( 96, 98) + mobOffset(BISHOP) },
-    { S(-60,-82) + mobOffset(ROOK), S(-24,-15) + mobOffset(ROOK), S(  0, 17) + mobOffset(ROOK) ,S(  3, 43) + mobOffset(ROOK), S(  4, 72) + mobOffset(ROOK), S( 14,100) + mobOffset(ROOK), // Rook
-      S( 20,102) + mobOffset(ROOK), S( 30,122) + mobOffset(ROOK), S( 41,133) + mobOffset(ROOK), S(41 ,139) + mobOffset(ROOK), S( 41,153) + mobOffset(ROOK), S( 45,160) + mobOffset(ROOK),
-      S( 57,165) + mobOffset(ROOK), S( 58,170) + mobOffset(ROOK), S( 67,175) + mobOffset(ROOK) },
-    { S(-29,-49) + mobOffset(QUEEN), S(-16,-29) + mobOffset(QUEEN), S( -8, -8) + mobOffset(QUEEN), S( -8, 17) + mobOffset(QUEEN), S( 18, 39) + mobOffset(QUEEN), S( 25, 54) + mobOffset(QUEEN), // Queen
-      S( 23, 59) + mobOffset(QUEEN), S( 37, 73) + mobOffset(QUEEN), S( 41, 76) + mobOffset(QUEEN), S( 54, 95) + mobOffset(QUEEN), S( 65, 95) + mobOffset(QUEEN) ,S( 68,101) + mobOffset(QUEEN),
-      S( 69,124) + mobOffset(QUEEN), S( 70,128) + mobOffset(QUEEN), S( 70,132) + mobOffset(QUEEN), S( 70,133) + mobOffset(QUEEN) ,S( 71,136) + mobOffset(QUEEN), S( 72,140) + mobOffset(QUEEN),
-      S( 74,147) + mobOffset(QUEEN), S( 76,149) + mobOffset(QUEEN), S( 90,153) + mobOffset(QUEEN), S(104,169) + mobOffset(QUEEN), S(105,171) + mobOffset(QUEEN), S(106,171) + mobOffset(QUEEN),
-      S(112,178) + mobOffset(QUEEN), S(114,185) + mobOffset(QUEEN), S(114,187) + mobOffset(QUEEN), S(119,221) + mobOffset(QUEEN) }
+  const Score MobilityBonus[][32] = {
+    { (S(-62,-79) + mobOffset(KNIGHT))*8/10, (S(-53,-57) + mobOffset(KNIGHT))*8/10, (S(-12,-31) + mobOffset(KNIGHT))*8/10, (S( -3,-17) + mobOffset(KNIGHT))*8/10, (S(  3,  7) + mobOffset(KNIGHT))*8/10, (S( 12, 13) + mobOffset(KNIGHT))*8/10, // Knight
+      (S( 21, 16) + mobOffset(KNIGHT))*8/10, (S( 28, 21) + mobOffset(KNIGHT))*8/10, (S( 37, 26) + mobOffset(KNIGHT))*8/10 },
+    { (S(-47,-59) + mobOffset(BISHOP))*8/10, (S(-20,-25) + mobOffset(BISHOP))*8/10, (S( 14, -8) + mobOffset(BISHOP))*8/10, (S( 29, 12) + mobOffset(BISHOP))*8/10, (S( 39, 21) + mobOffset(BISHOP))*8/10, (S( 53, 40) + mobOffset(BISHOP))*8/10, // Bishop
+      (S( 53, 56) + mobOffset(BISHOP))*8/10, (S( 60, 58) + mobOffset(BISHOP))*8/10, (S( 62, 65) + mobOffset(BISHOP))*8/10, (S( 69, 72) + mobOffset(BISHOP))*8/10, (S( 78, 78) + mobOffset(BISHOP))*8/10, (S( 83, 87) + mobOffset(BISHOP))*8/10,
+      (S( 91, 88) + mobOffset(BISHOP))*8/10, (S( 96, 98) + mobOffset(BISHOP))*8/10 },
+    { (S(-60,-82) + mobOffset(ROOK))*8/10, (S(-24,-15) + mobOffset(ROOK))*8/10, (S(  0, 17) + mobOffset(ROOK))*8/10 ,(S(  3, 43) + mobOffset(ROOK))*8/10, (S(  4, 72) + mobOffset(ROOK))*8/10, (S( 14,100) + mobOffset(ROOK))*8/10, // Rook
+      (S( 20,102) + mobOffset(ROOK))*8/10, (S( 30,122) + mobOffset(ROOK))*8/10, (S( 41,133) + mobOffset(ROOK))*8/10, (S(41 ,139) + mobOffset(ROOK))*8/10, (S( 41,153) + mobOffset(ROOK))*8/10, (S( 45,160) + mobOffset(ROOK))*8/10,
+      (S( 57,165) + mobOffset(ROOK))*8/10, (S( 58,170) + mobOffset(ROOK))*8/10, (S( 67,175) + mobOffset(ROOK))*8/10 },
+    { (S(-29,-49) + mobOffset(QUEEN))*8/10, (S(-16,-29) + mobOffset(QUEEN))*8/10, (S( -8, -8) + mobOffset(QUEEN))*8/10, (S( -8, 17) + mobOffset(QUEEN))*8/10, (S( 18, 39) + mobOffset(QUEEN))*8/10, (S( 25, 54) + mobOffset(QUEEN))*8/10, // Queen
+      (S( 23, 59) + mobOffset(QUEEN))*8/10, (S( 37, 73) + mobOffset(QUEEN))*8/10, (S( 41, 76) + mobOffset(QUEEN))*8/10, (S( 54, 95) + mobOffset(QUEEN))*8/10, (S( 65, 95) + mobOffset(QUEEN))*8/10 ,(S( 68,101) + mobOffset(QUEEN))*8/10,
+      (S( 69,124) + mobOffset(QUEEN))*8/10, (S( 70,128) + mobOffset(QUEEN))*8/10, (S( 70,132) + mobOffset(QUEEN))*8/10, (S( 70,133) + mobOffset(QUEEN))*8/10 ,(S( 71,136) + mobOffset(QUEEN))*8/10, (S( 72,140) + mobOffset(QUEEN))*8/10,
+      (S( 74,147) + mobOffset(QUEEN))*8/10, (S( 76,149) + mobOffset(QUEEN))*8/10, (S( 90,153) + mobOffset(QUEEN))*8/10, (S(104,169) + mobOffset(QUEEN))*8/10, (S(105,171) + mobOffset(QUEEN))*8/10, (S(106,171) + mobOffset(QUEEN))*8/10,
+      (S(112,178) + mobOffset(QUEEN))*8/10, (S(114,185) + mobOffset(QUEEN))*8/10, (S(114,187) + mobOffset(QUEEN))*8/10, (S(119,221) + mobOffset(QUEEN))*8/10 }
   };
 
   // BishopPawns[distance from edge] contains a file-dependent penalty for pawns on
