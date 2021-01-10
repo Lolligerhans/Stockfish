@@ -868,7 +868,7 @@ namespace {
 
     int outflanking =  distance<File>(pos.square<KING>(WHITE), pos.square<KING>(BLACK))
                     + int(rank_of(pos.square<KING>(WHITE)) - rank_of(pos.square<KING>(BLACK)));
-    outflanking = std::clamp<int>(outflanking, -3, 5);
+    outflanking = std::clamp<int>(outflanking, -3, 6);
 
     bool pawnsOnBothFlanks =   (pos.pieces(PAWN) & QueenSide)
                             && (pos.pieces(PAWN) & KingSide);
@@ -882,12 +882,12 @@ namespace {
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
                     + 12 * pos.count<PAWN>()
-                    + 18 * outflanking
+                    + 11 * outflanking
                     + 21 * pawnsOnBothFlanks
                     + 24 * infiltration
                     + 51 * !pos.non_pawn_material()
                     - 43 * almostUnwinnable
-                    -110 ;
+                    -121 ;
 
     Value mg = mg_value(score);
     Value eg = eg_value(score);
