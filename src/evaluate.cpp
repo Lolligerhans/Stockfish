@@ -488,7 +488,10 @@ namespace {
             if (pos.is_on_semiopen_file(Us, s))
             {
                 score += RookOnOpenFile[pos.is_on_semiopen_file(Them, s)];
-                score += make_score(10,10) * popcount(pos.pieces(Them) & file_bb(s));
+                if (auto filePieces = file_bb(s) & pos.pieces(Them); not(filePieces & attackedBy[Them][PAWN]))
+                {
+                    score += make_score(10,10) * popcount(filePieces);
+                }
             }
             else
             {
