@@ -97,7 +97,10 @@ constexpr Score PBonus[RANK_NB][FILE_NB] =
 
 #undef S
 
-Score psq[PIECE_NB][SQUARE_NB];
+namespace hidden
+{
+Score psq[PIECE_NB/2][SQUARE_NB];
+}
 
 
 // PSQT::init() initializes piece-square tables: the white halves of the tables are
@@ -112,9 +115,9 @@ void init() {
       for (Square s = SQ_A1; s <= SQ_H8; ++s)
       {
           File f = File(edge_distance(file_of(s)));
-          psq[ pc][s] = score + (type_of(pc) == PAWN ? PBonus[rank_of(s)][file_of(s)]
-                                                     : Bonus[pc][rank_of(s)][f]);
-          psq[~pc][flip_rank(s)] = -psq[pc][s];
+          hidden::psq[ pc][s] = score + (type_of(pc) == PAWN ? PBonus[rank_of(s)][file_of(s)]
+                                                             : Bonus[pc][rank_of(s)][f]);
+//          psq[~pc][flip_rank(s)] = -psq[pc][s];
       }
   }
 }
