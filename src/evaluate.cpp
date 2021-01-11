@@ -593,7 +593,7 @@ namespace {
     int kingFlankAttack  = popcount(b1) + popcount(b2);
     int kingFlankDefense = popcount(b3);
 
-    if (kingDanger > 375)
+    if (kingDanger > 600)
     {
     kingDanger +=        kingAttackersCount[Them] * kingAttackersWeight[Them] // (~10 Elo)
                  + 183 * popcount(kingRing[Us] & weak)                        // (~15 Elo)
