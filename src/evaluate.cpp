@@ -439,7 +439,7 @@ namespace {
                 && (!more_than_one(targets & (s & QueenSide ? QueenSide : KingSide))))
                 score += BadOutpost;
             else if (bb & s)
-                score += Outpost[Pt == BISHOP];
+                score += Outpost[Pt == BISHOP] + make_score(15,15) * bool(b & pe->badPawns & pos.pieces(Us));
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
                 score += ReachableOutpost;
 

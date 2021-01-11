@@ -168,11 +168,15 @@ namespace {
             else
                 score -=  Isolated
                         + WeakUnopposed * !opposed;
+            e->badPawns |= s;
         }
 
         else if (backward)
+        {
             score -=  Backward
                     + WeakUnopposed * !opposed * bool(~(FileABB | FileHBB) & s);
+            e->badPawns |= s;
+        }
 
         if (!support)
             score -=  Doubled * doubled
@@ -205,6 +209,7 @@ Entry* probe(const Position& pos) {
 
   e->key = key;
   e->blockedCount = 0;
+  e->badPawns = 0;
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
 
