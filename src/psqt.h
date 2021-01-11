@@ -17,6 +17,13 @@ inline constexpr Score BishTiling[4] =
     make_score(BishopValueMg, BishopValueEg) + make_score(12, 1),
     make_score(BishopValueMg, BishopValueEg) + make_score(35, 16)  // central 4 squares
 };
+ 
+{
+    make_score(QueenValueMg, QueenValueEg) + make_score(-17, -31), // outmost ring
+    make_score(QueenValueMg, QueenValueEg) + make_score(10, -5),
+    make_score(QueenValueMg, QueenValueEg) + make_score(12, 1),
+    make_score(QueenValueMg, QueenValueEg) + make_score(35, 16)  // central 4 squares
+};
 
 // Introduce new namespace name such that we cannot accidentally use psq array
 // directly
@@ -28,9 +35,11 @@ extern Score psq[PIECE_NB /*-2 if you want to shrink array size*/][SQUARE_NB];
 // Shift index such that bishops are skipped
 inline Piece idx(Piece p)
 {
-    // Bishops no longer relevant
+    // Bishops and Queen no longer relevant
     assert(p != W_BISHOP);
     assert(p != B_BISHOP);
+    assert(p != W_QUEEN);
+    assert(p != B_QUEEN);
 
     return p;
 
@@ -49,7 +58,7 @@ inline Piece idx(Piece p)
 inline Score psq(Piece piece, Square s)
 {
     // For bishops, using ring tiling
-    if (type_of(piece) == BISHOP)
+    if (type_of(piece) == BISHOP || QUEEN)
     {
         // Find tiling index. 0 = outmost ring, 3 = central 4 squares
         auto tileIdx = std::min(
