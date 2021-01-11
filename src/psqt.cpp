@@ -110,7 +110,7 @@ Score psq[PIECE_NB /*-2 to shrink array, then idx() needs to remap indices*/][SQ
 // the tables are initialized by flipping and changing the sign of the white scores.
 void init() {
 
-  for (Piece pc : {W_PAWN, W_KNIGHT, /*W_BISHOP,*/ W_ROOK, W_QUEEN, W_KING})
+  for (Piece pc : {W_PAWN, W_KNIGHT, /*W_BISHOP,*/ W_ROOK, /*W_QUEEN,*/ W_KING})
   {
       Score score = make_score(PieceValue[MG][pc], PieceValue[EG][pc]);
 
