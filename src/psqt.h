@@ -12,10 +12,10 @@ namespace PSQT
 
 inline constexpr Score BishTiling[4] =
 {
-    make_score(0, 0), // outmost ring
-    make_score(0, 0),
-    make_score(0, 0),
-    make_score(0, 0)  // central 4 squares
+    make_score(BishopValueMg, BishopValueEg) + make_score(-15, -30), // outmost ring
+    make_score(BishopValueMg, BishopValueEg) + make_score(0, -10),
+    make_score(BishopValueMg, BishopValueEg) + make_score(15, 0),
+    make_score(BishopValueMg, BishopValueEg) + make_score(50, 34)  // central 4 squares
 };
 
 // Introduce new namespace name such that we cannot accidentally use psq array
