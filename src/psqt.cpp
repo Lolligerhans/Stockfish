@@ -16,6 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "psqt.h"
+
 #include <algorithm>
 
 #include "types.h"
@@ -42,16 +44,16 @@ constexpr Score Bonus[][RANK_NB][int(FILE_NB) / 2] = {
    { S( -67, -69), S(-27,-50), S(  4,-51), S( 37, 12) },
    { S(-201,-100), S(-83,-88), S(-56,-56), S(-26,-17) }
   },
-  { // Bishop
-   { S(-53,-57), S( -5,-30), S( -8,-37), S(-23,-12) },
-   { S(-15,-37), S(  8,-13), S( 19,-17), S(  4,  1) },
-   { S( -7,-16), S( 21, -1), S( -5, -2), S( 17, 10) },
-   { S( -5,-20), S( 11, -6), S( 25,  0), S( 39, 17) },
-   { S(-12,-17), S( 29, -1), S( 22,-14), S( 31, 15) },
-   { S(-16,-30), S(  6,  6), S(  1,  4), S( 11,  6) },
-   { S(-17,-31), S(-14,-20), S(  5, -1), S(  0,  1) },
-   { S(-48,-46), S(  1,-42), S(-14,-37), S(-23,-24) }
-  },
+//  { // Bishop
+//   { S(-53,-57), S( -5,-30), S( -8,-37), S(-23,-12) },
+//   { S(-15,-37), S(  8,-13), S( 19,-17), S(  4,  1) },
+//   { S( -7,-16), S( 21, -1), S( -5, -2), S( 17, 10) },
+//   { S( -5,-20), S( 11, -6), S( 25,  0), S( 39, 17) },
+//   { S(-12,-17), S( 29, -1), S( 22,-14), S( 31, 15) },
+//   { S(-16,-30), S(  6,  6), S(  1,  4), S( 11,  6) },
+//   { S(-17,-31), S(-14,-20), S(  5, -1), S(  0,  1) },
+//   { S(-48,-46), S(  1,-42), S(-14,-37), S(-23,-24) }
+//  },
   { // Rook
    { S(-31, -9), S(-20,-13), S(-14,-10), S(-5, -9) },
    { S(-21,-12), S(-13, -9), S( -8, -1), S( 6, -2) },
@@ -97,7 +99,11 @@ constexpr Score PBonus[RANK_NB][FILE_NB] =
 
 #undef S
 
-Score psq[PIECE_NB][SQUARE_NB];
+namespace hidden
+{
+// Removing W_BISHOP and B_BISHOP tables
+Score psq[PIECE_NB-2][SQUARE_NB];
+}
 
 
 // PSQT::init() initializes piece-square tables: the white halves of the tables are
@@ -105,16 +111,17 @@ Score psq[PIECE_NB][SQUARE_NB];
 // the tables are initialized by flipping and changing the sign of the white scores.
 void init() {
 
-  for (Piece pc : {W_PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING})
+  for (Piece pc : {W_PAWN, W_KNIGHT, /*W_BISHOP,*/ W_ROOK, W_QUEEN, W_KING})
   {
       Score score = make_score(PieceValue[MG][pc], PieceValue[EG][pc]);
 
       for (Square s = SQ_A1; s <= SQ_H8; ++s)
       {
           File f = File(edge_distance(file_of(s)));
-          psq[ pc][s] = score + (type_of(pc) == PAWN ? PBonus[rank_of(s)][file_of(s)]
-                                                     : Bonus[pc][rank_of(s)][f]);
-          psq[~pc][flip_rank(s)] = -psq[pc][s];
+          // When accessing psq array we now always need to use the new indexing scheme.
+          hidden::psq[idx( pc)][s] = score + (type_of(pc) == PAWN ? PBonus[rank_of(s)][file_of(s)]
+                                                                  : Bonus[idx(pc)][rank_of(s)][f]);
+          hidden::psq[idx(~pc)][flip_rank(s)] = -hidden::psq[idx(pc)][s];
       }
   }
 }
