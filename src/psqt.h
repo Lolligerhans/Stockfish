@@ -22,21 +22,26 @@ inline constexpr Score BishTiling[4] =
 // directly
 namespace hidden
 {
-extern Score psq[PIECE_NB-2][SQUARE_NB];
+extern Score psq[PIECE_NB /*-2 if you want to shrink array size*/][SQUARE_NB];
 }
 
 // Shift index such that bishops are skipped
 inline Piece idx(Piece p)
 {
-    // Bishops no longer have an index in psq array
+    // Bishops no longer relevant
     assert(p != W_BISHOP);
     assert(p != B_BISHOP);
 
+    return p;
+
+    // Index mapping when using smaller psq array
+    /*
     // Pieces above W_BISHOP shifted by 1,
     // pieced also above B_BISHOP by 1 again (2 in total).
     return Piece(
             (p) - bool(p > W_BISHOP) - bool(p > B_BISHOP)
             );
+    */
 }
 
 // Function to replace direct access to psq array. If Piece is a bishop, we
