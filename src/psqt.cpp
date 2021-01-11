@@ -16,6 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "psqt.h"
 #include <algorithm>
 
 #include "types.h"
@@ -42,6 +43,7 @@ constexpr Score Bonus[][RANK_NB][int(FILE_NB) / 2] = {
    { S( -67, -69), S(-27,-50), S(  4,-51), S( 37, 12) },
    { S(-201,-100), S(-83,-88), S(-56,-56), S(-26,-17) }
   },
+  // leaving here because index mapping is inactive
   { // Bishop
    { S(-37,-40), S(-4 ,-21), S( -6,-26), S(-16, -8) },
    { S(-11,-26), S(  6, -9), S( 13,-12), S(  3,  1) },
@@ -97,7 +99,10 @@ constexpr Score PBonus[RANK_NB][FILE_NB] =
 
 #undef S
 
-Score psq[PIECE_NB][SQUARE_NB];
+namespace hidden
+{
+Score psq[PIECE_NB /*-2 to shrink array, then idx() needs to remap indices*/][SQUARE_NB];
+}
 
 
 // PSQT::init() initializes piece-square tables: the white halves of the tables are
@@ -105,16 +110,17 @@ Score psq[PIECE_NB][SQUARE_NB];
 // the tables are initialized by flipping and changing the sign of the white scores.
 void init() {
 
-  for (Piece pc : {W_PAWN, W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING})
+  for (Piece pc : {W_PAWN, W_KNIGHT, /*W_BISHOP,*/ W_ROOK, W_QUEEN, W_KING})
   {
       Score score = make_score(PieceValue[MG][pc], PieceValue[EG][pc]);
 
       for (Square s = SQ_A1; s <= SQ_H8; ++s)
       {
           File f = File(edge_distance(file_of(s)));
-          psq[ pc][s] = score + (type_of(pc) == PAWN ? PBonus[rank_of(s)][file_of(s)]
-                                                     : Bonus[pc][rank_of(s)][f]);
-          psq[~pc][flip_rank(s)] = -psq[pc][s];
+          // When accessing psq array we now always need to use the new indexing scheme.
+          hidden::psq[idx( pc)][s] = score + (type_of(pc) == PAWN ? PBonus[rank_of(s)][file_of(s)]
+                                                                  : Bonus[idx(pc)][rank_of(s)][f]);
+          hidden::psq[idx(~pc)][flip_rank(s)] = -hidden::psq[idx(pc)][s];
       }
   }
 }
