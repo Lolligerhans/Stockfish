@@ -58,7 +58,7 @@ inline Piece idx(Piece p)
 inline Score psq(Piece piece, Square s)
 {
     // For bishops, using ring tiling
-    if (type_of(piece) == BISHOP || QUEEN)
+    if (type_of(piece) == BISHOP || type_of(piece) == QUEEN)
     {
         // Find tiling index. 0 = outmost ring, 3 = central 4 squares
         auto tileIdx = std::min(
