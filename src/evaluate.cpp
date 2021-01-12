@@ -882,7 +882,7 @@ namespace {
     int complexity =   9 * pe->passed_count()
                     + 12 * pos.count<PAWN>()
                     +  9 * outflanking
-                    + (21 + 10 * std::max(0, outflanking)) * pawnsOnBothFlanks
+                    + (outflanking >= 2 ? 45 : 21) * pawnsOnBothFlanks
                     + 24 * infiltration
                     + 51 * !pos.non_pawn_material()
                     - 43 * almostUnwinnable
