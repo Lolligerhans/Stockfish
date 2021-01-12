@@ -123,6 +123,13 @@ namespace {
         phalanx    = neighbours & rank_bb(s);
         support    = neighbours & rank_bb(s - Up);
 
+        if (doubled)
+        {
+            // Extra doubled penalty if double pawns do not even stop any of their pawns
+            score -= make_score(20,10) * not(ourPawns & shift<-Up>(
+                        theirPawns | pawn_attacks_bb<Them>(theirPawns)));
+        }
+
         // A pawn is backward when it is behind all pawns of the same color on
         // the adjacent files and cannot safely advance.
         backward =  !(neighbours & forward_ranks_bb(Them, s + Up))
