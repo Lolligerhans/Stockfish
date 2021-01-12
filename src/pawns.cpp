@@ -126,7 +126,7 @@ namespace {
         if (doubled)
         {
             // Extra doubled penalty if double pawns do not even stop any of their pawns
-            score -= make_score(20,10) * not(ourPawns & shift<-Up>(
+            score -= make_score(20,10) * not(ourPawns & file_bb(s) & shift<-Up>(
                         theirPawns | pawn_attacks_bb<Them>(theirPawns)));
         }
 
