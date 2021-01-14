@@ -10,6 +10,7 @@
 namespace PSQT
 {
 
+// Parameters for Bishop tiling
 inline constexpr Score BishTiling[4] =
 {
     make_score(BishopValueMg, BishopValueEg) + make_score(-17, -31), // outmost ring
@@ -18,6 +19,8 @@ inline constexpr Score BishTiling[4] =
     make_score(BishopValueMg, BishopValueEg) + make_score(35, 16)  // central 4 squares
 };
  
+// Parameters for Queen tiling
+inline constexpr Score QueenTiling[4] =
 {
     make_score(QueenValueMg, QueenValueEg) + make_score(-17, -31), // outmost ring
     make_score(QueenValueMg, QueenValueEg) + make_score(10, -5),
