@@ -24,6 +24,24 @@
 
 namespace PSQT {
 
+// Parameters for Bishop tiling
+const Score BishTiling[4] =
+{
+    make_score(BishopValueMg, BishopValueEg) + make_score(-17, -31), // outmost ring
+    make_score(BishopValueMg, BishopValueEg) + make_score(10, -5),
+    make_score(BishopValueMg, BishopValueEg) + make_score(12, 1),
+    make_score(BishopValueMg, BishopValueEg) + make_score(35, 16)  // central 4 squares
+};
+
+// Parameters for Queen tiling
+const Score QueenTiling[4] =
+{
+    make_score(QueenValueMg, QueenValueEg) + make_score(-17, -31), // outmost ring
+    make_score(QueenValueMg, QueenValueEg) + make_score(10, -5),
+    make_score(QueenValueMg, QueenValueEg) + make_score(12, 1),
+    make_score(QueenValueMg, QueenValueEg) + make_score(35, 16)  // central 4 squares
+};
+
 #define S(mg, eg) make_score(mg, eg)
 
 // Bonus[PieceType][Square / 2] contains Piece-Square scores. For each piece
@@ -64,7 +82,7 @@ constexpr Score Bonus[][RANK_NB][int(FILE_NB) / 2] = {
    { S( -2,  4), S( 12,  5), S( 16, 20), S(18, -5) },
    { S(-17, 18), S(-19,  0), S( -1, 19), S( 9, 13) }
   },
-  { // (Queen)
+  { // Queen
    { S( 3,-69), S(-5,-57), S(-5,-47), S( 4,-26) },
    { S(-3,-55), S( 5,-31), S( 8,-22), S(12, -4) },
    { S(-3,-39), S( 6,-18), S(13, -9), S( 7,  3) },
@@ -101,7 +119,7 @@ constexpr Score PBonus[RANK_NB][FILE_NB] =
 
 namespace hidden
 {
-Score psq[PIECE_NB /*-2 to shrink array, then idx() needs to remap indices*/][SQUARE_NB];
+Score psq[PIECE_NB][SQUARE_NB];
 }
 
 

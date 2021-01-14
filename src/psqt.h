@@ -11,28 +11,16 @@ namespace PSQT
 {
 
 // Parameters for Bishop tiling
-inline constexpr Score BishTiling[4] =
-{
-    make_score(BishopValueMg, BishopValueEg) + make_score(-17, -31), // outmost ring
-    make_score(BishopValueMg, BishopValueEg) + make_score(10, -5),
-    make_score(BishopValueMg, BishopValueEg) + make_score(12, 1),
-    make_score(BishopValueMg, BishopValueEg) + make_score(35, 16)  // central 4 squares
-};
+extern const Score BishTiling[4];
  
 // Parameters for Queen tiling
-inline constexpr Score QueenTiling[4] =
-{
-    make_score(QueenValueMg, QueenValueEg) + make_score(-17, -31), // outmost ring
-    make_score(QueenValueMg, QueenValueEg) + make_score(10, -5),
-    make_score(QueenValueMg, QueenValueEg) + make_score(12, 1),
-    make_score(QueenValueMg, QueenValueEg) + make_score(35, 16)  // central 4 squares
-};
+extern const Score QueenTiling[4];
 
 // Introduce new namespace name such that we cannot accidentally use psq array
 // directly
 namespace hidden
 {
-extern Score psq[PIECE_NB /*-2 if you want to shrink array size*/][SQUARE_NB];
+extern Score psq[PIECE_NB][SQUARE_NB];
 }
 
 // Shift index such that bishops are skipped
@@ -45,15 +33,6 @@ inline Piece idx(Piece p)
     assert(p != B_QUEEN);
 
     return p;
-
-    // Index mapping when using smaller psq array
-    /*
-    // Pieces above W_BISHOP shifted by 1,
-    // pieced also above B_BISHOP by 1 again (2 in total).
-    return Piece(
-            (p) - bool(p > W_BISHOP) - bool(p > B_BISHOP)
-            );
-    */
 }
 
 // Function to replace direct access to psq array. If Piece is a bishop, we
