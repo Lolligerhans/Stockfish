@@ -12,7 +12,8 @@ namespace PSQT
 
 // Parameters for Bishop tiling
 extern const Score BishTiling[4];
- 
+// Parameters for Rook tiling
+extern const Score RookTiling[4];
 // Parameters for Queen tiling
 extern const Score QueenTiling[4];
 
@@ -40,9 +41,18 @@ inline Piece idx(Piece p)
 inline Score psq(Piece piece, Square s)
 {
     // For bishops, using ring tiling
-    if (type_of(piece) == BISHOP)
+
+    if (type_of(piece) == ROOK)
     {
         // Find tiling index. 0 = outmost ring, 3 = central 4 squares
+        auto tileIdx = std::min(
+                edge_distance(file_of(s)),
+                edge_distance(rank_of(s))
+                );
+        return color_of(piece) == WHITE ? RookTiling[tileIdx] : -RookTiling[tileIdx];
+    }
+    else if (type_of(piece) == BISHOP)
+    {
         auto tileIdx = std::min(
                 edge_distance(file_of(s)),
                 edge_distance(rank_of(s))

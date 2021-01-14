@@ -33,6 +33,15 @@ const Score BishTiling[4] =
     make_score(BishopValueMg, BishopValueEg) + make_score(35, 16)  // central 4 squares
 };
 
+// Parameters for Rook tiling
+const Score RookTiling[4] =
+{
+    make_score(RookValueMg, RookValueEg) + make_score(-17, -31), // outmost ring
+    make_score(RookValueMg, RookValueEg) + make_score(10, -5),
+    make_score(RookValueMg, RookValueEg) + make_score(12, 1),
+    make_score(RookValueMg, RookValueEg) + make_score(35, 16)  // central 4 squares
+};
+
 // Parameters for Queen tiling
 const Score QueenTiling[4] =
 {
@@ -128,7 +137,7 @@ Score psq[PIECE_NB][SQUARE_NB];
 // the tables are initialized by flipping and changing the sign of the white scores.
 void init() {
 
-  for (Piece pc : {W_PAWN, W_KNIGHT, /*W_BISHOP,*/ W_ROOK, /*W_QUEEN,*/ W_KING})
+  for (Piece pc : {W_PAWN, W_KNIGHT, /*W_BISHOP,*/ /*W_ROOK,*/ /*W_QUEEN,*/ W_KING})
   {
       Score score = make_score(PieceValue[MG][pc], PieceValue[EG][pc]);
 
