@@ -61,7 +61,7 @@ inline Piece idx(Piece p)
 inline Score psq(Piece piece, Square s)
 {
     // For bishops, using ring tiling
-    if (type_of(piece) == BISHOP || type_of(piece) == QUEEN)
+    if (type_of(piece) == BISHOP)
     {
         // Find tiling index. 0 = outmost ring, 3 = central 4 squares
         auto tileIdx = std::min(
@@ -69,6 +69,14 @@ inline Score psq(Piece piece, Square s)
                 edge_distance(rank_of(s))
                 );
         return color_of(piece) == WHITE ? BishTiling[tileIdx] : -BishTiling[tileIdx];
+    }
+    else if (type_of(piece) == QUEEN)
+    {
+        auto tileIdx = std::min(
+                edge_distance(file_of(s)),
+                edge_distance(rank_of(s))
+                );
+        return color_of(piece) == WHITE ? QueenTiling[tileIdx] : -QueenTiling[tileIdx];
     }
 
     // For psq values which we have not touched, use old psq table. idx()
