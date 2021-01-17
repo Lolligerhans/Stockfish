@@ -114,6 +114,9 @@ namespace {
 
         Rank r = relative_rank(Us, s);
 
+        if (r >= RANK_5)
+            ++e->blockedCount;
+
         // Flag the pawn
         opposed    = theirPawns & forward_file_bb(Us, s);
         blocked    = theirPawns & (s + Up);
