@@ -190,7 +190,7 @@ namespace {
             score += BlockedPawn[r - RANK_5];
     }
 
-    return score;
+    return early ? score/2 : score;
   }
 
 } // namespace
