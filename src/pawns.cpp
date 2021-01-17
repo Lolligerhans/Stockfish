@@ -176,6 +176,8 @@ namespace {
             else
                 score -=  Isolated
                         + WeakUnopposed * !opposed;
+            if (early)
+                score -= make_score(20, 10);
         }
 
         else if (backward)
