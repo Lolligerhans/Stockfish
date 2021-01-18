@@ -317,6 +317,7 @@ namespace {
     // kingRing[color] are the squares adjacent to the king plus some other
     // very near squares, depending on king position.
     Bitboard kingRing[COLOR_NB];
+    Bitboard def = 0;
 
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
@@ -497,6 +498,10 @@ namespace {
                    & file_bb(s))
                 {
                     score -= RookOnClosedFile;
+                }
+                else
+                {
+                    def |= pos.pieces(Us, PAWN) & b & file_bb(s);
                 }
 
                 // Penalty when trapped by the king, even more if the king cannot castle
@@ -692,7 +697,7 @@ namespace {
     b |= shift<Up>(b & TRank3BB) & ~pos.pieces();
 
     // Keep only the squares which are relatively safe
-    b &= ~attackedBy[Them][PAWN] & safe;
+    b &= ~attackedBy[Them][PAWN] & (safe | shift<Up>(def));
 
     // Bonus for safe pawn threats on the next move
     b = pawn_attacks_bb<Us>(b) & nonPawnEnemies;
