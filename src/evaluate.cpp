@@ -186,6 +186,9 @@ using namespace Trace;
 
 namespace {
 
+  int x[8] = {0};
+  TUNE(SetRange(-128, 128), x);
+
   // Threshold for lazy and space evaluation
   constexpr Value LazyThreshold1 =  Value(1565);
   constexpr Value LazyThreshold2 =  Value(1102);
@@ -888,6 +891,15 @@ namespace {
                     - 43 * almostUnwinnable
                     -110 ;
 
+    int comfactory = x[0] * pe->passed_count()
+                    +x[1] * pos.count<PAWN>()
+                    +x[2] * outflanking
+                    +x[3] * pawnsOnBothFlanks
+                    +x[4] * infiltration
+                    +x[5] * !pos.non_pawn_material()
+                    +x[6] * almostUnwinnable
+                    +x[7] ;
+
     Value mg = mg_value(score);
     Value eg = eg_value(score);
 
@@ -940,6 +952,7 @@ namespace {
 
         // Reduce scale factor in case of pawns being on a single flank
         sf -= 4 * !pawnsOnBothFlanks;
+        sf += comfactory / 16;
     }
 
     // Interpolate between the middlegame and (scaled by 'sf') endgame score
