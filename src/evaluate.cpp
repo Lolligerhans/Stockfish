@@ -884,7 +884,7 @@ namespace {
                     +  9 * outflanking
                     + 21 * pawnsOnBothFlanks
                     + 24 * infiltration
-                    + 51 * !pos.non_pawn_material()
+                    + 51 * (pos.non_pawn_material(WHITE) == pos.non_pawn_material(BLACK))
                     - 43 * almostUnwinnable
                     -110 ;
 
