@@ -457,7 +457,11 @@ namespace {
                 // when the bishop is outside the pawn chain.
                 Bitboard blocked = pos.pieces(Us, PAWN) & shift<Down>(pos.pieces());
 
-                const auto n = 2 * pos.pawns_on_same_color_squares(Us, s) - pos.count<PAWN>(Us);
+                const auto n = std::max(
+                        0,
+                        // dont allow negatives here
+                        2 * pos.pawns_on_same_color_squares(Us, s) - pos.count<PAWN>(Us)
+                        );
                 score -= BishopPawns[edge_distance(file_of(s))] * n
                                      * (!(attackedBy[Us][PAWN] & s) + popcount(blocked & CenterFiles));
 
