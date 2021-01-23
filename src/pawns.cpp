@@ -106,6 +106,13 @@ namespace {
     e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
     e->blockedCount += popcount(shift<Up>(ourPawns) & (theirPawns | doubleAttackThem));
 
+    auto freepawn = ourPawns & ~shift<Down>(theirPawns | pawn_attacks_bb<Them>(theirPawns));
+    constexpr auto highRanks = Us == WHITE ? Rank4BB | Rank5BB | Rank6BB | Rank7BB
+                                           : Rank5BB | Rank4BB | Rank3BB | Rank2BB;
+
+    // Us can generate play at higher ranks
+    e->freePawn[Us] = bool(freepawn & highRanks);
+
     // Loop through all pawns of the current color and score each pawn
     while (b) {
         s = pop_lsb(&b);
@@ -128,7 +135,7 @@ namespace {
         if (doubled)
         {
             // Additional doubled penalty if none of their pawns is fixed
-            if (!(ourPawns & shift<Down>(theirPawns | pawn_attacks_bb<Them>(theirPawns))))
+            if (freepawn == ourPawns)
                 score -= DoubledEarly;
         }
 

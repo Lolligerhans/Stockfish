@@ -891,6 +891,8 @@ namespace {
     Value mg = mg_value(score);
     Value eg = eg_value(score);
 
+    complexity -= 20 * !pe->freePawn[eg < 0];
+
     // Now apply the bonus: note that we find the attacking side by extracting the
     // sign of the midgame or endgame values, and that we carefully cap the bonus
     // so that the midgame and endgame scores do not change sign after the bonus.

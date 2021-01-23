@@ -59,6 +59,7 @@ struct Entry {
   Score kingSafety[COLOR_NB];
   int castlingRights[COLOR_NB];
   int blockedCount;
+  bool freePawn[COLOR_NB];
 };
 
 typedef HashTable<Entry, 131072> Table;
