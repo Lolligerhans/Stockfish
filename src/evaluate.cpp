@@ -891,15 +891,6 @@ namespace {
     Value mg = mg_value(score);
     Value eg = eg_value(score);
 
-    // Now apply the bonus: note that we find the attacking side by extracting the
-    // sign of the midgame or endgame values, and that we carefully cap the bonus
-    // so that the midgame and endgame scores do not change sign after the bonus.
-    int u = ((mg > 0) - (mg < 0)) * std::clamp(complexity + 50, -abs(mg), 0);
-    int v = ((eg > 0) - (eg < 0)) * std::max(complexity, -abs(eg));
-
-    mg += u;
-    eg += v;
-
     // Compute the scale factor for the winning side
     Color strongSide = eg > VALUE_DRAW ? WHITE : BLACK;
     int sf = me->scale_factor(pos, strongSide);
@@ -942,15 +933,20 @@ namespace {
         sf -= 4 * !pawnsOnBothFlanks;
     }
 
+    mg += ((mg > 0) - (mg < 0)) * std::clamp(complexity + 50, -abs(mg), 0);
+    eg = eg * ScaleFactor(sf) / SCALE_FACTOR_NORMAL;
+    eg += ((eg > 0) - (eg < 0)) * std::max(complexity, -abs(eg));
+
     // Interpolate between the middlegame and (scaled by 'sf') endgame score
+    int
     v =  mg * int(me->game_phase())
-       + eg * int(PHASE_MIDGAME - me->game_phase()) * ScaleFactor(sf) / SCALE_FACTOR_NORMAL;
+       + eg * int(PHASE_MIDGAME - me->game_phase());
     v /= PHASE_MIDGAME;
+
 
     if (T)
     {
-        Trace::add(WINNABLE, make_score(u, eg * ScaleFactor(sf) / SCALE_FACTOR_NORMAL - eg_value(score)));
-        Trace::add(TOTAL, make_score(mg, eg * ScaleFactor(sf) / SCALE_FACTOR_NORMAL));
+        // u no longer existing
     }
 
     return Value(v);
