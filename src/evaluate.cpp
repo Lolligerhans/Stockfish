@@ -186,6 +186,18 @@ using namespace Trace;
 
 namespace {
 
+  int w[8] =
+  {
+      9,
+      12,
+      9,
+      21,
+      24,
+      51,
+      -43,
+      -110
+  };
+  TUNE(w);
   int x[8] = {0};
   TUNE(SetRange(-1024, 1024), x);
 
@@ -882,14 +894,14 @@ namespace {
                        || rank_of(pos.square<KING>(BLACK)) < RANK_5;
 
     // Compute the initiative bonus for the attacking side
-    int complexity =   9 * pe->passed_count()
-                    + 12 * pos.count<PAWN>()
-                    +  9 * outflanking
-                    + 21 * pawnsOnBothFlanks
-                    + 24 * infiltration
-                    + 51 * !pos.non_pawn_material()
-                    - 43 * almostUnwinnable
-                    -110 ;
+    int complexity = +w[0] * pe->passed_count()
+                     +w[1] * pos.count<PAWN>()
+                     +w[2] * outflanking
+                     +w[3] * pawnsOnBothFlanks
+                     +w[4] * infiltration
+                     +w[5] * !pos.non_pawn_material()
+                     +w[6] * almostUnwinnable
+                     +w[7] ;
 
     int comfactory = x[0] * pe->passed_count()
                     +x[1] * pos.count<PAWN>()
