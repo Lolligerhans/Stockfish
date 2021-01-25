@@ -187,7 +187,7 @@ using namespace Trace;
 namespace {
 
   int x[8] = {0};
-  TUNE(SetRange(-128, 128), x);
+  TUNE(SetRange(-1024, 1024), x);
 
   // Threshold for lazy and space evaluation
   constexpr Value LazyThreshold1 =  Value(1565);
@@ -952,7 +952,7 @@ namespace {
 
         // Reduce scale factor in case of pawns being on a single flank
         sf -= 4 * !pawnsOnBothFlanks;
-        sf += comfactory / 16;
+        sf += comfactory / 128;
     }
 
     // Interpolate between the middlegame and (scaled by 'sf') endgame score
