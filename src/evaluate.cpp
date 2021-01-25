@@ -361,7 +361,7 @@ namespace {
 
     // Initialize attackedBy[] for king and pawns
     attackedBy[Us][KING] = attacks_bb<KING>(ksq);
-    attackedBy[Us][PAWN] = pe->pawn_attacks(Us);
+    attackedBy[Us][PAWN] = pawn_attacks_bb<Us>(pos.pieces(Us, PAWN));
     attackedBy[Us][ALL_PIECES] = attackedBy[Us][KING] | attackedBy[Us][PAWN];
     attackedBy2[Us] = dblAttackByPawn | (attackedBy[Us][KING] & attackedBy[Us][PAWN]);
 
@@ -370,7 +370,7 @@ namespace {
                            std::clamp(rank_of(ksq), RANK_2, RANK_7));
     kingRing[Us] = attacks_bb<KING>(s) | s;
 
-    kingAttackersCount[Them] = popcount(kingRing[Us] & pe->pawn_attacks(Them));
+    kingAttackersCount[Them] = popcount(kingRing[Us] & pawn_attacks_bb<Them>(pos.pieces(Them, PAWN)));
     kingAttacksCount[Them] = kingAttackersWeight[Them] = 0;
 
     // Remove from kingRing[] the squares defended by two pawns
