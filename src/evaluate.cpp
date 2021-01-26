@@ -458,14 +458,17 @@ namespace {
                 Bitboard blocked = pos.pieces(Us, PAWN) & shift<Down>(pos.pieces());
                 blocked &= CenterFiles;
 
+                const auto f = [&](int i)
+                {
+                    // If 2 blocked, but of different color than bishop, score as 1
+                    return i >= 2 ? i - not( blocked
+                                           & (s & DarkSquares ? DarkSquares : ~DarkSquares) )
+                    // If one blocked, score normally regardless of color
+                                  : i;
+                };
                 score -= BishopPawns[edge_distance(file_of(s))] * pos.pawns_on_same_color_squares(Us, s)
                                      * (!(attackedBy[Us][PAWN] & s)
-                                       + ( blocked
-                                         ? popcount(blocked)
-                                           // subtract 1 if none of our blokced in center is of same color
-                                         - not(blocked & (s & DarkSquares ? DarkSquares : ~DarkSquares))
-                                         : 0
-                                         )
+                                       + f(popcount(blocked))
                                        );
 
                 // Penalty for all enemy pawns x-rayed
