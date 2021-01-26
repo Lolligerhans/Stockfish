@@ -451,7 +451,7 @@ namespace {
             score -= KingProtector[Pt == BISHOP] * distance(pos.square<KING>(Us), s);
 
             if (Pt == KNIGHT)
-                score -= make_score(10, 0) * pe->doubled[Them];
+                score -= make_score(20, 0) * pe->doubled[Them];
 
             if (Pt == BISHOP)
             {
