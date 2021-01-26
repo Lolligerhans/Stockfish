@@ -460,9 +460,11 @@ namespace {
 
                 score -= BishopPawns[edge_distance(file_of(s))] * pos.pawns_on_same_color_squares(Us, s)
                                      * (!(attackedBy[Us][PAWN] & s)
-                                       + ( popcount(blocked)
+                                       + ( blocked
+                                         ? popcount(blocked)
                                            // subtract 1 if none of our blokced in center is of same color
                                          - not(blocked & (s & DarkSquares ? DarkSquares : ~DarkSquares))
+                                         : 0
                                          )
                                        );
 
