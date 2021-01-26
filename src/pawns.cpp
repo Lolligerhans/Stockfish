@@ -101,6 +101,7 @@ namespace {
 
     Bitboard doubleAttackThem = pawn_double_attacks_bb<Them>(theirPawns);
 
+    e->doubled[Us] = 0;
     e->passedPawns[Us] = 0;
     e->kingSquares[Us] = SQ_NONE;
     e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
@@ -130,6 +131,8 @@ namespace {
             // Additional doubled penalty if none of their pawns is fixed
             if (!(ourPawns & shift<Down>(theirPawns | pawn_attacks_bb<Them>(theirPawns))))
                 score -= DoubledEarly;
+
+            ++e->doubled[Us];
         }
 
         // A pawn is backward when it is behind all pawns of the same color on
