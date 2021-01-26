@@ -162,11 +162,11 @@ namespace {
         // Score this pawn
         if (support | phalanx)
         {
-            auto bad = !support || !(neighbours & forward_ranks_bb(Them, s));
-            int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed) - bad)
+            int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed))
                    + 22 * popcount(support);
 
-            score += make_score(v, v * (r - 2) / 4);
+            auto bad = !(neighbours & forward_ranks_bb(Them, s));
+            score += make_score(v, v * (r - 2 - bad) / 4);
         }
 
         else if (!neighbours)
