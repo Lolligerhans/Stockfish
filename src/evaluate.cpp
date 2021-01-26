@@ -422,7 +422,12 @@ namespace {
             score += BishopOnKingRing;
 
         int mob = popcount(b & mobilityArea[Us]);
-
+        if (Pt == BISHOP)
+        {
+            // Need to restrict to non-edge squares to ensure that addition does not overflow max bishop mobility.
+            auto constexpr Mid = ~(Rank1BB | Rank8BB | FileABB | FileHBB);
+            mob += popcount(b & pos.pieces(Us, PAWN) & Mid & ~shift<Down>(pos.pieces()));
+        }
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         if (Pt == BISHOP || Pt == KNIGHT)
