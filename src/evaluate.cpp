@@ -453,22 +453,15 @@ namespace {
 
             if constexpr (Pt == BISHOP)
             {
-                // Penalty according to the number of our pawns on the same color square as the
-                // bishop, bigger when the center files are blocked with pawns and smaller
-                // when the bishop is outside the pawn chain.
-                Bitboard blocked = pos.pieces(Us, PAWN) & shift<Down>(pos.pieces());
-
-                const auto f = [&](int i)
+                if (not(b & pos.pieces(Them) & ~pos.pieces(PAWN)))
                 {
-                    return std::max(
-                            // non-negative
-                            0,
-                            // heavily reduce penalty if attacking their piece, intending to exchange immediately
-                            i - 2 * bool(b & pos.pieces(Them) & ~pos.pieces(PAWN))
-                            );
-                };
-                score -= BishopPawns[edge_distance(file_of(s))] * pos.pawns_on_same_color_squares(Us, s)
-                                     * f(!(attackedBy[Us][PAWN] & s) + popcount(blocked & CenterFiles));
+                    // Penalty according to the number of our pawns on the same color square as the
+                    // bishop, bigger when the center files are blocked with pawns and smaller
+                    // when the bishop is outside the pawn chain.
+                    Bitboard blocked = pos.pieces(Us, PAWN) & shift<Down>(pos.pieces());
+                    score -= BishopPawns[edge_distance(file_of(s))] * pos.pawns_on_same_color_squares(Us, s)
+                        * !(attackedBy[Us][PAWN] & s) + popcount(blocked & CenterFiles);
+                }
 
                 // Penalty for all enemy pawns x-rayed
                 score -= BishopXRayPawns * popcount(attacks_bb<BISHOP>(s) & pos.pieces(Them, PAWN));
