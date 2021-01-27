@@ -886,7 +886,8 @@ namespace {
                     + 24 * infiltration
                     + 51 * !pos.non_pawn_material()
                     - 43 * almostUnwinnable
-                    -110 ;
+                    + std::abs(pos.non_pawn_material(WHITE) - pos.non_pawn_material(BLACK)) / 10
+                    -(110 + 20) ;
 
     Value mg = mg_value(score);
     Value eg = eg_value(score);
