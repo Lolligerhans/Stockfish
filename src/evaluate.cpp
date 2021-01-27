@@ -186,20 +186,28 @@ using namespace Trace;
 
 namespace {
 
-  int w[8] =
+  constexpr int w[8] =
   {
       9,
-      12,
+      10,
       9,
-      21,
-      24,
-      51,
-      -43,
-      -110
+      22,
+      22,
+      52,
+      -37,
+      -100
   };
-  TUNE(w);
-  int x[8] = {0};
-  TUNE(SetRange(-1024, 1024), x);
+  constexpr int x[8] =
+  {
+      126,
+      36,
+      5,
+      -50,
+      -2,
+      34,
+      -92,
+      -25
+  };
 
   // Threshold for lazy and space evaluation
   constexpr Value LazyThreshold1 =  Value(1565);
