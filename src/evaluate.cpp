@@ -186,27 +186,28 @@ using namespace Trace;
 
 namespace {
 
-  constexpr int w[8] =
+    // Previous at this branch
+  constexpr int ww[8] =
   {
       9,
-      10,
+      11,
       9,
-      22,
-      22,
-      52,
-      -37,
-      -100
+      20,
+      24,
+      42,
+      -48,
+      -128
   };
   constexpr int x[8] =
   {
-      126,
-      36,
-      5,
-      -50,
-      -2,
-      34,
-      -92,
-      -25
+      227,
+      63,
+      12,
+      16,
+      -65,
+      -86,
+      -61,
+      -223
   };
 
   // Threshold for lazy and space evaluation
@@ -902,23 +903,18 @@ namespace {
                        || rank_of(pos.square<KING>(BLACK)) < RANK_5;
 
     // Compute the initiative bonus for the attacking side
-    int complexity = +w[0] * pe->passed_count()
-                     +w[1] * pos.count<PAWN>()
-                     +w[2] * outflanking
-                     +w[3] * pawnsOnBothFlanks
-                     +w[4] * infiltration
-                     +w[5] * !pos.non_pawn_material()
-                     +w[6] * almostUnwinnable
-                     +w[7] ;
+    Score comp =
+          make_score(ww[0],x[0]) * pe->passed_count()
+        + make_score(ww[1],x[1]) * pos.count<PAWN>()
+        + make_score(ww[2],x[2]) * outflanking
+        + make_score(ww[3],x[3]) * pawnsOnBothFlanks
+        + make_score(ww[4],x[4]) * infiltration
+        + make_score(ww[5],x[5]) * !pos.non_pawn_material()
+        + make_score(ww[6],x[6]) * almostUnwinnable
+        + make_score(ww[7],x[7]) ;
 
-    int comfactory = x[0] * pe->passed_count()
-                    +x[1] * pos.count<PAWN>()
-                    +x[2] * outflanking
-                    +x[3] * pawnsOnBothFlanks
-                    +x[4] * infiltration
-                    +x[5] * !pos.non_pawn_material()
-                    +x[6] * almostUnwinnable
-                    +x[7] ;
+    int complexity = mg_value(comp);
+    int comfactory = eg_value(comp);
 
     Value mg = mg_value(score);
     Value eg = eg_value(score);
