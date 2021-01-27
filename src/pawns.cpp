@@ -159,9 +159,27 @@ namespace {
         if (passed)
             e->passedPawns[Us] |= s;
 
+        // Neighbours we need to push 1 to reach
+        auto const neigh = [&]() { return shift<2*Down>(neighbours); };
+        // Squares we can not push into
+        auto const blk = [&]() { return theirPawns | pawn_attacks_bb<Them>(theirPawns); };
+
         // Score this pawn
-        if (support | phalanx || (  !(shift<Down>(theirPawns | pawn_attacks_bb<Them>(theirPawns)) & s)
-                                 && shift<2*Down>(neighbours) & rank_bb(s)))
+        if (support | phalanx // Alternatively...
+
+           // Can push pawn 1 square
+           || (  !(shift<Down>(blk()) & s)
+              // And either reach neighbour with that push
+              && (  neigh() & rank_bb(s)
+                 // Or can push a second square
+                 || (  r == RANK_2
+                    && !(shift<2*Down>(blk()) & s)
+                    // And only then there is a neighbour
+                    && shift<Down>(neigh()) & rank_bb(s)
+                    )
+                 )
+             )
+           )
         {
             int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed))
                    + 22 * popcount(support);
