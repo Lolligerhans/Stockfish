@@ -163,7 +163,7 @@ namespace {
         if (support | phalanx)
         {
             int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed))
-                   + 22 * popcount(support);
+                   + 22 * popcount(neighbours & forward_ranks_bb(Them, s));
 
             score += make_score(v, v * (r - 2) / 4);
         }
