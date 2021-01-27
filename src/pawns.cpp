@@ -160,10 +160,10 @@ namespace {
             e->passedPawns[Us] |= s;
 
         // Score this pawn
-        if (support | phalanx)
+        if (neighbours & forward_ranks_bb(Them, s + Up))
         {
             int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed))
-                   + 22 * popcount(neighbours & forward_ranks_bb(Them, s));
+                   + 22 * popcount(support);
 
             score += make_score(v, v * (r - 2) / 4);
         }
