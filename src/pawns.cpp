@@ -162,7 +162,7 @@ namespace {
 
         // Score this pawn
         auto const mobile = [&](Bitboard x) { return x & ourMobile; };
-        if (mobile(support | phalanx) || (support | phalanx && passed))
+        if (phalanx | mobile(support) || (support && passed))
         {
             int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed))
                    + 22 * popcount(support);
