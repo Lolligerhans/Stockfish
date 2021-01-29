@@ -164,7 +164,7 @@ namespace {
         auto const mobile = [&](Bitboard x) { return x & ourMobile; };
         if (phalanx | support)
         {
-            int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed) - not(mobile(support | phalanx) || passed))
+            int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed) + (mobile(support | phalanx) || passed))
                    + 22 * popcount(support);
 
             score += make_score(v, v * (r - 2) / 4);
