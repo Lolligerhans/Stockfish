@@ -98,6 +98,7 @@ namespace {
 
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
+    Bitboard ourMobile = ourPawns & ~shift<Down>(theirPawns | pawn_attacks_bb<Them>(theirPawns));
 
     Bitboard doubleAttackThem = pawn_double_attacks_bb<Them>(theirPawns);
 
@@ -160,7 +161,8 @@ namespace {
             e->passedPawns[Us] |= s;
 
         // Score this pawn
-        if (support | phalanx)
+        auto const mobile = [&](Bitboard x) { return x & ourMobile; };
+        if (mobile(support | phalanx) || (support | phalanx && passed))
         {
             int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed))
                    + 22 * popcount(support);
