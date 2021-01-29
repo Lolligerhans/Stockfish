@@ -159,9 +159,15 @@ namespace {
         if (passed)
             e->passedPawns[Us] |= s;
 
+        // Neighbours we need to push 1 to reach
+        auto const neigh = [&]() { return shift<2*Down>(neighbours)
+                                        | shift<Down>(neighbours); };
+        // Squares we can not push into
+        auto const blk = [&]() { return theirPawns | pawn_attacks_bb<Them>(theirPawns); };
+
         // Score this pawn
-        if (support | phalanx || (  !(shift<Down>(theirPawns | pawn_attacks_bb<Them>(theirPawns)) & s)
-                                 && shift<2*Down>(neighbours) & rank_bb(s)))
+        if (support | phalanx || (  !(shift<Down>(blk()) & s)
+                                 && neigh() & rank_bb(s)))
         {
             int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed))
                    + 22 * popcount(support);
