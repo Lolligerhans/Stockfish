@@ -104,6 +104,33 @@ template<> void Tune::Entry<Score>::read_option() {
       value = make_score(mg_value(value), int(Options["e" + name]));
 }
 
+template<>
+void Tune::Entry<QScore>::init_option()
+{
+    make_option("c" + name, cg_value(value), range);
+    make_option("o" + name, eg_value(value), range);
+}
+
+template<>
+void Tune::Entry<QScore>::read_option()
+{
+    if (Options.count("c" + name))
+        value = make_score(
+                mg_value(value),
+                eg_value(value),
+                int(Options["c" + name]),
+                og_value(value)
+                );
+
+    if (Options.count("c" + name))
+        value = make_score(
+                mg_value(value),
+                eg_value(value),
+                cg_value(value),
+                int(Options["o" + name])
+                );
+}
+
 // Instead of a variable here we have a PostUpdate function: just call it
 template<> void Tune::Entry<Tune::PostUpdate>::init_option() {}
 template<> void Tune::Entry<Tune::PostUpdate>::read_option() { value(); }
