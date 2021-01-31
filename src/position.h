@@ -1,8 +1,6 @@
 /*
   Stockfish, a UCI chess playing engine derived from Glaurung 2.1
-  Copyright (C) 2004-2008 Tord Romstad (Glaurung author)
-  Copyright (C) 2008-2015 Marco Costalba, Joona Kiiski, Tord Romstad
-  Copyright (C) 2015-2020 Marco Costalba, Joona Kiiski, Gary Linscott, Tord Romstad
+  Copyright (C) 2004-2021 The Stockfish developers (see AUTHORS file)
 
   Stockfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -27,7 +25,11 @@
 #include <string>
 
 #include "bitboard.h"
+#include "evaluate.h"
+#include "psqt.h"
 #include "types.h"
+
+#include "nnue/nnue_accumulator.h"
 
 
 /// StateInfo struct stores information needed to restore a Position object to
@@ -54,6 +56,10 @@ struct StateInfo {
   Bitboard   pinners[COLOR_NB];
   Bitboard   checkSquares[PIECE_TYPE_NB];
   int        repetition;
+
+  // Used by NNUE
+  Eval::NNUE::Accumulator accumulator;
+  DirtyPiece dirtyPiece;
 };
 
 
@@ -94,7 +100,6 @@ public:
   bool empty(Square s) const;
   template<PieceType Pt> int count(Color c) const;
   template<PieceType Pt> int count() const;
-  template<PieceType Pt> const Square* squares(Color c) const;
   template<PieceType Pt> Square square(Color c) const;
   bool is_on_semiopen_file(Color c, Square s) const;
 
@@ -108,7 +113,8 @@ public:
   Bitboard checkers() const;
   Bitboard blockers_for_king(Color c) const;
   Bitboard check_squares(PieceType pt) const;
-  bool is_discovery_check_on_king(Color c, Move m) const;
+  Bitboard pinners(Color c) const;
+  bool is_discovered_check_on_king(Color c, Move m) const;
 
   // Attacks to/from a given square
   Bitboard attackers_to(Square s) const;
@@ -163,6 +169,9 @@ public:
   bool pos_is_ok() const;
   void flip();
 
+  // Used by NNUE
+  StateInfo* state() const;
+
 private:
   // Initialization helpers (used while setting up a position)
   void set_castling_right(Color c, Square rfrom);
@@ -181,8 +190,6 @@ private:
   Bitboard byTypeBB[PIECE_TYPE_NB];
   Bitboard byColorBB[COLOR_NB];
   int pieceCount[PIECE_NB];
-  Square pieceList[PIECE_NB][16];
-  int index[SQUARE_NB];
   int castlingRightsMask[SQUARE_NB];
   Square castlingRookSquare[CASTLING_RIGHT_NB];
   Bitboard castlingPath[CASTLING_RIGHT_NB];
@@ -193,10 +200,6 @@ private:
   StateInfo* st;
   bool chess960;
 };
-
-namespace PSQT {
-  extern Score psq[PIECE_NB][SQUARE_NB];
-}
 
 extern std::ostream& operator<<(std::ostream& os, const Position& pos);
 
@@ -245,13 +248,9 @@ template<PieceType Pt> inline int Position::count() const {
   return count<Pt>(WHITE) + count<Pt>(BLACK);
 }
 
-template<PieceType Pt> inline const Square* Position::squares(Color c) const {
-  return pieceList[make_piece(c, Pt)];
-}
-
 template<PieceType Pt> inline Square Position::square(Color c) const {
-  assert(pieceCount[make_piece(c, Pt)] == 1);
-  return squares<Pt>(c)[0];
+  assert(count<Pt>(c) == 1);
+  return lsb(pieces(c, Pt));
 }
 
 inline Square Position::ep_square() const {
@@ -294,11 +293,15 @@ inline Bitboard Position::blockers_for_king(Color c) const {
   return st->blockersForKing[c];
 }
 
+inline Bitboard Position::pinners(Color c) const {
+  return st->pinners[c];
+}
+
 inline Bitboard Position::check_squares(PieceType pt) const {
   return st->checkSquares[pt];
 }
 
-inline bool Position::is_discovery_check_on_king(Color c, Move m) const {
+inline bool Position::is_discovered_check_on_king(Color c, Move m) const {
   return st->blockersForKing[c] & from_sq(m);
 }
 
@@ -316,7 +319,8 @@ inline int Position::pawns_on_same_color_squares(Color c, Square s) const {
 }
 
 inline Key Position::key() const {
-  return st->key;
+  return st->rule50 < 14 ? st->key
+                         : st->key ^ make_key((st->rule50 - 14) / 8);
 }
 
 inline Key Position::pawn_key() const {
@@ -365,7 +369,7 @@ inline bool Position::capture_or_promotion(Move m) const {
 inline bool Position::capture(Move m) const {
   assert(is_ok(m));
   // Castling is encoded as "king captures rook"
-  return (!empty(to_sq(m)) && type_of(m) != CASTLING) || type_of(m) == ENPASSANT;
+  return (!empty(to_sq(m)) && type_of(m) != CASTLING) || type_of(m) == EN_PASSANT;
 }
 
 inline Piece Position::captured_piece() const {
@@ -381,35 +385,25 @@ inline void Position::put_piece(Piece pc, Square s) {
   board[s] = pc;
   byTypeBB[ALL_PIECES] |= byTypeBB[type_of(pc)] |= s;
   byColorBB[color_of(pc)] |= s;
-  index[s] = pieceCount[pc]++;
-  pieceList[pc][index[s]] = s;
+  pieceCount[pc]++;
   pieceCount[make_piece(color_of(pc), ALL_PIECES)]++;
   psq += PSQT::psq[pc][s];
 }
 
 inline void Position::remove_piece(Square s) {
 
-  // WARNING: This is not a reversible operation. If we remove a piece in
-  // do_move() and then replace it in undo_move() we will put it at the end of
-  // the list and not in its original place, it means index[] and pieceList[]
-  // are not invariant to a do_move() + undo_move() sequence.
   Piece pc = board[s];
   byTypeBB[ALL_PIECES] ^= s;
   byTypeBB[type_of(pc)] ^= s;
   byColorBB[color_of(pc)] ^= s;
   /* board[s] = NO_PIECE;  Not needed, overwritten by the capturing one */
-  Square lastSquare = pieceList[pc][--pieceCount[pc]];
-  index[lastSquare] = index[s];
-  pieceList[pc][index[lastSquare]] = lastSquare;
-  pieceList[pc][pieceCount[pc]] = SQ_NONE;
+  pieceCount[pc]--;
   pieceCount[make_piece(color_of(pc), ALL_PIECES)]--;
   psq -= PSQT::psq[pc][s];
 }
 
 inline void Position::move_piece(Square from, Square to) {
 
-  // index[from] is not updated and becomes stale. This works as long as index[]
-  // is accessed just by known occupied squares.
   Piece pc = board[from];
   Bitboard fromTo = from | to;
   byTypeBB[ALL_PIECES] ^= fromTo;
@@ -417,13 +411,16 @@ inline void Position::move_piece(Square from, Square to) {
   byColorBB[color_of(pc)] ^= fromTo;
   board[from] = NO_PIECE;
   board[to] = pc;
-  index[to] = index[from];
-  pieceList[pc][index[to]] = to;
   psq += PSQT::psq[pc][to] - PSQT::psq[pc][from];
 }
 
 inline void Position::do_move(Move m, StateInfo& newSt) {
   do_move(m, newSt, gives_check(m));
+}
+
+inline StateInfo* Position::state() const {
+
+  return st;
 }
 
 #endif // #ifndef POSITION_H_INCLUDED
