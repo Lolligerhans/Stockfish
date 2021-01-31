@@ -118,7 +118,10 @@ class Tune {
     static_assert(   std::is_same<T,   int>::value
                   || std::is_same<T, Value>::value
                   || std::is_same<T, Score>::value
-                  || std::is_same<T, PostUpdate>::value, "Parameter type not supported!");
+                  || std::is_same<T, PostUpdate>::value
+                  || std::is_same_v<T, QScore>,
+                  "Parameter type not supported!"
+                 );
 
     Entry(const std::string& n, T& v, const SetRange& r) : name(n), value(v), range(r) {}
     void operator=(const Entry&) = delete; // Because 'value' is a reference
