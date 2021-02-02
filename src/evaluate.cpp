@@ -440,7 +440,9 @@ namespace {
                 && (!more_than_one(targets & (s & QueenSide ? QueenSide : KingSide))))
                 score += UncontestedOutpost * popcount(pos.pieces(PAWN) & (s & QueenSide ? QueenSide : KingSide));
             else if (bb & s)
-                score += Outpost[Pt == BISHOP];
+                score += Outpost[Pt == BISHOP] + ( PawnAttacks[Us][s] & pos.pieces(Us, PAWN)
+                                                 ? make_score(15,15)
+                                                 : make_score( 0, 0));
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
                 score += ReachableOutpost;
 
