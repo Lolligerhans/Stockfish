@@ -426,6 +426,8 @@ namespace {
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
+        score += make_score(5,5) * (relative_rank(Us, s) - RANK_4);
+
         if (Pt == BISHOP || Pt == KNIGHT)
         {
             // Bonus if the piece is on an outpost square or can reach one
