@@ -187,6 +187,7 @@ using namespace Trace;
 
 namespace {
 
+  // Tuned complexity
   constexpr int ww[8] =
   {
       9,
@@ -198,6 +199,8 @@ namespace {
       -48,
       -128
   };
+
+  // Tuned scale factor
   constexpr int x[8] =
   {
       227,
