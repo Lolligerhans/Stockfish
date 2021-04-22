@@ -26,6 +26,8 @@
 
 using std::string;
 
+namespace Stockfish {
+
 bool Tune::update_on_last;
 const UCI::Option* LastOption = nullptr;
 BoolConditions Conditions;
@@ -153,6 +155,8 @@ void BoolConditions::set() {
       sync_cout << binary[i] << sync_endl;
 }
 
+} // namespace Stockfish
+
 
 // Init options with tuning session results instead of default values. Useful to
 // get correct bench signature after a tuning session or to test tuned values.
@@ -165,7 +169,11 @@ void BoolConditions::set() {
 
 #include <cmath>
 
+namespace Stockfish {
+
 void Tune::read_results() {
 
   /* ...insert your values here... */
 }
+
+} // namespace Stockfish
