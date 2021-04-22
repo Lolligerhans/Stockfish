@@ -91,10 +91,11 @@ namespace {
     constexpr Direction Up   = pawn_push(Us);
     constexpr Direction Down = -Up;
 
-    Bitboard neighbours, stoppers, support, phalanx, opposed;
+    Bitboard neighbours, stoppers, support, phalanx;
     Bitboard lever, leverPush, blocked;
     Square s;
     bool backward, passed, doubled;
+    bool opposedAtMost3Up;
     Score score = SCORE_ZERO;
     Bitboard b = pos.pieces(Us, PAWN);
 
@@ -118,7 +119,9 @@ namespace {
         Rank r = relative_rank(Us, s);
 
         // Flag the pawn
-        opposed    = theirPawns & forward_file_bb(Us, s);
+        auto opposersAtMost3Up_bb = theirPawns | shift<Down>(theirPawns);
+        opposersAtMost3Up_bb |= shift<2*Down>(opposersAtMost3Up_bb);
+        opposedAtMost3Up = bool(opposersAtMost3Up_bb);
         blocked    = theirPawns & (s + Up);
         stoppers   = theirPawns & passed_pawn_span(Us, s);
         lever      = theirPawns & pawn_attacks_bb(Us, s);
@@ -165,7 +168,7 @@ namespace {
         // Score this pawn
         if (support | phalanx)
         {
-            int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed))
+            int v =  Connected[r] * (2 + bool(phalanx) - bool(opposedAtMost3Up))
                    + 22 * popcount(support);
 
             score += make_score(v, v * (r - 2) / 4);
@@ -173,18 +176,18 @@ namespace {
 
         else if (!neighbours)
         {
-            if (     opposed
+            if (     opposedAtMost3Up
                 &&  (ourPawns & forward_file_bb(Them, s))
                 && !(theirPawns & adjacent_files_bb(s)))
                 score -= Doubled;
             else
                 score -=  Isolated
-                        + WeakUnopposed * !opposed;
+                        + WeakUnopposed * !opposedAtMost3Up;
         }
 
         else if (backward)
             score -=  Backward
-                    + WeakUnopposed * !opposed * bool(~(FileABB | FileHBB) & s);
+                    + WeakUnopposed * !opposedAtMost3Up * bool(~(FileABB | FileHBB) & s);
 
         if (!support)
             score -=  Doubled * doubled
