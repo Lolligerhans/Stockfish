@@ -121,7 +121,7 @@ namespace {
         // Flag the pawn
         auto opposersAtMost3Up_bb = theirPawns | shift<Down>(theirPawns);
         opposersAtMost3Up_bb |= shift<2*Down>(opposersAtMost3Up_bb);
-        opposedAtMost3Up = bool(opposersAtMost3Up_bb);
+        opposedAtMost3Up = bool(file_bb(s) & opposersAtMost3Up_bb);
         blocked    = theirPawns & (s + Up);
         stoppers   = theirPawns & passed_pawn_span(Us, s);
         lever      = theirPawns & pawn_attacks_bb(Us, s);
