@@ -285,21 +285,27 @@ struct DirtyPiece {
 /// avoid left-shifting a signed int to avoid undefined behavior.
 enum Score : int { SCORE_ZERO };
 enum QScore : int64_t { QSCORE_ZERO };
+static_assert(sizeof(Score) >= 4);
+static_assert(sizeof(QScore) == 8);
 
 // CG = closde game, OG = open game
 constexpr QScore make_qscore(int mg, int eg, int cg = 0, int og = 0) {
   return QScore(int64_t(uint64_t(og) << 48) + int64_t(uint64_t(cg) << 32) + ((int64_t)((uint64_t)eg << 16) + int64_t(mg)));
 }
-// TODO I am not sure this implementation would be valid.
 /*
-constexpr QScore make_qscore(Score s, int cg = 0, int og = 0) {
-  //            <like before                                            >   <use score, expanding leading 1s>
-  return QScore(int64_t(uint64_t(og) << 48) + int64_t(uint64_t(cg) << 32) + int64_t(s));
+// TODO Implement.
+constexpr QScore to_qscore(Score s, int cg, int og) {
 }
 */
-constexpr Score make_score(QScore s)
+constexpr QScore to_qscore(Score s) {
+  // Expand sign bit through signed-cast, then grab bit pattern by unsigned cast.
+  union { uint64_t un; QScore sc; } x = { (uint64_t) (int64_t) s };
+  return x.sc;
+}
+constexpr Score to_score(QScore s) {
   union { uint32_t un; Score sc; } x = { uint32_t(s) }; // Get bit pattern
-  return s.sc;  // Interpret as score
+  return x.sc;
+}
 
 constexpr Score make_score(int mg, int eg) {
   return Score((int)((unsigned int)eg << 16) + mg);
@@ -308,6 +314,12 @@ constexpr Score make_score(int mg, int eg) {
 /// Extracting the signed lower and upper 16 bits is not so trivial because
 /// according to the standard a simple cast to short is implementation defined
 /// and so is a right shift of a signed integer.
+//
+// 0x8000 Values:
+//   When Adding two 16-bit twos complement, where the lower value is negative,
+//   the sign bit is expanded as "1"s to 32 bit. The expanded bits represent
+//   the value "-1" in the upper 16 bit. When extracting the upper value, it
+//   must be incremented by +1 if the sign bit of the lower value is set.
 inline Value eg_value(QScore s) {
   union { uint16_t u; int16_t s; } eg = { uint16_t( ((uint64_t)s + 0x8000ull) >> 16) };
   return Value(eg.s);

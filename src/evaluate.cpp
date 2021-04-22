@@ -862,8 +862,7 @@ Score Evaluation<T>::mergeClosedness(QScore score) const
 
     // Add interpolated value both on MG and EG, later sidestepping normal
     // scaling.
-    score = make_score(score) + make_score(1,1) * int((og + cg) / InterpolMax);
-    return score;
+    return to_score(score) + make_score(1,1) * int((og + cg) / InterpolMax);
 }
 
 
@@ -1040,11 +1039,11 @@ Score Evaluation<T>::mergeClosedness(QScore score) const
     // Initialize score by reading the incrementally updated scores included in
     // the position object (material + piece square tables) and the material
     // imbalance. Score is computed internally from the white point of view.
-    Score score = pos.psq_score() + me->imbalance() + pos.this_thread()->contempt;
+    QScore qscore = to_qscore(pos.psq_score() + me->imbalance() + pos.this_thread()->contempt);
 
     // Probe the pawn hash table
     pe = Pawns::probe(pos);
-    score += pe->pawn_score(WHITE) - pe->pawn_score(BLACK);
+    qscore += to_qscore(pe->pawn_score(WHITE) - pe->pawn_score(BLACK));
 
     // Early exit if score is high
     auto lazy_skip = [&](Value lazyThreshold) {
@@ -1054,7 +1053,7 @@ Score Evaluation<T>::mergeClosedness(QScore score) const
     //  2. Averaged into existing score?
     //  3. Something unrelated and fancy?
 //        return abs(mg_value(score) + eg_value(score) + og_value(score) + cg_value(score)) / 2 > lazyThreshold + pos.non_pawn_material() / 64;
-        return abs(mg_value(score) + eg_value(score)) / 2 > lazyThreshold + pos.non_pawn_material() / 64;
+        return abs(mg_value(qscore) + eg_value(qscore)) / 2 > lazyThreshold + pos.non_pawn_material() / 64;
     };
 
     if (lazy_skip(LazyThreshold1))
@@ -1066,26 +1065,29 @@ Score Evaluation<T>::mergeClosedness(QScore score) const
 
     // Pieces evaluated first (also populates attackedBy, attackedBy2).
     // Note that the order of evaluation of the terms is left unspecified.
-    score +=  pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
+    qscore +=  
+    to_qscore(pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
             + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
-            + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
+            + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >());
 
-    score += mobility[WHITE] - mobility[BLACK];
+    qscore += to_qscore(mobility[WHITE] - mobility[BLACK]);
 
     // More complex interactions that require fully populated attack bitboards
-    score +=  king<   WHITE>() - king<   BLACK>()
-            + passed< WHITE>() - passed< BLACK>();
+    qscore +=
+    to_qscore(king<   WHITE>() - king<   BLACK>()
+            + passed< WHITE>() - passed< BLACK>());
 
     if (lazy_skip(LazyThreshold2))
         goto make_v;
 
-    score +=  threats<WHITE>() - threats<BLACK>()
-            + space<  WHITE>() - space<  BLACK>();
+    qscore +=
+    to_qscore(threats<WHITE>() - threats<BLACK>()
+            + space<  WHITE>() - space<  BLACK>());
 
 make_v:
-    // Alternative, better (?) way to add cg/og values
-    this->mergeClosedness(score);
+    // Convert QScore to normal Score and never go back
+    Score score = this->mergeClosedness(qscore);
 
     // Derive single value from mg and eg parts of score
     Value v = winnable(score);
