@@ -117,7 +117,7 @@ template<>
 void Tune::Entry<QScore>::read_option()
 {
     if (Options.count("c" + name))
-        value = make_score(
+        value = make_qscore(
                 mg_value(value),
                 eg_value(value),
                 int(Options["c" + name]),
@@ -125,7 +125,7 @@ void Tune::Entry<QScore>::read_option()
                 );
 
     if (Options.count("c" + name))
-        value = make_score(
+        value = make_qscore(
                 mg_value(value),
                 eg_value(value),
                 cg_value(value),
