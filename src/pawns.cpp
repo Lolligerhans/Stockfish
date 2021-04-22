@@ -183,8 +183,14 @@ namespace {
         }
 
         else if (backward)
+        {
             score -=  Backward
                     + WeakUnopposed * !opposed * bool(~(FileABB | FileHBB) & s);
+            if (lever)
+                score += make_score(10, 10);
+            if (more_than_one(lever))
+                score -= make_score(20, 20); // Reverse above bonus
+        }
 
         if (!support)
             score -=  Doubled * doubled
