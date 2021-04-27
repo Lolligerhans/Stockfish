@@ -244,9 +244,9 @@ namespace {
   };
 
 //  constexpr Score RookOnClosedFile = S(10, 5);
-  QScore RookOnClosedFile = S(10, 5, 200, -200);
-  constexpr Score RookOnOpenFile[] = { S(19, 6), S(47, 26) };
+  QScore RookOnClosedFile = Q(10, 5, 200, -200);
   TUNE(RookOnClosedFile);
+  constexpr Score RookOnOpenFile[] = { S(19, 6), S(47, 26) };
 
   // ThreatByMinor/ByRook[attacked PieceType] contains bonuses according to
   // which piece type attacks which one. Attacks on lesser pieces which are
@@ -298,7 +298,7 @@ namespace {
 
   private:
     template<Color Us> void initialize();
-    template<Color Us, PieceType Pt> Score pieces();
+    template<Color Us, PieceType Pt> QScore pieces();
     template<Color Us> Score king() const;
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
@@ -388,7 +388,7 @@ namespace {
   // Evaluation::pieces() scores pieces of a given color and type
 
   template<Tracing T> template<Color Us, PieceType Pt>
-  Score Evaluation<T>::pieces() {
+  QScore Evaluation<T>::pieces() {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Down = -pawn_push(Us);
@@ -396,7 +396,7 @@ namespace {
                                                    : Rank5BB | Rank4BB | Rank3BB);
     Bitboard b1 = pos.pieces(Us, Pt);
     Bitboard b, bb;
-    Score score = SCORE_ZERO;
+    QScore score = QSCORE_ZERO;
 
     attackedBy[Us][Pt] = 0;
 
@@ -482,8 +482,8 @@ namespace {
                 {
                     Direction d = pawn_push(Us) + (file_of(s) == FILE_A ? EAST : WEST);
                     if (pos.piece_on(s + d) == make_piece(Us, PAWN))
-                        score -= !pos.empty(s + d + pawn_push(Us)) ? 4 * make_score(CorneredBishop, CorneredBishop)
-                                                                   : 3 * make_score(CorneredBishop, CorneredBishop);
+                        score -= !pos.empty(s + d + pawn_push(Us)) ? make_score(CorneredBishop, CorneredBishop) * 4
+                                                                   : make_score(CorneredBishop, CorneredBishop) * 3;
                 }
             }
         }
@@ -524,7 +524,7 @@ namespace {
         }
     }
     if constexpr (T)
-        Trace::add(Pt, Us, score);
+        Trace::add(Pt, Us, to_score(score));
 
     return score;
   }
@@ -1068,7 +1068,7 @@ Score Evaluation<T>::mergeClosedness(QScore score) const
     // Pieces evaluated first (also populates attackedBy, attackedBy2).
     // Note that the order of evaluation of the terms is left unspecified.
     qscore +=
-    to_qscore(pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
+             (pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
             + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >());
