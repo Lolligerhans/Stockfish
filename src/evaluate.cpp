@@ -837,7 +837,7 @@ namespace {
     constexpr Bitboard SpaceMask =
       Us == WHITE ? CenterFiles & (Rank2BB | Rank3BB | Rank4BB)
                   : CenterFiles & (Rank7BB | Rank6BB | Rank5BB);
-    std::array<Bitboard, 3> SpaceMasks =
+    constexpr std::array<Bitboard, 3> SpaceMasks =
     {
         SpaceMask,
         shift<WEST>(shift<WEST>(SpaceMask)),
@@ -848,6 +848,10 @@ namespace {
     Score score = SCORE_ZERO;
     for (auto sm : SpaceMasks)
     {
+    // Skip least relevant side
+    if (sm != SpaceMask && !(pos.pieces(KING) & sm))
+        continue;
+
     Bitboard safe =   sm
                    & ~pos.pieces(Us, PAWN)
                    & ~attackedBy[Them][PAWN];
