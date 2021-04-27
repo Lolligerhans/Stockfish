@@ -846,11 +846,15 @@ namespace {
 
     // Find the available squares for our pieces inside the area defined by SpaceMask
     Score score = SCORE_ZERO;
+    int div = SpaceMasks.size();
     for (auto sm : SpaceMasks)
     {
     // Skip least relevant side
     if (sm != SpaceMask && !(pos.pieces(KING) & sm))
+    {
+        --div;
         continue;
+    }
 
     Bitboard safe =   sm
                    & ~pos.pieces(Us, PAWN)
@@ -871,7 +875,7 @@ namespace {
     if constexpr (T)
         Trace::add(SPACE, Us, score);
 
-    return score/(int)SpaceMasks.size();
+    return score/div;
   }
 
 
