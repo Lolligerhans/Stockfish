@@ -837,9 +837,17 @@ namespace {
     constexpr Bitboard SpaceMask =
       Us == WHITE ? CenterFiles & (Rank2BB | Rank3BB | Rank4BB)
                   : CenterFiles & (Rank7BB | Rank6BB | Rank5BB);
+    Bitboard constexpr SpaceMasks[2] =
+    {
+        shift<WEST>(shift<WEST>(SpaceMask)),
+        shift<WEST>(shift<WEST>(SpaceMask))
+    };
 
     // Find the available squares for our pieces inside the area defined by SpaceMask
-    Bitboard safe =   SpaceMask
+    Score score = SCORE_ZERO;
+    for (auto i : {0, 1})
+    {
+    Bitboard safe =   SpaceMasks[i]
                    & ~pos.pieces(Us, PAWN)
                    & ~attackedBy[Them][PAWN];
 
@@ -852,12 +860,13 @@ namespace {
     // increased with number of total blocked pawns in position.
     int bonus = popcount(safe) + popcount(behind & safe & ~attackedBy[Them][ALL_PIECES]);
     int weight = pos.count<ALL_PIECES>(Us) - 3 + std::min(pe->blocked_count(), 9);
-    Score score = make_score(bonus * weight * weight / 16, 0);
+    score += make_score(bonus * weight * weight / 16, 0);
+    }
 
     if constexpr (T)
         Trace::add(SPACE, Us, score);
 
-    return score;
+    return score/2;
   }
 
 
