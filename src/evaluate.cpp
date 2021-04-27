@@ -1065,7 +1065,7 @@ Score Evaluation<T>::mergeClosedness(QScore score) const
 
     // Pieces evaluated first (also populates attackedBy, attackedBy2).
     // Note that the order of evaluation of the terms is left unspecified.
-    qscore +=  
+    qscore +=
     to_qscore(pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
             + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
@@ -1188,7 +1188,7 @@ Value Eval::evaluate(const Position& pos) {
       bool lowPieceEndgame =   pos.non_pawn_material() == BishopValueMg
                             || (pos.non_pawn_material() < 2 * RookValueMg && pos.count<PAWN>() < 2);
 
-      v = classical || lowPieceEndgame ? Evaluation<NO_TRACE>(pos).value() 
+      v = classical || lowPieceEndgame ? Evaluation<NO_TRACE>(pos).value()
                                        : adjusted_NNUE();
 
       // If the classical eval is small and imbalance large, use NNUE nevertheless.
