@@ -837,17 +837,18 @@ namespace {
     constexpr Bitboard SpaceMask =
       Us == WHITE ? CenterFiles & (Rank2BB | Rank3BB | Rank4BB)
                   : CenterFiles & (Rank7BB | Rank6BB | Rank5BB);
-    Bitboard constexpr SpaceMasks[2] =
+    std::array<Bitboard, 3> SpaceMasks =
     {
+        SpaceMask,
         shift<WEST>(shift<WEST>(SpaceMask)),
         shift<WEST>(shift<WEST>(SpaceMask))
     };
 
     // Find the available squares for our pieces inside the area defined by SpaceMask
     Score score = SCORE_ZERO;
-    for (auto i : {0, 1})
+    for (auto sm : SpaceMasks)
     {
-    Bitboard safe =   SpaceMasks[i]
+    Bitboard safe =   sm
                    & ~pos.pieces(Us, PAWN)
                    & ~attackedBy[Them][PAWN];
 
@@ -866,7 +867,7 @@ namespace {
     if constexpr (T)
         Trace::add(SPACE, Us, score);
 
-    return score/2;
+    return score/(int)SpaceMasks.size();
   }
 
 
