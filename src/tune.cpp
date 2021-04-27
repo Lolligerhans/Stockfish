@@ -109,6 +109,8 @@ template<> void Tune::Entry<Score>::read_option() {
 template<>
 void Tune::Entry<QScore>::init_option()
 {
+    make_option("m" + name, mg_value(value), range);
+    make_option("e" + name, eg_value(value), range);
     make_option("c" + name, cg_value(value), range);
     make_option("o" + name, eg_value(value), range);
 }
@@ -116,21 +118,46 @@ void Tune::Entry<QScore>::init_option()
 template<>
 void Tune::Entry<QScore>::read_option()
 {
-    if (Options.count("c" + name))
+    if (auto search = Options.find("m" + name);
+        search != std::end(Options))
+    {
+        value = make_qscore(
+                int(std::get<UCI::Option>(*search)),
+                eg_value(value),
+                cg_value(value),
+                og_value(value)
+                );
+    }
+    if (auto search = Options.find("e" + name);
+        search != std::end(Options))
+    {
+        value = make_qscore(
+                mg_value(value),
+                int(std::get<UCI::Option>(*search)),
+                cg_value(value),
+                og_value(value)
+                );
+    }
+    if (auto search = Options.find("c" + name);
+        search != std::end(Options))
+    {
         value = make_qscore(
                 mg_value(value),
                 eg_value(value),
-                int(Options["c" + name]),
+                int(std::get<UCI::Option>(*search)),
                 og_value(value)
                 );
-
-    if (Options.count("c" + name))
+    }
+    if (auto search = Options.find("o" + name);
+        search != std::end(Options))
+    {
         value = make_qscore(
                 mg_value(value),
                 eg_value(value),
                 cg_value(value),
-                int(Options["o" + name])
+                int(std::get<UCI::Option>(*search))
                 );
+    }
 }
 
 // Instead of a variable here we have a PostUpdate function: just call it
