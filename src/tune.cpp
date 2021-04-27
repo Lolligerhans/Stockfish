@@ -112,7 +112,7 @@ void Tune::Entry<QScore>::init_option()
     make_option("m" + name, mg_value(value), range);
     make_option("e" + name, eg_value(value), range);
     make_option("c" + name, cg_value(value), range);
-    make_option("o" + name, eg_value(value), range);
+    make_option("o" + name, og_value(value), range);
 }
 
 template<>
