@@ -857,7 +857,9 @@ namespace {
     if constexpr (T)
         Trace::add(SPACE, Us, score);
 
-    return score;
+    return not(pos.pieces(KING) & QueenSide) || not(pos.pieces(KING) & KingSide)
+        ? score // Both kings on the same side
+        : score*3/2; // Kings on different sides
   }
 
 
