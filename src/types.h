@@ -353,15 +353,15 @@ inline Value og_value(QScore s) {
 constexpr T operator+(T d1, int d2) { return T(int(d1) + d2); }    \
 constexpr T operator-(T d1, int d2) { return T(int(d1) - d2); }    \
 constexpr T operator-(T d) { return T(-int(d)); }                  \
-inline T& operator+=(T& d1, int d2) { return d1 = d1 + d2; }       \
-inline T& operator-=(T& d1, int d2) { return d1 = d1 - d2; }
+constexpr inline T& operator+=(T& d1, int d2) { return d1 = d1 + d2; }       \
+constexpr inline T& operator-=(T& d1, int d2) { return d1 = d1 - d2; }
 
 #define ENABLE_BASE_OPERATORS_ON_64(T)                                \
 constexpr T operator+(T d1, T d2) { return T(int64_t(d1) + int64_t(d2)); } \
 constexpr T operator-(T d1, T d2) { return T(int64_t(d1) - int64_t(d2)); } \
 constexpr T operator-(T d) { return T(-int64_t(d)); }                  \
-inline T& operator+=(T& d1, T d2) { return d1 = d1 + d2; }         \
-inline T& operator-=(T& d1, T d2) { return d1 = d1 - d2; }
+constexpr inline T& operator+=(T& d1, T d2) { return d1 = d1 + d2; }         \
+constexpr inline T& operator-=(T& d1, T d2) { return d1 = d1 - d2; }
 
 #define ENABLE_INCR_OPERATORS_ON(T)                                \
 inline T& operator++(T& d) { return d = T(int(d) + 1); }           \
@@ -434,6 +434,16 @@ inline Score operator*(Score s, int i) {
   assert((i == 0) || (result / i) == s);
 
   return result;
+}
+
+// Additional, range-safe, cross-score operators
+constexpr inline QScore& operator+=(QScore& q, Score const& s)
+{
+    return q += to_qscore(s);
+}
+constexpr inline QScore& operator-=(QScore& q, Score const& s)
+{
+    return q -= to_qscore(s);
 }
 
 /// Multiplication of a Score by a boolean
