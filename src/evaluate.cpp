@@ -209,26 +209,28 @@ namespace {
 
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
-  Score MobilityBonus[][32] = {
+  constexpr Score MobilityBonus[][32] = {
     { S(-62,-79), S(-53,-57), S(-12,-31), S( -3,-17), S(  3,  7), S( 12, 13), // Knight
       S( 21, 16), S( 28, 21), S( 37, 26) },
     { S(-47,-59), S(-20,-25), S( 14, -8), S( 29, 12), S( 39, 21), S( 53, 40), // Bishop
       S( 53, 56), S( 60, 58), S( 62, 65), S( 69, 72), S( 78, 78), S( 83, 87),
       S( 91, 88), S( 96, 98) },
-    { S(-60,-82), S(-24,-15), S(  0, 17) ,S(  3, 43), S(  4, 72), S( 14,100), // Rook
-      S( 20,102), S( 30,122), S( 41,133), S(41 ,139), S( 41,153), S( 45,160),
-      S( 57,165), S( 58,170), S( 67,175),
-      S(  0,  0), // Buffer element
-      S(47,26), S(47,26), S(47,26) ,S(47,26), S(47,26), S(47,26), // Rook open
-      S(47,26), S(47,26), S(47,26), S(47,26), S(47,26), S(47,26),
-      S(47,26), S(47,26), S(47,26) }, // RookOnOpenFile[1] as initital value
+    {
+        S(-17,-86), S(24,1), S(56,15), S(60,36), S(68,57), S(75,96), S(84,100),
+        S(102,100), S(101,124), S(102,150), S(90,149), S(85,163), S(132,190),
+        S(53,197),
+        S(70,181),  // Impossible I think
+        S(0,0),     // decoy element
+        S(66,41), S(85,74), S(51,33), S(48,60), S(31,30), S(28,52), S(34,32),
+        S(38,41), S(50,46), S(55,-1), S(54,39), S(60,10), S(41,-21), S(34,12),
+        S(50,41), S(-30,56)
+    },
     { S(-29,-49), S(-16,-29), S( -8, -8), S( -8, 17), S( 18, 39), S( 25, 54), // Queen
       S( 23, 59), S( 37, 73), S( 41, 76), S( 54, 95), S( 65, 95) ,S( 68,101),
       S( 69,124), S( 70,128), S( 70,132), S( 70,133) ,S( 71,136), S( 72,140),
       S( 74,147), S( 76,149), S( 90,153), S(104,169), S(105,171), S(106,171),
       S(112,178), S(114,185), S(114,187), S(119,221) }
   };
-  TUNE(SetRange(-300, 300), MobilityBonus[2]);
 
   // BishopPawns[distance from edge] contains a file-dependent penalty for pawns on
   // squares of the same color as our bishop.
