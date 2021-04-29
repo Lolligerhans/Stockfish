@@ -983,7 +983,10 @@ namespace {
 
     // Probe the pawn hash table
     pe = Pawns::probe(pos);
-    score += pe->pawn_score(WHITE) - pe->pawn_score(BLACK);
+    score += pe->pawn_score(WHITE) - pe->pawn_score(BLACK)
+        * (24 - pos.count<BISHOP>() - pos.count<KNIGHT>()) / 16;
+    // minor peice count = 16 -> scaling 0.5
+    // minor peice count = 0  -> scaling 1.5
 
     // Early exit if score is high
     auto lazy_skip = [&](Value lazyThreshold) {
