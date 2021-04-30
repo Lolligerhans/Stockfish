@@ -32,7 +32,7 @@ namespace {
   // Polynomial material imbalance parameters
 
   // One Score parameter for each pair (our piece, another of our pieces)
-  constexpr QScore QuadraticOurs[][PIECE_TYPE_NB] = {
+  QScore QuadraticOurs[][PIECE_TYPE_NB] = {
     // OUR PIECE 2
     // bishop pair    pawn         knight       bishop       rook           queen
     {Q(1419, 1455)                                                                  }, // Bishop pair
@@ -44,7 +44,7 @@ namespace {
   };
 
   // One Score parameter for each pair (our piece, their piece)
-  constexpr QScore QuadraticTheirs[][PIECE_TYPE_NB] = {
+  QScore QuadraticTheirs[][PIECE_TYPE_NB] = {
     // THEIR PIECE
     // bishop pair   pawn         knight       bishop       rook         queen
     {                                                                               }, // Bishop pair
@@ -56,6 +56,9 @@ namespace {
   };
 
   #undef S
+
+  TUNE(SetRange(standardRange), QuadraticOurs);
+  TUNE(SetRange(standardRange), QuadraticTheirs);
 
   // Endgame evaluation and scaling functions are accessed directly and not through
   // the function maps because they correspond to more than one material hash key.

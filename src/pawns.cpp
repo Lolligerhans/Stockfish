@@ -23,6 +23,7 @@
 #include "pawns.h"
 #include "position.h"
 #include "thread.h"
+#include "tune.h"
 
 namespace Stockfish {
 
@@ -32,17 +33,17 @@ namespace {
   #define S(mg, eg) make_score(mg, eg)
 
   // Pawn penalties
-  constexpr QScore Backward      = Q( 9, 22);
-  constexpr QScore Doubled       = Q(13, 51);
-  constexpr QScore DoubledEarly  = Q(20,  7);
-  constexpr QScore Isolated      = Q( 3, 15);
-  constexpr QScore WeakLever     = Q( 4, 58);
-  constexpr QScore WeakUnopposed = Q(13, 24);
+  QScore Backward      = Q( 9, 22);
+  QScore Doubled       = Q(13, 51);
+  QScore DoubledEarly  = Q(20,  7);
+  QScore Isolated      = Q( 3, 15);
+  QScore WeakLever     = Q( 4, 58);
+  QScore WeakUnopposed = Q(13, 24);
 
   // Bonus for blocked pawns at 5th or 6th rank
-  constexpr QScore BlockedPawn[2] = { Q(-17, -6), Q(-9, 2) };
+  QScore BlockedPawn[2] = { Q(-17, -6), Q(-9, 2) };
 
-  constexpr QScore BlockedStorm[RANK_NB] = {
+  QScore BlockedStorm[RANK_NB] = {
     Q(0, 0), Q(0, 0), Q(75, 78), Q(-8, 16), Q(-6, 10), Q(-6, 6), Q(0, 2)
   };
 
@@ -72,12 +73,22 @@ namespace {
 
   // KingOnFile[semi-open Us][semi-open Them] contains bonuses/penalties
   // for king when the king is on a semi-open or open file.
-  constexpr QScore KingOnFile[2][2] = {{ Q(-21,10), Q(-7, 1)  },
+  QScore KingOnFile[2][2] = {{ Q(-21,10), Q(-7, 1)  },
                                      {  Q(  0,-3), Q( 9,-4) }};
 
   #undef S
   #undef V
 
+TUNE(SetRange(standardRange), Backward);
+TUNE(SetRange(standardRange), Doubled);
+TUNE(SetRange(standardRange), DoubledEarly);
+TUNE(SetRange(standardRange), Isolated);
+TUNE(SetRange(standardRange), WeakLever);
+TUNE(SetRange(standardRange), WeakUnopposed);
+TUNE(SetRange(standardRange), BlockedPawn);
+TUNE(SetRange(standardRange), BlockedStorm);
+TUNE(SetRange(standardRange), KingOnFile);
+// TODO Some values and literals and explicitly constructed scores remain untuned.
 
   /// evaluate() calculates a score for the static pawn structure of the given position.
   /// We cannot use the location of pieces or king in this function, as the evaluation
@@ -168,6 +179,7 @@ namespace {
             int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed))
                    + 22 * popcount(support);
 
+            // TODO Parametrize 3rd and 4th value
             score += make_score(v, v * (r - 2) / 4);
         }
 
@@ -248,11 +260,13 @@ QScore Entry::evaluate_shelter(const Position& pos, Square ksq) const {
       int theirRank = b ? relative_rank(Us, frontmost_sq(Them, b)) : 0;
 
       int d = edge_distance(f);
+      // TODO Parametrize 3rd and 4th value
       bonus += make_score(ShelterStrength[d][ourRank], 0);
 
       if (ourRank && (ourRank == theirRank - 1))
           bonus -= BlockedStorm[theirRank];
       else
+          // TODO Parametrize 3rd and 4th value
           bonus -= make_score(UnblockedStorm[d][theirRank], 0);
   }
 

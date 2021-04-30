@@ -34,6 +34,17 @@ inline Range default_range(int v) {
   return v > 0 ? Range(0, 2 * v) : Range(2 * v, 0);
 }
 
+inline auto standardRange(int v)
+{
+    if (std::abs(v) < 10)
+        // When appling the tuning, consider ignoring values that have been
+        // toned to 0 previously. This is meant for the yet-to-be-tuned 3rd and
+        // 4th values of QScores.
+        return Range(-50, 50);
+    else
+        return default_range(v);
+}
+
 struct SetRange {
   explicit SetRange(RangeFun f) : fun(f) {}
   SetRange(int min, int max) : fun(nullptr), range(min, max) {}

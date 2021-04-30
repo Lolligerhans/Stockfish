@@ -35,6 +35,7 @@
 #include "thread.h"
 #include "uci.h"
 #include "incbin/incbin.h"
+#include "tune.h"
 
 
 // Macro to embed the default efficiently updatable neural network (NNUE) file
@@ -205,11 +206,11 @@ namespace {
   };
 
   auto constexpr S = make_score;
-  constexpr QScore Q(int a, int b, int c=0, int d=0) { return make_qscore(a,b,c,d); }
+  QScore Q(int a, int b, int c=0, int d=0) { return make_qscore(a,b,c,d); }
 
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
-  constexpr QScore MobilityBonus[][32] = {
+  QScore MobilityBonus[][32] = {
     { Q(-62,-79), Q(-53,-57), Q(-12,-31), Q( -3,-17), Q(  3,  7), Q( 12, 13), // Knight
       Q( 21, 16), Q( 28, 21), Q( 37, 26) },
     { Q(-47,-59), Q(-20,-25), Q( 14, -8), Q( 29, 12), Q( 39, 21), Q( 53, 40), // Bishop
@@ -227,62 +228,92 @@ namespace {
 
   // BishopPawns[distance from edge] contains a file-dependent penalty for pawns on
   // squares of the same color as our bishop.
-  constexpr QScore BishopPawns[int(FILE_NB) / 2] = {
+  QScore BishopPawns[int(FILE_NB) / 2] = {
     Q(3, 8), Q(3, 9), Q(2, 8), Q(3, 8)
   };
 
   // KingProtector[knight/bishop] contains penalty for each distance unit to own king
-  constexpr QScore KingProtector[] = { Q(8, 9), Q(6, 9) };
+  QScore KingProtector[] = { Q(8, 9), Q(6, 9) };
 
   // Outpost[knight/bishop] contains bonuses for each knight or bishop occupying a
   // pawn protected square on rank 4 to 6 which is also safe from a pawn attack.
-  constexpr QScore Outpost[] = { Q(57, 38), Q(31, 24) };
+  QScore Outpost[] = { Q(57, 38), Q(31, 24) };
 
   // PassedRank[Rank] contains a bonus according to the rank of a passed pawn
-  constexpr QScore PassedRank[RANK_NB] = {
+  QScore PassedRank[RANK_NB] = {
     Q(0, 0), Q(7, 27), Q(16, 32), Q(17, 40), Q(64, 71), Q(170, 174), Q(278, 262)
   };
 
-//  constexpr Score RookOnClosedFile = S(10, 5);
-  QScore RookOnClosedFile = Q(10, 5, 200, -200);
-  TUNE(RookOnClosedFile);
-  constexpr QScore RookOnOpenFile[] = { Q(19, 6), Q(47, 26) };
+  QScore RookOnClosedFile = Q(10, 5);
+  QScore RookOnOpenFile[] = { Q(19, 6), Q(47, 26) };
 
   // ThreatByMinor/ByRook[attacked PieceType] contains bonuses according to
   // which piece type attacks which one. Attacks on lesser pieces which are
   // pawn-defended are not considered.
-  constexpr QScore ThreatByMinor[PIECE_TYPE_NB] = {
+  QScore ThreatByMinor[PIECE_TYPE_NB] = {
     Q(0, 0), Q(5, 32), Q(55, 41), Q(77, 56), Q(89, 119), Q(79, 162)
   };
 
-  constexpr QScore ThreatByRook[PIECE_TYPE_NB] = {
+  QScore ThreatByRook[PIECE_TYPE_NB] = {
     Q(0, 0), Q(3, 44), Q(37, 68), Q(42, 60), Q(0, 39), Q(58, 43)
   };
 
   constexpr Value CorneredBishop = Value(50);
 
   // Assorted bonuses and penalties
-  constexpr QScore UncontestedOutpost  = Q(  1, 10);
-  constexpr QScore BishopOnKingRing    = Q( 24,  0);
-  constexpr QScore BishopXRayPawns     = Q(  4,  5);
-  constexpr QScore FlankAttacks        = Q(  8,  0);
-  constexpr QScore Hanging             = Q( 69, 36);
-  constexpr QScore KnightOnQueen       = Q( 16, 11);
-  constexpr QScore LongDiagonalBishop  = Q( 45,  0);
-  constexpr QScore MinorBehindPawn     = Q( 18,  3);
-  constexpr QScore PassedFile          = Q( 11,  8);
-  constexpr QScore PawnlessFlank       = Q( 17, 95);
-  constexpr QScore ReachableOutpost    = Q( 31, 22);
-  constexpr QScore RestrictedPiece     = Q(  7,  7);
-  constexpr QScore RookOnKingRing      = Q( 16,  0);
-  constexpr QScore SliderOnQueen       = Q( 60, 18);
-  constexpr QScore ThreatByKing        = Q( 24, 89);
-  constexpr QScore ThreatByPawnPush    = Q( 48, 39);
-  constexpr QScore ThreatBySafePawn    = Q(173, 94);
-  constexpr QScore TrappedRook         = Q( 55, 13);
-  constexpr QScore WeakQueenProtection = Q( 14,  0);
-  constexpr QScore WeakQueen           = Q( 56, 15);
+  QScore UncontestedOutpost  = Q(  1, 10);
+  QScore BishopOnKingRing    = Q( 24,  0);
+  QScore BishopXRayPawns     = Q(  4,  5);
+  QScore FlankAttacks        = Q(  8,  0);
+  QScore Hanging             = Q( 69, 36);
+  QScore KnightOnQueen       = Q( 16, 11);
+  QScore LongDiagonalBishop  = Q( 45,  0);
+  QScore MinorBehindPawn     = Q( 18,  3);
+  QScore PassedFile          = Q( 11,  8);
+  QScore PawnlessFlank       = Q( 17, 95);
+  QScore ReachableOutpost    = Q( 31, 22);
+  QScore RestrictedPiece     = Q(  7,  7);
+  QScore RookOnKingRing      = Q( 16,  0);
+  QScore SliderOnQueen       = Q( 60, 18);
+  QScore ThreatByKing        = Q( 24, 89);
+  QScore ThreatByPawnPush    = Q( 48, 39);
+  QScore ThreatBySafePawn    = Q(173, 94);
+  QScore TrappedRook         = Q( 55, 13);
+  QScore WeakQueenProtection = Q( 14,  0);
+  QScore WeakQueen           = Q( 56, 15);
 
+TUNE(SetRange(standardRange), MobilityBonus);
+TUNE(SetRange(standardRange), BishopPawns);
+TUNE(SetRange(standardRange), KingProtector);
+TUNE(SetRange(standardRange), Outpost);
+TUNE(SetRange(standardRange), PassedRank);
+TUNE(SetRange(standardRange), RookOnClosedFile);
+TUNE(SetRange(standardRange), RookOnOpenFile);
+TUNE(SetRange(standardRange), ThreatByMinor);
+TUNE(SetRange(standardRange), ThreatByRook);
+TUNE(SetRange(standardRange), UncontestedOutpost);
+TUNE(SetRange(standardRange), BishopOnKingRing);
+TUNE(SetRange(standardRange), BishopXRayPawns);
+TUNE(SetRange(standardRange), FlankAttacks);
+TUNE(SetRange(standardRange), Hanging);
+TUNE(SetRange(standardRange), KnightOnQueen);
+TUNE(SetRange(standardRange), LongDiagonalBishop);
+TUNE(SetRange(standardRange), MinorBehindPawn);
+TUNE(SetRange(standardRange), PassedFile);
+TUNE(SetRange(standardRange), PawnlessFlank);
+TUNE(SetRange(standardRange), ReachableOutpost);
+TUNE(SetRange(standardRange), RestrictedPiece);
+TUNE(SetRange(standardRange), RookOnKingRing);
+TUNE(SetRange(standardRange), SliderOnQueen);
+TUNE(SetRange(standardRange), ThreatByKing);
+TUNE(SetRange(standardRange), ThreatByPawnPush);
+TUNE(SetRange(standardRange), ThreatBySafePawn);
+TUNE(SetRange(standardRange), TrappedRook);
+TUNE(SetRange(standardRange), WeakQueenProtection);
+TUNE(SetRange(standardRange), WeakQueen);
+// TODO Some explicitly constructed scores remain untuned (kingdanger, space, passers, ...)
+//      Some integer literals remain untuned (winnable, ...).
+//      Some non-bonus parameters remain untuned (lazy threshold, sf, ...)
 
 #undef S
 

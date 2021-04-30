@@ -33,7 +33,7 @@ auto constexpr S = make_score;
 
 // 'Bonus' contains Piece-Square parameters.
 // Scores are explicit for files A to D, implicitly mirrored for E to H.
-constexpr QScore Bonus[][RANK_NB][int(FILE_NB) / 2] = {
+QScore Bonus[][RANK_NB][int(FILE_NB) / 2] = {
   { },
   { },
   { // Knight
@@ -88,7 +88,7 @@ constexpr QScore Bonus[][RANK_NB][int(FILE_NB) / 2] = {
   }
 };
 
-constexpr QScore PBonus[RANK_NB][FILE_NB] =
+QScore PBonus[RANK_NB][FILE_NB] =
   { // Pawn (asymmetric distribution)
    { },
    { Q(  2, -8), Q(  4, -6), Q( 11,  9), Q( 18,  5), Q( 16, 16), Q( 21,  6), Q(  9, -6), Q( -3,-18) },
@@ -98,6 +98,9 @@ constexpr QScore PBonus[RANK_NB][FILE_NB] =
    { Q(  3, 27), Q(-11, 18), Q( -6, 19), Q( 22, 29), Q( -8, 30), Q( -5,  9), Q(-14,  8), Q(-11, 14) },
    { Q( -7, -1), Q(  6,-14), Q( -2, 13), Q(-11, 22), Q(  4, 24), Q(-14, 17), Q( 10,  7), Q( -9,  7) }
   };
+
+TUNE(SetRange(standardRange), Bonus, PSQT::init);
+TUNE(SetRange(standardRange), PBonus, PSQT::init);
 
 } // namespace
 
