@@ -292,6 +292,10 @@ static_assert(sizeof(QScore) == 8);
 constexpr QScore make_qscore(int mg, int eg, int cg = 0, int og = 0) {
   return QScore(int64_t(uint64_t(og) << 48) + int64_t(uint64_t(cg) << 32) + ((int64_t)((uint64_t)eg << 16) + int64_t(mg)));
 }
+auto constexpr Q (int a, int b, int c = 0, int d = 0)
+{
+    return make_qscore(a,b,c,d);
+}
 /*
 // TODO Implement.
 constexpr QScore to_qscore(Score s, int cg, int og) {
@@ -416,7 +420,7 @@ inline Score operator/(Score s, int i) {
 }
 
 /// Multiplication of a Score by an integer. We check for overflow in debug mode.
-inline QScore operator*(QScore s, int64_t i) {
+inline QScore operator*(QScore s, int i) {
 
   QScore result = QScore(int64_t(s) * i);
 

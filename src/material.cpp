@@ -32,27 +32,27 @@ namespace {
   // Polynomial material imbalance parameters
 
   // One Score parameter for each pair (our piece, another of our pieces)
-  constexpr Score QuadraticOurs[][PIECE_TYPE_NB] = {
+  constexpr QScore QuadraticOurs[][PIECE_TYPE_NB] = {
     // OUR PIECE 2
     // bishop pair    pawn         knight       bishop       rook           queen
-    {S(1419, 1455)                                                                  }, // Bishop pair
-    {S( 101,   28), S( 37,  39)                                                     }, // Pawn
-    {S(  57,   64), S(249, 187), S(-49, -62)                                        }, // Knight      OUR PIECE 1
-    {S(   0,    0), S(118, 137), S( 10,  27), S(  0,   0)                           }, // Bishop
-    {S( -63,  -68), S( -5,   3), S(100,  81), S(132, 118), S(-246, -244)            }, // Rook
-    {S(-210, -211), S( 37,  14), S(147, 141), S(161, 105), S(-158, -174), S(-9,-31) }  // Queen
+    {Q(1419, 1455)                                                                  }, // Bishop pair
+    {Q( 101,   28), Q( 37,  39)                                                     }, // Pawn
+    {Q(  57,   64), Q(249, 187), Q(-49, -62)                                        }, // Knight      OUR PIECE 1
+    {Q(   0,    0), Q(118, 137), Q( 10,  27), Q(  0,   0)                           }, // Bishop
+    {Q( -63,  -68), Q( -5,   3), Q(100,  81), Q(132, 118), Q(-246, -244)            }, // Rook
+    {Q(-210, -211), Q( 37,  14), Q(147, 141), Q(161, 105), Q(-158, -174), Q(-9,-31) }  // Queen
   };
 
   // One Score parameter for each pair (our piece, their piece)
-  constexpr Score QuadraticTheirs[][PIECE_TYPE_NB] = {
+  constexpr QScore QuadraticTheirs[][PIECE_TYPE_NB] = {
     // THEIR PIECE
     // bishop pair   pawn         knight       bishop       rook         queen
     {                                                                               }, // Bishop pair
-    {S(  33,  30)                                                                   }, // Pawn
-    {S(  46,  18), S(106,  84)                                                      }, // Knight      OUR PIECE
-    {S(  75,  35), S( 59,  44), S( 60,  15)                                         }, // Bishop
-    {S(  26,  35), S(  6,  22), S( 38,  39), S(-12,  -2)                            }, // Rook
-    {S(  97,  93), S(100, 163), S(-58, -91), S(112, 192), S(276, 225)               }  // Queen
+    {Q(  33,  30)                                                                   }, // Pawn
+    {Q(  46,  18), Q(106,  84)                                                      }, // Knight      OUR PIECE
+    {Q(  75,  35), Q( 59,  44), Q( 60,  15)                                         }, // Bishop
+    {Q(  26,  35), Q(  6,  22), Q( 38,  39), Q(-12,  -2)                            }, // Rook
+    {Q(  97,  93), Q(100, 163), Q(-58, -91), Q(112, 192), Q(276, 225)               }  // Queen
   };
 
   #undef S
@@ -89,11 +89,11 @@ namespace {
   /// piece type for both colors.
 
   template<Color Us>
-  Score imbalance(const int pieceCount[][PIECE_TYPE_NB]) {
+  QScore imbalance(const int pieceCount[][PIECE_TYPE_NB]) {
 
     constexpr Color Them = ~Us;
 
-    Score bonus = SCORE_ZERO;
+    QScore bonus = QSCORE_ZERO;
 
     // Second-degree polynomial material imbalance, by Tord Romstad
     for (int pt1 = NO_PIECE_TYPE; pt1 <= QUEEN; ++pt1)
@@ -101,13 +101,13 @@ namespace {
         if (!pieceCount[Us][pt1])
             continue;
 
-        int v = QuadraticOurs[pt1][pt1] * pieceCount[Us][pt1];
+        QScore v = QuadraticOurs[pt1][pt1] * pieceCount[Us][pt1];
 
         for (int pt2 = NO_PIECE_TYPE; pt2 < pt1; ++pt2)
             v +=  QuadraticOurs[pt1][pt2] * pieceCount[Us][pt2]
                 + QuadraticTheirs[pt1][pt2] * pieceCount[Them][pt2];
 
-        bonus += pieceCount[Us][pt1] * v;
+        bonus += v * pieceCount[Us][pt1];
     }
 
     return bonus;

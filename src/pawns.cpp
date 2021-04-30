@@ -32,18 +32,18 @@ namespace {
   #define S(mg, eg) make_score(mg, eg)
 
   // Pawn penalties
-  constexpr Score Backward      = S( 9, 22);
-  constexpr Score Doubled       = S(13, 51);
-  constexpr Score DoubledEarly  = S(20,  7);
-  constexpr Score Isolated      = S( 3, 15);
-  constexpr Score WeakLever     = S( 4, 58);
-  constexpr Score WeakUnopposed = S(13, 24);
+  constexpr QScore Backward      = Q( 9, 22);
+  constexpr QScore Doubled       = Q(13, 51);
+  constexpr QScore DoubledEarly  = Q(20,  7);
+  constexpr QScore Isolated      = Q( 3, 15);
+  constexpr QScore WeakLever     = Q( 4, 58);
+  constexpr QScore WeakUnopposed = Q(13, 24);
 
   // Bonus for blocked pawns at 5th or 6th rank
-  constexpr Score BlockedPawn[2] = { S(-17, -6), S(-9, 2) };
+  constexpr QScore BlockedPawn[2] = { Q(-17, -6), Q(-9, 2) };
 
-  constexpr Score BlockedStorm[RANK_NB] = {
-    S(0, 0), S(0, 0), S(75, 78), S(-8, 16), S(-6, 10), S(-6, 6), S(0, 2)
+  constexpr QScore BlockedStorm[RANK_NB] = {
+    Q(0, 0), Q(0, 0), Q(75, 78), Q(-8, 16), Q(-6, 10), Q(-6, 6), Q(0, 2)
   };
 
   // Connected pawn bonus
@@ -72,8 +72,8 @@ namespace {
 
   // KingOnFile[semi-open Us][semi-open Them] contains bonuses/penalties
   // for king when the king is on a semi-open or open file.
-  constexpr Score KingOnFile[2][2] = {{ S(-21,10), S(-7, 1)  },
-                                     {  S(  0,-3), S( 9,-4) }};
+  constexpr QScore KingOnFile[2][2] = {{ Q(-21,10), Q(-7, 1)  },
+                                     {  Q(  0,-3), Q( 9,-4) }};
 
   #undef S
   #undef V
@@ -85,7 +85,7 @@ namespace {
   /// be re-used even when the pieces have moved.
 
   template<Color Us>
-  Score evaluate(const Position& pos, Pawns::Entry* e) {
+  QScore evaluate(const Position& pos, Pawns::Entry* e) {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Up   = pawn_push(Us);
@@ -95,7 +95,7 @@ namespace {
     Bitboard lever, leverPush, blocked;
     Square s;
     bool backward, passed, doubled;
-    Score score = SCORE_ZERO;
+    QScore score = QSCORE_ZERO;
     Bitboard b = pos.pieces(Us, PAWN);
 
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
@@ -228,7 +228,7 @@ Entry* probe(const Position& pos) {
 /// penalty for a king, looking at the king file and the two closest files.
 
 template<Color Us>
-Score Entry::evaluate_shelter(const Position& pos, Square ksq) const {
+QScore Entry::evaluate_shelter(const Position& pos, Square ksq) const {
 
   constexpr Color Them = ~Us;
 
@@ -236,7 +236,7 @@ Score Entry::evaluate_shelter(const Position& pos, Square ksq) const {
   Bitboard ourPawns = b & pos.pieces(Us) & ~pawnAttacks[Them];
   Bitboard theirPawns = b & pos.pieces(Them);
 
-  Score bonus = make_score(5, 5);
+  QScore bonus = Q(5, 5);
 
   File center = std::clamp(file_of(ksq), FILE_B, FILE_G);
   for (File f = File(center - 1); f <= File(center + 1); ++f)
@@ -267,14 +267,14 @@ Score Entry::evaluate_shelter(const Position& pos, Square ksq) const {
 /// when king square changes, which is about 20% of total king_safety() calls.
 
 template<Color Us>
-Score Entry::do_king_safety(const Position& pos) {
+QScore Entry::do_king_safety(const Position& pos) {
 
   Square ksq = pos.square<KING>(Us);
   kingSquares[Us] = ksq;
   castlingRights[Us] = pos.castling_rights(Us);
-  auto compare = [](Score a, Score b) { return mg_value(a) < mg_value(b); };
+  auto compare = [](QScore a, QScore b) { return mg_value(a) < mg_value(b); };
 
-  Score shelter = evaluate_shelter<Us>(pos, ksq);
+  QScore shelter = evaluate_shelter<Us>(pos, ksq);
 
   // If we can castle use the bonus after castling if it is bigger
 
@@ -293,12 +293,12 @@ Score Entry::do_king_safety(const Position& pos) {
   else while (pawns)
       minPawnDist = std::min(minPawnDist, distance(ksq, pop_lsb(pawns)));
 
-  return shelter - make_score(0, 16 * minPawnDist);
+  return shelter - Q(0, 16 * minPawnDist);
 }
 
 // Explicit template instantiation
-template Score Entry::do_king_safety<WHITE>(const Position& pos);
-template Score Entry::do_king_safety<BLACK>(const Position& pos);
+template QScore Entry::do_king_safety<WHITE>(const Position& pos);
+template QScore Entry::do_king_safety<BLACK>(const Position& pos);
 
 } // namespace Pawns
 

@@ -205,83 +205,83 @@ namespace {
   };
 
   constexpr Score S(int a, int b              ) { return make_score(a,b    ); }
-  constexpr QScore Q(int a, int b, int c, int d) { return make_qscore(a,b,c,d); }
+  constexpr QScore Q(int a, int b, int c=0, int d=0) { return make_qscore(a,b,c,d); }
 
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
-  constexpr Score MobilityBonus[][32] = {
-    { S(-62,-79), S(-53,-57), S(-12,-31), S( -3,-17), S(  3,  7), S( 12, 13), // Knight
-      S( 21, 16), S( 28, 21), S( 37, 26) },
-    { S(-47,-59), S(-20,-25), S( 14, -8), S( 29, 12), S( 39, 21), S( 53, 40), // Bishop
-      S( 53, 56), S( 60, 58), S( 62, 65), S( 69, 72), S( 78, 78), S( 83, 87),
-      S( 91, 88), S( 96, 98) },
-    { S(-60,-82), S(-24,-15), S(  0, 17) ,S(  3, 43), S(  4, 72), S( 14,100), // Rook
-      S( 20,102), S( 30,122), S( 41,133), S(41 ,139), S( 41,153), S( 45,160),
-      S( 57,165), S( 58,170), S( 67,175) },
-    { S(-29,-49), S(-16,-29), S( -8, -8), S( -8, 17), S( 18, 39), S( 25, 54), // Queen
-      S( 23, 59), S( 37, 73), S( 41, 76), S( 54, 95), S( 65, 95) ,S( 68,101),
-      S( 69,124), S( 70,128), S( 70,132), S( 70,133) ,S( 71,136), S( 72,140),
-      S( 74,147), S( 76,149), S( 90,153), S(104,169), S(105,171), S(106,171),
-      S(112,178), S(114,185), S(114,187), S(119,221) }
+  constexpr QScore MobilityBonus[][32] = {
+    { Q(-62,-79), Q(-53,-57), Q(-12,-31), Q( -3,-17), Q(  3,  7), Q( 12, 13), // Knight
+      Q( 21, 16), Q( 28, 21), Q( 37, 26) },
+    { Q(-47,-59), Q(-20,-25), Q( 14, -8), Q( 29, 12), Q( 39, 21), Q( 53, 40), // Bishop
+      Q( 53, 56), Q( 60, 58), Q( 62, 65), Q( 69, 72), Q( 78, 78), Q( 83, 87),
+      Q( 91, 88), Q( 96, 98) },
+    { Q(-60,-82), Q(-24,-15), Q(  0, 17) ,Q(  3, 43), Q(  4, 72), Q( 14,100), // Rook
+      Q( 20,102), Q( 30,122), Q( 41,133), Q(41 ,139), Q( 41,153), Q( 45,160),
+      Q( 57,165), Q( 58,170), Q( 67,175) },
+    { Q(-29,-49), Q(-16,-29), Q( -8, -8), Q( -8, 17), Q( 18, 39), Q( 25, 54), // Queen
+      Q( 23, 59), Q( 37, 73), Q( 41, 76), Q( 54, 95), Q( 65, 95) ,Q( 68,101),
+      Q( 69,124), Q( 70,128), Q( 70,132), Q( 70,133) ,Q( 71,136), Q( 72,140),
+      Q( 74,147), Q( 76,149), Q( 90,153), Q(104,169), Q(105,171), Q(106,171),
+      Q(112,178), Q(114,185), Q(114,187), Q(119,221) }
   };
 
   // BishopPawns[distance from edge] contains a file-dependent penalty for pawns on
   // squares of the same color as our bishop.
-  constexpr Score BishopPawns[int(FILE_NB) / 2] = {
-    S(3, 8), S(3, 9), S(2, 8), S(3, 8)
+  constexpr QScore BishopPawns[int(FILE_NB) / 2] = {
+    Q(3, 8), Q(3, 9), Q(2, 8), Q(3, 8)
   };
 
   // KingProtector[knight/bishop] contains penalty for each distance unit to own king
-  constexpr Score KingProtector[] = { S(8, 9), S(6, 9) };
+  constexpr QScore KingProtector[] = { Q(8, 9), Q(6, 9) };
 
   // Outpost[knight/bishop] contains bonuses for each knight or bishop occupying a
   // pawn protected square on rank 4 to 6 which is also safe from a pawn attack.
-  constexpr Score Outpost[] = { S(57, 38), S(31, 24) };
+  constexpr QScore Outpost[] = { Q(57, 38), Q(31, 24) };
 
   // PassedRank[Rank] contains a bonus according to the rank of a passed pawn
-  constexpr Score PassedRank[RANK_NB] = {
-    S(0, 0), S(7, 27), S(16, 32), S(17, 40), S(64, 71), S(170, 174), S(278, 262)
+  constexpr QScore PassedRank[RANK_NB] = {
+    Q(0, 0), Q(7, 27), Q(16, 32), Q(17, 40), Q(64, 71), Q(170, 174), Q(278, 262)
   };
 
 //  constexpr Score RookOnClosedFile = S(10, 5);
   QScore RookOnClosedFile = Q(10, 5, 200, -200);
   TUNE(RookOnClosedFile);
-  constexpr Score RookOnOpenFile[] = { S(19, 6), S(47, 26) };
+  constexpr QScore RookOnOpenFile[] = { Q(19, 6), Q(47, 26) };
 
   // ThreatByMinor/ByRook[attacked PieceType] contains bonuses according to
   // which piece type attacks which one. Attacks on lesser pieces which are
   // pawn-defended are not considered.
-  constexpr Score ThreatByMinor[PIECE_TYPE_NB] = {
-    S(0, 0), S(5, 32), S(55, 41), S(77, 56), S(89, 119), S(79, 162)
+  constexpr QScore ThreatByMinor[PIECE_TYPE_NB] = {
+    Q(0, 0), Q(5, 32), Q(55, 41), Q(77, 56), Q(89, 119), Q(79, 162)
   };
 
-  constexpr Score ThreatByRook[PIECE_TYPE_NB] = {
-    S(0, 0), S(3, 44), S(37, 68), S(42, 60), S(0, 39), S(58, 43)
+  constexpr QScore ThreatByRook[PIECE_TYPE_NB] = {
+    Q(0, 0), Q(3, 44), Q(37, 68), Q(42, 60), Q(0, 39), Q(58, 43)
   };
 
   constexpr Value CorneredBishop = Value(50);
 
   // Assorted bonuses and penalties
-  constexpr Score UncontestedOutpost  = S(  1, 10);
-  constexpr Score BishopOnKingRing    = S( 24,  0);
-  constexpr Score BishopXRayPawns     = S(  4,  5);
-  constexpr Score FlankAttacks        = S(  8,  0);
-  constexpr Score Hanging             = S( 69, 36);
-  constexpr Score KnightOnQueen       = S( 16, 11);
-  constexpr Score LongDiagonalBishop  = S( 45,  0);
-  constexpr Score MinorBehindPawn     = S( 18,  3);
-  constexpr Score PassedFile          = S( 11,  8);
-  constexpr Score PawnlessFlank       = S( 17, 95);
-  constexpr Score ReachableOutpost    = S( 31, 22);
-  constexpr Score RestrictedPiece     = S(  7,  7);
-  constexpr Score RookOnKingRing      = S( 16,  0);
-  constexpr Score SliderOnQueen       = S( 60, 18);
-  constexpr Score ThreatByKing        = S( 24, 89);
-  constexpr Score ThreatByPawnPush    = S( 48, 39);
-  constexpr Score ThreatBySafePawn    = S(173, 94);
-  constexpr Score TrappedRook         = S( 55, 13);
-  constexpr Score WeakQueenProtection = S( 14,  0);
-  constexpr Score WeakQueen           = S( 56, 15);
+  constexpr QScore UncontestedOutpost  = Q(  1, 10);
+  constexpr QScore BishopOnKingRing    = Q( 24,  0);
+  constexpr QScore BishopXRayPawns     = Q(  4,  5);
+  constexpr QScore FlankAttacks        = Q(  8,  0);
+  constexpr QScore Hanging             = Q( 69, 36);
+  constexpr QScore KnightOnQueen       = Q( 16, 11);
+  constexpr QScore LongDiagonalBishop  = Q( 45,  0);
+  constexpr QScore MinorBehindPawn     = Q( 18,  3);
+  constexpr QScore PassedFile          = Q( 11,  8);
+  constexpr QScore PawnlessFlank       = Q( 17, 95);
+  constexpr QScore ReachableOutpost    = Q( 31, 22);
+  constexpr QScore RestrictedPiece     = Q(  7,  7);
+  constexpr QScore RookOnKingRing      = Q( 16,  0);
+  constexpr QScore SliderOnQueen       = Q( 60, 18);
+  constexpr QScore ThreatByKing        = Q( 24, 89);
+  constexpr QScore ThreatByPawnPush    = Q( 48, 39);
+  constexpr QScore ThreatBySafePawn    = Q(173, 94);
+  constexpr QScore TrappedRook         = Q( 55, 13);
+  constexpr QScore WeakQueenProtection = Q( 14,  0);
+  constexpr QScore WeakQueen           = Q( 56, 15);
 
 
 #undef S
@@ -299,10 +299,10 @@ namespace {
   private:
     template<Color Us> void initialize();
     template<Color Us, PieceType Pt> QScore pieces();
-    template<Color Us> Score king() const;
-    template<Color Us> Score threats() const;
-    template<Color Us> Score passed() const;
-    template<Color Us> Score space() const;
+    template<Color Us> QScore king() const;
+    template<Color Us> QScore threats() const;
+    template<Color Us> QScore passed() const;
+    template<Color Us> QScore space() const;
     Score mergeClosedness(QScore) const;
     Value winnable(Score score) const;
 
@@ -310,7 +310,7 @@ namespace {
     Material::Entry* me;
     Pawns::Entry* pe;
     Bitboard mobilityArea[COLOR_NB];
-    Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
+    QScore mobility[COLOR_NB] = { QSCORE_ZERO, QSCORE_ZERO };
 
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
@@ -533,7 +533,7 @@ namespace {
   // Evaluation::king() assigns bonuses and penalties to a king of a given color
 
   template<Tracing T> template<Color Us>
-  Score Evaluation<T>::king() const {
+  QScore Evaluation<T>::king() const {
 
     constexpr Color    Them = ~Us;
     constexpr Bitboard Camp = (Us == WHITE ? AllSquares ^ Rank6BB ^ Rank7BB ^ Rank8BB
@@ -545,7 +545,7 @@ namespace {
     const Square ksq = pos.square<KING>(Us);
 
     // Init the score with king shelter and enemy pawns storm
-    Score score = pe->king_safety<Us>(pos);
+    QScore score = pe->king_safety<Us>(pos);
 
     // Attacked squares defended at most once by our queen or king
     weak =  attackedBy[Them][ALL_PIECES]
@@ -624,7 +624,7 @@ namespace {
     score -= FlankAttacks * kingFlankAttack;
 
     if constexpr (T)
-        Trace::add(KING, Us, score);
+        Trace::add(KING, Us, to_score(score));
 
     return score;
   }
@@ -634,14 +634,14 @@ namespace {
   // attacking and the attacked pieces.
 
   template<Tracing T> template<Color Us>
-  Score Evaluation<T>::threats() const {
+  QScore Evaluation<T>::threats() const {
 
     constexpr Color     Them     = ~Us;
     constexpr Direction Up       = pawn_push(Us);
     constexpr Bitboard  TRank3BB = (Us == WHITE ? Rank3BB : Rank6BB);
 
     Bitboard b, weak, defended, nonPawnEnemies, stronglyProtected, safe;
-    Score score = SCORE_ZERO;
+    QScore score = QSCORE_ZERO;
 
     // Non-pawn enemies
     nonPawnEnemies = pos.pieces(Them) & ~pos.pieces(PAWN);
@@ -725,7 +725,7 @@ namespace {
     }
 
     if constexpr (T)
-        Trace::add(THREAT, Us, score);
+        Trace::add(THREAT, Us, to_score(score));
 
     return score;
   }
@@ -734,7 +734,7 @@ namespace {
   // pawns of the given color.
 
   template<Tracing T> template<Color Us>
-  Score Evaluation<T>::passed() const {
+  QScore Evaluation<T>::passed() const {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Up   = pawn_push(Us);
@@ -745,7 +745,7 @@ namespace {
     };
 
     Bitboard b, bb, squaresToQueen, unsafeSquares, blockedPassers, helpers;
-    Score score = SCORE_ZERO;
+    QScore score = QSCORE_ZERO;
 
     b = pe->passed_pawns(Us);
 
@@ -770,7 +770,7 @@ namespace {
 
         int r = relative_rank(Us, s);
 
-        Score bonus = PassedRank[r];
+        QScore bonus = PassedRank[r];
 
         if (r > RANK_3)
         {
@@ -818,7 +818,7 @@ namespace {
     }
 
     if constexpr (T)
-        Trace::add(PASSED, Us, score);
+        Trace::add(PASSED, Us, to_score(score));
 
     return score;
   }
@@ -874,11 +874,11 @@ Score Evaluation<T>::mergeClosedness(QScore score) const
   // Finally, the space bonus is multiplied by a weight which decreases according to occupancy.
 
   template<Tracing T> template<Color Us>
-  Score Evaluation<T>::space() const {
+  QScore Evaluation<T>::space() const {
 
     // Early exit if, for example, both queens or 6 minor pieces have been exchanged
     if (pos.non_pawn_material() < SpaceThreshold)
-        return SCORE_ZERO;
+        return QSCORE_ZERO;
 
     constexpr Color Them     = ~Us;
     constexpr Direction Down = -pawn_push(Us);
@@ -900,10 +900,12 @@ Score Evaluation<T>::mergeClosedness(QScore score) const
     // increased with number of total blocked pawns in position.
     int bonus = popcount(safe) + popcount(behind & safe & ~attackedBy[Them][ALL_PIECES]);
     int weight = pos.count<ALL_PIECES>(Us) - 3 + std::min(pe->blocked_count(), 9);
-    Score score = make_score(bonus * weight * weight / 16, 0);
+    // TODO We want to have a tunable parameterization for the 3rd and 4th
+    //      QScore parameter.
+    QScore score = Q(bonus * weight * weight / 16, 0);
 
     if constexpr (T)
-        Trace::add(SPACE, Us, score);
+        Trace::add(SPACE, Us, to_score(score));
 
     return score;
   }
@@ -1041,11 +1043,11 @@ Score Evaluation<T>::mergeClosedness(QScore score) const
     // Initialize score by reading the incrementally updated scores included in
     // the position object (material + piece square tables) and the material
     // imbalance. Score is computed internally from the white point of view.
-    QScore qscore = to_qscore(pos.psq_score() + me->imbalance() + pos.this_thread()->contempt);
+    QScore qscore = (pos.psq_score() + me->imbalance()) + to_qscore(pos.this_thread()->contempt);
 
     // Probe the pawn hash table
     pe = Pawns::probe(pos);
-    qscore += to_qscore(pe->pawn_score(WHITE) - pe->pawn_score(BLACK));
+    qscore += (pe->pawn_score(WHITE) - pe->pawn_score(BLACK));
 
     // Early exit if score is high
     auto lazy_skip = [&](Value lazyThreshold) {
@@ -1073,18 +1075,18 @@ Score Evaluation<T>::mergeClosedness(QScore score) const
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >());
 
-    qscore += to_qscore(mobility[WHITE] - mobility[BLACK]);
+    qscore += (mobility[WHITE] - mobility[BLACK]);
 
     // More complex interactions that require fully populated attack bitboards
     qscore +=
-    to_qscore(king<   WHITE>() - king<   BLACK>()
+    (king<   WHITE>() - king<   BLACK>()
             + passed< WHITE>() - passed< BLACK>());
 
     if (lazy_skip(LazyThreshold2))
         goto make_v;
 
     qscore +=
-    to_qscore(threats<WHITE>() - threats<BLACK>()
+    (threats<WHITE>() - threats<BLACK>()
             + space<  WHITE>() - space<  BLACK>());
 
 make_v:
@@ -1097,10 +1099,10 @@ make_v:
     // In case of tracing add all remaining individual evaluation terms
     if constexpr (T)
     {
-        Trace::add(MATERIAL, pos.psq_score());
-        Trace::add(IMBALANCE, me->imbalance());
-        Trace::add(PAWN, pe->pawn_score(WHITE), pe->pawn_score(BLACK));
-        Trace::add(MOBILITY, mobility[WHITE], mobility[BLACK]);
+        Trace::add(MATERIAL, to_score(pos.psq_score()));
+        Trace::add(IMBALANCE, to_score(me->imbalance()));
+        Trace::add(PAWN, to_score(pe->pawn_score(WHITE)), to_score(pe->pawn_score(BLACK)));
+        Trace::add(MOBILITY, to_score(mobility[WHITE]), to_score(mobility[BLACK]));
     }
 
     // Evaluation grain
