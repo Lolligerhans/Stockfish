@@ -204,7 +204,7 @@ namespace {
       {}, {}, {803, 1292}, {639, 974}, {1087, 1878}, {759, 1132}
   };
 
-  constexpr Score S(int a, int b              ) { return make_score(a,b    ); }
+  auto constexpr S = make_score;
   constexpr QScore Q(int a, int b, int c=0, int d=0) { return make_qscore(a,b,c,d); }
 
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
@@ -482,6 +482,7 @@ namespace {
                 {
                     Direction d = pawn_push(Us) + (file_of(s) == FILE_A ? EAST : WEST);
                     if (pos.piece_on(s + d) == make_piece(Us, PAWN))
+                        // TODO Parametrize 3rd and 4th value
                         score -= !pos.empty(s + d + pawn_push(Us)) ? make_score(CorneredBishop, CorneredBishop) * 4
                                                                    : make_score(CorneredBishop, CorneredBishop) * 3;
                 }
@@ -614,6 +615,7 @@ namespace {
 
     // Transform the kingDanger units into a Score, and subtract it from the evaluation
     if (kingDanger > 100)
+        // TODO Parametrize 3rd and 4th value
         score -= make_score(kingDanger * kingDanger / 4096, kingDanger / 16);
 
     // Penalty when our king is on a pawnless flank
@@ -778,11 +780,13 @@ namespace {
             Square blockSq = s + Up;
 
             // Adjust bonus based on the king's proximity
+            // TODO Parametrize 3rd and 4th value
             bonus += make_score(0, (  king_proximity(Them, blockSq) * 19 / 4
                                     - king_proximity(Us,   blockSq) *  2) * w);
 
             // If blockSq is not the queening square then consider also a second push
             if (r != RANK_7)
+                // TODO Parametrize 3rd and 4th value
                 bonus -= make_score(0, king_proximity(Us, blockSq + Up) * w);
 
             // If the pawn is free to advance, then increase the bonus
@@ -810,6 +814,7 @@ namespace {
                 if ((pos.pieces(Us) & bb) || (attackedBy[Us][ALL_PIECES] & blockSq))
                     k += 5;
 
+                // TODO Parametrize 3rd and 4th value
                 bonus += make_score(k * w, k * w);
             }
         } // r > RANK_3
@@ -900,8 +905,7 @@ Score Evaluation<T>::mergeClosedness(QScore score) const
     // increased with number of total blocked pawns in position.
     int bonus = popcount(safe) + popcount(behind & safe & ~attackedBy[Them][ALL_PIECES]);
     int weight = pos.count<ALL_PIECES>(Us) - 3 + std::min(pe->blocked_count(), 9);
-    // TODO We want to have a tunable parameterization for the 3rd and 4th
-    //      QScore parameter.
+    // TODO Parametrize 3rd and 4th value
     QScore score = Q(bonus * weight * weight / 16, 0);
 
     if constexpr (T)
