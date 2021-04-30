@@ -299,11 +299,14 @@ constexpr QScore to_qscore(Score s, int cg, int og) {
 */
 constexpr QScore to_qscore(Score s) {
   // Expand sign bit through signed-cast, then grab bit pattern by unsigned cast.
-  union { uint64_t un; QScore sc; } x = { (uint64_t) (int64_t) s };
+  union { uint64_t un; QScore sc; } x = { (uint64_t) (int64_t) (int32_t)s };
+  assert(to_score(x.sc) == s);
   return x.sc;
 }
 constexpr Score to_score(QScore s) {
   union { uint32_t un; Score sc; } x = { uint32_t(s) }; // Get bit pattern
+  assert(mg_value(to_qscore(x.sc)) == mg_value(s));
+  assert(eg_value(to_qscore(x.sc)) == eg_value(s));
   return x.sc;
 }
 
