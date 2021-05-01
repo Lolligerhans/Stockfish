@@ -2,6 +2,7 @@ Adjusted tuning parameters for QScore tuning:
   - Removed obsolete values that are never used
   - Adjusted range for non-CO 0 values from [-50,50] to [-15,15]
   - (Adjusted ck value accordingly)
+Initially for commit 4c9d56d0e
 
 Stockfish 010521 by the Stockfish developers (see AUTHORS file)
 mBonus[2][0][0],-175,-350,0,17.5,0.0020
