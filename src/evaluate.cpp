@@ -238,7 +238,7 @@ namespace {
 
   // Outpost[knight/bishop] contains bonuses for each knight or bishop occupying a
   // pawn protected square on rank 4 to 6 which is also safe from a pawn attack.
-  QScore Outpost[] = { Q(57, 38), Q(31, 24) };
+  QScore Outpost[] = { Q(57, 38, 300, 300), Q(31, 24, 300, 300) };
 
   // PassedRank[Rank] contains a bonus according to the rank of a passed pawn
   QScore PassedRank[RANK_NB] = {
@@ -262,7 +262,7 @@ namespace {
   constexpr Value CorneredBishop = Value(50);
 
   // Assorted bonuses and penalties
-  QScore UncontestedOutpost  = Q(  1, 10);
+  QScore UncontestedOutpost  = Q(  1, 10, 300, 300);
   QScore BishopOnKingRing    = Q( 24,  0);
   QScore BishopXRayPawns     = Q(  4,  5);
   QScore FlankAttacks        = Q(  8,  0);
@@ -286,13 +286,13 @@ namespace {
 TUNE(SetRange(standardRange), MobilityBonus);
 TUNE(SetRange(standardRange), BishopPawns);
 TUNE(SetRange(standardRange), KingProtector);
-TUNE(SetRange(standardRange), Outpost);
+TUNE(SetRange(default_range), Outpost);
 TUNE(SetRange(standardRange), PassedRank);
 TUNE(SetRange(standardRange), RookOnClosedFile);
 TUNE(SetRange(standardRange), RookOnOpenFile);
 TUNE(SetRange(standardRange), ThreatByMinor);
 TUNE(SetRange(standardRange), ThreatByRook);
-TUNE(SetRange(standardRange), UncontestedOutpost);
+TUNE(SetRange(default_range), UncontestedOutpost);
 TUNE(SetRange(standardRange), BishopOnKingRing);
 TUNE(SetRange(standardRange), BishopXRayPawns);
 TUNE(SetRange(standardRange), FlankAttacks);
