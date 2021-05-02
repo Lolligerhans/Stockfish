@@ -334,7 +334,7 @@ TUNE(SetRange(standardRange), WeakQueen);
     template<Color Us> QScore threats() const;
     template<Color Us> QScore passed() const;
     template<Color Us> QScore space() const;
-    Score mergeClosedness(QScore) const;
+    Score leadershipAdjustment(QScore) const;
     Value winnable(Score score) const;
 
     const Position& pos;
@@ -884,8 +884,9 @@ TUNE(SetRange(standardRange), WeakQueen);
 //     kingDanger.
 
 template<Tracing T>
-Score Evaluation<T>::mergeClosedness(QScore score) const
+Score Evaluation<T>::leadershipAdjustment(QScore score) const
 {
+    /* leaving this here so I dont need to search repo later
     auto const blockedPawns =              pos.pieces(WHITE, PAWN)
                             & shift<SOUTH>(pos.pieces(BLACK, PAWN));
     auto const interpolation = popcount(blockedPawns);
@@ -901,6 +902,36 @@ Score Evaluation<T>::mergeClosedness(QScore score) const
     // Add interpolated value both on MG and EG, later sidestepping normal
     // scaling.
     return to_score(score) + make_score(1,1) * int((og + cg) / InterpolMax);
+    */
+
+
+    /// Use 3rd and 4th value to adjust MG and EG based on the winning side.
+
+    // Interpolation w/o scale factor (== estimate of winning side)
+    int valueEstimateNormed = mg_value(score) * int(me->game_phase())
+                            + eg_value(score) * int(PHASE_MIDGAME - me->game_phase());
+    valueEstimateNormed /= PHASE_MIDGAME;
+    auto constexpr estimateNorm {128}; // Consider +- 1 pawn to be winning
+    valueEstimateNormed = std::clamp<int>(valueEstimateNormed, -estimateNorm, estimateNorm);
+
+    // Interpret QScore = Q(m, e, c, o) as tuple
+    // QScore = (m = MG if equal,
+    //           e = EG if equal,
+    //           c = MG adjustment if white ahead,
+    //           o = EG adjustment if white ahead).
+    // NOTE For the black side, values are subtracted. Parameters always
+    //      consider "Us" to be winning.
+    // Then, merge values for same game phase, yielding
+    // Score = S(MG given current situation, EG given current situation).
+    //
+    // Scale the adjustment by +1 if white is winning, by -1 if black is
+    // winning, proportionally in-between.
+    return S
+    (
+        // old score    + new adjustment   * scaled by value     / normalize scaling to [-1, 1]
+        mg_value(score) + (cg_value(score) * valueEstimateNormed / estimateNorm),
+        eg_value(score) + (og_value(score) * valueEstimateNormed / estimateNorm)
+    );
 }
 
 
@@ -1126,7 +1157,7 @@ Score Evaluation<T>::mergeClosedness(QScore score) const
 
 make_v:
     // Convert QScore to normal Score and never go back
-    Score score = this->mergeClosedness(qscore);
+    Score score = this->leadershipAdjustment(qscore);
 
     // Derive single value from mg and eg parts of score
     Value v = winnable(score);
