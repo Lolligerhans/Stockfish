@@ -895,14 +895,13 @@ TUNE(SetRange(-32, 32), P);
 template<Tracing T>
 Score Evaluation<T>::complexityAdjustment(QScore score, int complexity) const
 {
-    auto constexpr norm {256}; // Consider +- 1 pawn to be winning
-    complexity = std::clamp<int>(complexity, 0, norm);
+    auto constexpr max {128};
+    complexity = std::clamp<int>(complexity, 0, max);
 
     return S
     (
-        // old score    + new adjustment   * scaled by value     / normalize scaling to [-1, 1]
-        mg_value(score) + (cg_value(score) * complexity / norm),
-        eg_value(score) + (og_value(score) * complexity / norm)
+        mg_value(score) + (cg_value(score) * complexity / max),
+        eg_value(score) + (og_value(score) * complexity / max)
     );
 }
 
