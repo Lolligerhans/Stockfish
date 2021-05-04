@@ -312,9 +312,9 @@ TUNE(SetRange(standardRange), ThreatBySafePawn);
 TUNE(SetRange(standardRange), TrappedRook);
 TUNE(SetRange(standardRange), WeakQueenProtection);
 TUNE(SetRange(standardRange), WeakQueen);
-// TODO Some explicitly constructed scores remain untuned (kingdanger, space, passers, ...)
-//      Some integer literals remain untuned (winnable, ...).
-//      Some non-bonus parameters remain untuned (lazy threshold, sf, ...)
+
+int P[10] {0};
+TUNE(SetRange(-32, 32), P);
 
 #undef S
 
@@ -514,7 +514,6 @@ TUNE(SetRange(standardRange), WeakQueen);
                 {
                     Direction d = pawn_push(Us) + (file_of(s) == FILE_A ? EAST : WEST);
                     if (pos.piece_on(s + d) == make_piece(Us, PAWN))
-                        // TODO Parametrize 3rd and 4th value
                         score -= !pos.empty(s + d + pawn_push(Us)) ? make_score(CorneredBishop, CorneredBishop) * 4
                                                                    : make_score(CorneredBishop, CorneredBishop) * 3;
                 }
@@ -647,8 +646,8 @@ TUNE(SetRange(standardRange), WeakQueen);
 
     // Transform the kingDanger units into a Score, and subtract it from the evaluation
     if (kingDanger > 100)
-        // TODO Parametrize 3rd and 4th value
-        score -= make_score(kingDanger * kingDanger / 4096, kingDanger / 16);
+        score -= Q(kingDanger * kingDanger / 4096, kingDanger / 16,
+                kingDanger * P[0] / (16*16), kingDanger * P[1] / (16*16));
 
     // Penalty when our king is on a pawnless flank
     if (!(pos.pieces(PAWN) & KingFlank[file_of(ksq)]))
@@ -813,13 +812,21 @@ TUNE(SetRange(standardRange), WeakQueen);
 
             // Adjust bonus based on the king's proximity
             // TODO Parametrize 3rd and 4th value
-            bonus += make_score(0, (  king_proximity(Them, blockSq) * 19 / 4
-                                    - king_proximity(Us,   blockSq) *  2) * w);
+            auto tmp = ( king_proximity(Them, blockSq) * 19 / 4
+                       - king_proximity(Us,   blockSq) *  2) * w;
+            bonus += Q(0, tmp,
+                    tmp * P[2] / 16,
+                    tmp * P[3] / 16
+                    );
 
             // If blockSq is not the queening square then consider also a second push
             if (r != RANK_7)
-                // TODO Parametrize 3rd and 4th value
-                bonus -= make_score(0, king_proximity(Us, blockSq + Up) * w);
+            {
+                auto tmp2 = king_proximity(Us, blockSq + Up) * w;
+                bonus -= Q(0, tmp2,
+                        tmp2 * P[4] / 16,
+                        tmp2 * P[5] / 16);
+            }
 
             // If the pawn is free to advance, then increase the bonus
             if (pos.empty(blockSq))
@@ -846,8 +853,9 @@ TUNE(SetRange(standardRange), WeakQueen);
                 if ((pos.pieces(Us) & bb) || (attackedBy[Us][ALL_PIECES] & blockSq))
                     k += 5;
 
-                // TODO Parametrize 3rd and 4th value
-                bonus += make_score(k * w, k * w);
+                bonus += Q(k * w, k * w,
+                        k * w * P[6] / 16,
+                        k * w * P[7] / 16);
             }
         } // r > RANK_3
 
@@ -932,7 +940,9 @@ Score Evaluation<T>::complexityAdjustment(QScore score, int complexity) const
     int bonus = popcount(safe) + popcount(behind & safe & ~attackedBy[Them][ALL_PIECES]);
     int weight = pos.count<ALL_PIECES>(Us) - 3 + std::min(pe->blocked_count(), 9);
     // TODO Parametrize 3rd and 4th value
-    QScore score = Q(bonus * weight * weight / 16, 0);
+    QScore score = Q(bonus * weight * weight / 16, 0,
+            bonus * weight * weight * P[8] / (16*16),
+            bonus * weight * weight * P[9] / (16*16));
 
     if constexpr (T)
         Trace::add(SPACE, Us, to_score(score));
