@@ -335,8 +335,8 @@ TUNE(SetRange(standardRange), WeakQueen);
     template<Color Us> QScore threats() const;
     template<Color Us> QScore passed() const;
     template<Color Us> QScore space() const;
-    Score leadershipAdjustment(QScore) const;
-    Value winnable(Score score) const;
+    Score complexityAdjustment(QScore, int complexity) const;
+    Value winnable(QScore score) const;
 
     const Position& pos;
     Material::Entry* me;
@@ -885,53 +885,16 @@ TUNE(SetRange(standardRange), WeakQueen);
 //     kingDanger.
 
 template<Tracing T>
-Score Evaluation<T>::leadershipAdjustment(QScore score) const
+Score Evaluation<T>::complexityAdjustment(QScore score, int complexity) const
 {
-    /* leaving this here so I dont need to search repo later
-    auto const blockedPawns =              pos.pieces(WHITE, PAWN)
-                            & shift<SOUTH>(pos.pieces(BLACK, PAWN));
-    auto const interpolation = popcount(blockedPawns);
-    auto constexpr InterpolMax = 8;
+    auto constexpr norm {256}; // Consider +- 1 pawn to be winning
+    complexity = std::clamp<int>(complexity, 0, norm);
 
-    // Weighted sum. More OG if few blocked pawns, more CG if many.
-    auto const og = (InterpolMax-interpolation) * og_value(score);
-    auto const cg = (            interpolation) * cg_value(score);
-
-    // Test order of magnitude of changes to sanitize QScore implementation.
-//    dbg_mean_of(og + cg);
-
-    // Add interpolated value both on MG and EG, later sidestepping normal
-    // scaling.
-    return to_score(score) + make_score(1,1) * int((og + cg) / InterpolMax);
-    */
-
-
-    /// Use 3rd and 4th value to adjust MG and EG based on the winning side.
-
-    // Interpolation w/o scale factor (== estimate of winning side)
-    int valueEstimateNormed = mg_value(score) * int(me->game_phase())
-                            + eg_value(score) * int(PHASE_MIDGAME - me->game_phase());
-    valueEstimateNormed /= PHASE_MIDGAME;
-    auto constexpr estimateNorm {128}; // Consider +- 1 pawn to be winning
-    valueEstimateNormed = std::clamp<int>(valueEstimateNormed, -estimateNorm, estimateNorm);
-
-    // Interpret QScore = Q(m, e, c, o) as tuple
-    // QScore = (m = MG if equal,
-    //           e = EG if equal,
-    //           c = MG adjustment if white ahead,
-    //           o = EG adjustment if white ahead).
-    // NOTE For the black side, values are subtracted. Parameters always
-    //      consider "Us" to be winning.
-    // Then, merge values for same game phase, yielding
-    // Score = S(MG given current situation, EG given current situation).
-    //
-    // Scale the adjustment by +1 if white is winning, by -1 if black is
-    // winning, proportionally in-between.
     return S
     (
         // old score    + new adjustment   * scaled by value     / normalize scaling to [-1, 1]
-        mg_value(score) + (cg_value(score) * valueEstimateNormed / estimateNorm),
-        eg_value(score) + (og_value(score) * valueEstimateNormed / estimateNorm)
+        mg_value(score) + (cg_value(score) * complexity / norm),
+        eg_value(score) + (og_value(score) * complexity / norm)
     );
 }
 
@@ -983,10 +946,8 @@ Score Evaluation<T>::leadershipAdjustment(QScore score) const
   // by interpolation from the midgame and endgame values.
 
   template<Tracing T>
-  Value Evaluation<T>::winnable(Score score) const {
+  Value Evaluation<T>::winnable(QScore qscore) const {
 
-    Value mg = mg_value(score);
-    Value eg = eg_value(score);
     // NOTE
     // The commented sections could be used to have CG, OG be affected by
     // initiative separately. Omitted in favour of the alternative approach
@@ -1015,6 +976,11 @@ Score Evaluation<T>::leadershipAdjustment(QScore score) const
                     + 51 * !pos.non_pawn_material()
                     - 43 * almostUnwinnable
                     -110 ;
+
+    Score score = complexityAdjustment(qscore, complexity);
+
+    Value mg = mg_value(score);
+    Value eg = eg_value(score);
 
     // Now apply the bonus: note that we find the attacking side by extracting the
     // sign of the midgame or endgame values, and that we carefully cap the bonus
@@ -1157,11 +1123,9 @@ Score Evaluation<T>::leadershipAdjustment(QScore score) const
             + space<  WHITE>() - space<  BLACK>());
 
 make_v:
-    // Convert QScore to normal Score and never go back
-    Score score = this->leadershipAdjustment(qscore);
 
     // Derive single value from mg and eg parts of score
-    Value v = winnable(score);
+    Value v = winnable(qscore);
 
     // In case of tracing add all remaining individual evaluation terms
     if constexpr (T)
