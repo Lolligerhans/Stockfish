@@ -356,8 +356,17 @@ namespace {
 
     Bitboard dblAttackByPawn = pawn_double_attacks_bb<Us>(pos.pieces(Us, PAWN));
 
-    // Find our pawns that are blocked or on the first two ranks
-    Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
+    // o . .        . . .
+    // . . .   -->  o x .
+    // . x .        . . .  <
+    //   ^            ^
+    // When our pawn evacuates this squae, their pawn will just protect it afterwards.
+    auto const loneAtk = pe->pawn_attacks(Us) & ~dblAttackByPawn;
+    auto const counterAttackers = shift<Down>(pos.pieces(Them, PAWN)) & loneAtk & ~pos.pieces();
+    auto const counterAttackedSquares = pawn_attacks_bb<Them>(counterAttackers);
+
+    // Find our pawns that are blocked or on the first two ranks or can be counter-attacked
+    Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks | counterAttackedSquares);
 
     // Squares occupied by those pawns, by our king or queen, by blockers to attacks on our king
     // or controlled by enemy pawns are excluded from the mobility area.
