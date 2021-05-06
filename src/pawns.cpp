@@ -170,8 +170,13 @@ namespace {
 
             score += make_score(v, v * (r - 2) / 4);
         }
+        else
+        {
+            score -=  Doubled * doubled
+                    + WeakLever * more_than_one(lever);
 
-        else if (!neighbours)
+
+        if (!neighbours)
         {
             if (     opposed
                 &&  (ourPawns & forward_file_bb(Them, s))
@@ -185,10 +190,7 @@ namespace {
         else if (backward)
             score -=  Backward
                     + WeakUnopposed * !opposed * bool(~(FileABB | FileHBB) & s);
-
-        if (!support)
-            score -=  Doubled * doubled
-                    + WeakLever * more_than_one(lever);
+        }
 
         if (blocked && r >= RANK_5)
             score += BlockedPawn[r - RANK_5];
