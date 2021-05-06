@@ -33,7 +33,7 @@ namespace {
 
   // Pawn penalties
   constexpr Score Backward      = S( 9, 22);
-  constexpr Score Doubled       = S(13, 51);
+  constexpr Score Doubled       = S(2*13, 2*51);
   constexpr Score DoubledEarly  = S(20,  7);
   constexpr Score Isolated      = S( 3, 15);
   constexpr Score WeakLever     = S( 4, 58);
@@ -165,18 +165,13 @@ namespace {
         // Score this pawn
         if (support | phalanx)
         {
-            int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed) - bool(doubled))
+            int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed) + bool(doubled))
                    + 22 * popcount(support);
 
             score += make_score(v, v * (r - 2) / 4);
         }
-        else
-        {
-            score -=  Doubled * doubled
-                    + WeakLever * more_than_one(lever);
 
-
-        if (!neighbours)
+        else if (!neighbours)
         {
             if (     opposed
                 &&  (ourPawns & forward_file_bb(Them, s))
@@ -190,7 +185,10 @@ namespace {
         else if (backward)
             score -=  Backward
                     + WeakUnopposed * !opposed * bool(~(FileABB | FileHBB) & s);
-        }
+
+        if (!support)
+            score -=  Doubled * doubled
+                    + WeakLever * more_than_one(lever);
 
         if (blocked && r >= RANK_5)
             score += BlockedPawn[r - RANK_5];
