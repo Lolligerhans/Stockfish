@@ -188,7 +188,7 @@ namespace {
 
         if (!support)
             score -=  Doubled * doubled
-                    + WeakLever * more_than_one(lever);
+                    + WeakLever * !opposed * more_than_one(lever);
 
         if (blocked && r >= RANK_5)
             score += BlockedPawn[r - RANK_5];
