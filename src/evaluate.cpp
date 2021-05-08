@@ -905,6 +905,10 @@ namespace {
     Value mg = mg_value(score);
     Value eg = eg_value(score);
 
+    auto const sc = eg_value(pe->pawn_score(WHITE) - pe->pawn_score(BLACK));
+    if (eg > 0) complexity += sc;
+    if (eg < 0) complexity -= sc;
+
     // Now apply the bonus: note that we find the attacking side by extracting the
     // sign of the midgame or endgame values, and that we carefully cap the bonus
     // so that the midgame and endgame scores do not change sign after the bonus.
