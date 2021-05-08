@@ -905,7 +905,7 @@ namespace {
     Value mg = mg_value(score);
     Value eg = eg_value(score);
 
-    auto const sc = eg_value(pe->pawn_score(WHITE) - pe->pawn_score(BLACK));
+    auto const sc = eg_value(pe->pawn_score(WHITE) - pe->pawn_score(BLACK)) / 2;
     if (eg > 0) complexity += sc;
     if (eg < 0) complexity -= sc;
 
