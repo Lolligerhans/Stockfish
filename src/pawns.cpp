@@ -28,8 +28,9 @@ namespace Stockfish {
 
 namespace {
 
+  auto constexpr S = make_score;
+
   #define V Value
-  #define S(mg, eg) make_score(mg, eg)
 
   // Pawn penalties
   constexpr Score Backward      = S( 9, 22);
@@ -75,7 +76,6 @@ namespace {
   constexpr Score KingOnFile[2][2] = {{ S(-21,10), S(-7, 1)  },
                                      {  S(  0,-3), S( 9,-4) }};
 
-  #undef S
   #undef V
 
 
@@ -188,7 +188,8 @@ namespace {
 
         if (!support)
             score -=  Doubled * doubled
-                    + WeakLever * (1 + 2* !opposed) * more_than_one(lever) / 2;
+                    + WeakLever * more_than_one(lever)
+                    + S(10, 20) * !opposed;
 
         if (blocked && r >= RANK_5)
             score += BlockedPawn[r - RANK_5];
