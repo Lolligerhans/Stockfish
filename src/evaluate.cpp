@@ -923,7 +923,7 @@ namespace {
 
         // If eg value is larger than +1, nothing happens. If eg value is lower
         // than +1, val is scaled down proportionally.
-        return val * sf / interpolMax;
+        return val * sf * 2 / interpolMax;
     };
 
     // Now apply the bonus: note that we find the attacking side by extracting the
