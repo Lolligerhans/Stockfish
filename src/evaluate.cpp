@@ -914,15 +914,12 @@ namespace {
     Value mg = mg_value(score);
     Value eg = eg_value(score);
 
-    auto const scale = [&](Phase Ph, int val)
+    auto const scaleEg = [&eg](int const val)
     {
         auto constexpr interpolMax {128};
 
         // Determine scaling factor
-        int sf;
-        if (Ph == MG) sf = std::clamp<int>(mg, -interpolMax, interpolMax);
-        if (Ph == EG) sf = std::clamp<int>(eg, -interpolMax, interpolMax);
-        sf = std::abs(sf);
+        int const sf = std::abs(std::clamp<int>(eg, -interpolMax, interpolMax));
 
         // If eg value is larger than +1, nothing happens. If eg value is lower
         // than +1, val is scaled down proportionally.
@@ -936,7 +933,7 @@ namespace {
 
     int v = ((eg > 0) - (eg < 0)) * std::clamp(complexity,
                                                -abs(eg),
-                                               scale(EG, complexity));
+                                               scaleEg(complexity));
 
     mg += u;
     eg += v;
