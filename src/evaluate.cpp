@@ -914,26 +914,12 @@ namespace {
     Value mg = mg_value(score);
     Value eg = eg_value(score);
 
-    auto const scaleEg = [&eg](int const val)
-    {
-        auto constexpr interpolMax {128};
-
-        // Determine scaling factor
-        int const sf = std::abs(std::clamp<int>(eg, -interpolMax, interpolMax));
-
-        // If eg value is larger than +1, nothing happens. If eg value is lower
-        // than +1, val is scaled down proportionally.
-        return val * sf * 2 / interpolMax;
-    };
-
     // Now apply the bonus: note that we find the attacking side by extracting the
     // sign of the midgame or endgame values, and that we carefully cap the bonus
     // so that the midgame and endgame scores do not change sign after the bonus.
     int u = ((mg > 0) - (mg < 0)) * std::clamp(complexity + 50, -abs(mg), 0);
 
-    int v = ((eg > 0) - (eg < 0)) * std::clamp(complexity,
-                                               -abs(eg),
-                                               scaleEg(complexity));
+    int v = ((eg > 0) - (eg < 0)) * std::clamp(complexity, -abs(eg), abs(eg));
 
     mg += u;
     eg += v;
