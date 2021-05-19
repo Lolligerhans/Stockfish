@@ -922,7 +922,7 @@ namespace {
     // sign of the midgame or endgame values, and that we carefully cap the bonus
     // so that the midgame and endgame scores do not change sign after the bonus.
     bool const sameSign = int_fast32_t(mg) * int_fast32_t(eg) > 0;
-    int u = ((mg > 0) - (mg < 0)) * std::clamp(complexity + 50, -abs(mg), sameSign ? abs(mg) : 0);
+    int u = ((mg > 0) - (mg < 0)) * std::clamp(complexity + 50, -abs(mg), sameSign ? abs(eg) : 0);
     int v = ((eg > 0) - (eg < 0)) * std::max(complexity, -abs(eg));
 
     mg += u;
