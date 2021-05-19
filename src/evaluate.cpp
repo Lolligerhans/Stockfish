@@ -889,22 +889,6 @@ namespace {
   // the known attacking/defending status of the players. The final value is derived
   // by interpolation from the midgame and endgame values.
 
-int k[] =
-{
-  9,
-  12,
-  9,
-  21,
-  24,
-  51,
-  43,
-  110,
-
-  64, // eg scaling
-  50 // mg offset
-};
-TUNE(k);
-
   template<Tracing T>
   Value Evaluation<T>::winnable(Score score) const {
 
@@ -921,14 +905,14 @@ TUNE(k);
                        || rank_of(pos.square<KING>(BLACK)) < RANK_5;
 
     // Compute the initiative bonus for the attacking side
-    int complexity = k[0] * pe->passed_count()
-                    +k[1] * pos.count<PAWN>()
-                    +k[2] * outflanking
-                    +k[3] * pawnsOnBothFlanks
-                    +k[4] * infiltration
-                    +k[5] * !pos.non_pawn_material()
-                    -k[6] * almostUnwinnable
-                    -k[7] ;
+    int complexity =   8 * pe->passed_count()
+                    + 12 * pos.count<PAWN>()
+                    +  9 * outflanking
+                    + 23 * pawnsOnBothFlanks
+                    + 26 * infiltration
+                    + 53 * !pos.non_pawn_material()
+                    - 46 * almostUnwinnable
+                    -122 ;
 
     Value mg = mg_value(score);
     Value eg = eg_value(score);
@@ -936,8 +920,8 @@ TUNE(k);
     // Now apply the bonus: note that we find the attacking side by extracting the
     // sign of the midgame or endgame values, and that we carefully cap the bonus
     // so that the midgame and endgame scores do not change sign after the bonus.
-    int u = ((mg > 0) - (mg < 0)) * std::clamp(complexity + k[9], -abs(mg), 0);
-    int v = ((eg > 0) - (eg < 0)) * std::clamp(complexity, -abs(eg), k[8] * abs(eg) / 64);
+    int u = ((mg > 0) - (mg < 0)) * std::clamp(complexity + 52, -abs(mg), 0);
+    int v = ((eg > 0) - (eg < 0)) * std::clamp(complexity, -abs(eg), 57 * abs(eg) / 64);
 
     mg += u;
     eg += v;
