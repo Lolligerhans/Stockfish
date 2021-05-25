@@ -230,58 +230,58 @@ namespace {
   // BishopPawns[distance from edge] contains a file-dependent penalty for pawns on
   // squares of the same color as our bishop.
   QScore BishopPawns[int(FILE_NB) / 2] = {
-    Q(3, 8), Q(3, 9), Q(2, 8), Q(3, 8)
+    Q(3,8,0,-1), Q(2,10,0,-1, Q(2,8,0,0), Q(3,8,0,0)
   };
 
   // KingProtector[knight/bishop] contains penalty for each distance unit to own king
-  QScore KingProtector[] = { Q(8, 9), Q(6, 9) };
+  QScore KingProtector[] = { Q(8,11,0,0), Q(6,7,2,0) };
 
   // Outpost[knight/bishop] contains bonuses for each knight or bishop occupying a
   // pawn protected square on rank 4 to 6 which is also safe from a pawn attack.
-  QScore Outpost[] = { Q(57, 38), Q(31, 24) };
+  QScore Outpost[] = { Q(54,41,2,4), Q(30,19,-1,-1) };
 
   // PassedRank[Rank] contains a bonus according to the rank of a passed pawn
   QScore PassedRank[RANK_NB] = {
-    Q(0, 0), Q(7, 27), Q(16, 32), Q(17, 40), Q(64, 71), Q(170, 174), Q(278, 262)
+    Q(0, 0), Q(6,28,3,1), Q(13,24,-1,0), Q(19,41,-2,1), Q(69,70,-3,8), Q(175,169,-2,9), Q(286,274,5,12)
   };
 
-  QScore RookOnClosedFile = Q(10, 5);
-  QScore RookOnOpenFile[] = { Q(19, 6), Q(47, 26) };
+  QScore RookOnClosedFile = Q(11,3,-2,1);
+  QScore RookOnOpenFile[] = { Q(22,5,-8,-2), Q(44,32,13,-5) };
 
   // ThreatByMinor/ByRook[attacked PieceType] contains bonuses according to
   // which piece type attacks which one. Attacks on lesser pieces which are
   // pawn-defended are not considered.
   QScore ThreatByMinor[PIECE_TYPE_NB] = {
-    Q(0, 0), Q(5, 32), Q(55, 41), Q(77, 56), Q(89, 119), Q(79, 162)
+    Q(0, 0), Q(15,39,-3,-1), Q(60,42,3,11), Q(74,64,-3,2), Q(87,119,-5,11), Q(91,148,-1,0)
   };
 
   QScore ThreatByRook[PIECE_TYPE_NB] = {
-    Q(0, 0), Q(3, 44), Q(37, 68), Q(42, 60), Q(0, 39), Q(58, 43)
+    Q(0, 0), Q(0,46,9,3), Q(42,63,-3,0), Q(43,61,0,-9), Q(1,37,4,1), Q(61,43,3,1)
   };
 
   constexpr Value CorneredBishop = Value(50);
 
   // Assorted bonuses and penalties
-  QScore UncontestedOutpost  = Q(  1, 10);
-  QScore BishopOnKingRing    = Q( 24,  0);
-  QScore BishopXRayPawns     = Q(  4,  5);
-  QScore FlankAttacks        = Q(  8,  0);
-  QScore Hanging             = Q( 69, 36);
-  QScore KnightOnQueen       = Q( 16, 11);
-  QScore LongDiagonalBishop  = Q( 45,  0);
-  QScore MinorBehindPawn     = Q( 18,  3);
-  QScore PassedFile          = Q( 11,  8);
-  QScore PawnlessFlank       = Q( 17, 95);
-  QScore ReachableOutpost    = Q( 31, 22);
-  QScore RestrictedPiece     = Q(  7,  7);
-  QScore RookOnKingRing      = Q( 16,  0);
-  QScore SliderOnQueen       = Q( 60, 18);
-  QScore ThreatByKing        = Q( 24, 89);
-  QScore ThreatByPawnPush    = Q( 48, 39);
-  QScore ThreatBySafePawn    = Q(173, 94);
-  QScore TrappedRook         = Q( 55, 13);
-  QScore WeakQueenProtection = Q( 14,  0);
-  QScore WeakQueen           = Q( 56, 15);
+  QScore UncontestedOutpost  = Q(0,11,-1,-3);
+  QScore BishopOnKingRing    = Q(34,6,0,-2);
+  QScore BishopXRayPawns     = Q(6,6,-1,1);
+  QScore FlankAttacks        = Q(9,-1,-1,-1);
+  QScore Hanging             = Q(69,41,-6,0);
+  QScore KnightOnQueen       = Q(16,12,2,-3);
+  QScore LongDiagonalBishop  = Q(43,-4,-2,7);
+  QScore MinorBehindPawn     = Q(17,7,4,5);
+  QScore PassedFile          = Q(13,4,-2,0);
+  QScore PawnlessFlank       = Q(13,96,-4,0);
+  QScore ReachableOutpost    = Q(30,17,-8,-5);
+  QScore RestrictedPiece     = Q(8,5,0,-1);
+  QScore RookOnKingRing      = Q(18,-1,0,2);
+  QScore SliderOnQueen       = Q(65,10,-6,6);
+  QScore ThreatByKing        = Q(29,89,4,8);
+  QScore ThreatByPawnPush    = Q(49,42,1,-1);
+  QScore ThreatBySafePawn    = Q(175,104,1,16);
+  QScore TrappedRook         = Q(55,8,1,4);
+  QScore WeakQueenProtection = Q(14,3,0,1);
+  QScore WeakQueen           = Q(58,18,-5,-5);
 
 // TODO Some explicitly constructed scores remain untuned (kingdanger, space, passers, ...)
 //      Some integer literals remain untuned (winnable, ...).
