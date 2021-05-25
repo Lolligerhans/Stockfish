@@ -1146,7 +1146,7 @@ make_v:
     v = (v / 16) * 16;
 
     // Side to move point of view
-    v = (pos.side_to_move() == WHITE ? v : -v) + Tempo;
+    v = (pos.side_to_move() == WHITE ? v : -v);
 
     return v;
   }
@@ -1209,7 +1209,7 @@ Value Eval::evaluate(const Position& pos) {
                     + material / 32
                     - 4 * pos.rule50_count();
 
-         Value nnue = NNUE::evaluate(pos) * scale / 1024 + Time.tempoNNUE;
+         Value nnue = NNUE::evaluate(pos) * scale / 1024;
 
          if (pos.is_chess960())
              nnue += fix_FRC(pos);
