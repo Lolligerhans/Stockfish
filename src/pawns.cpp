@@ -79,15 +79,6 @@ namespace {
   #undef S
   #undef V
 
-TUNE(SetRange(standardRange), Backward);
-TUNE(SetRange(standardRange), Doubled);
-TUNE(SetRange(standardRange), DoubledEarly);
-TUNE(SetRange(standardRange), Isolated);
-TUNE(SetRange(standardRange), WeakLever);
-TUNE(SetRange(standardRange), WeakUnopposed);
-TUNE(SetRange(standardRange), BlockedPawn);
-TUNE(SetRange(standardRange), BlockedStorm);
-TUNE(SetRange(standardRange), KingOnFile);
 // TODO Some values and literals and explicitly constructed scores remain untuned.
 
   /// evaluate() calculates a score for the static pawn structure of the given position.
