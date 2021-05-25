@@ -283,35 +283,6 @@ namespace {
   QScore WeakQueenProtection = Q( 14,  0);
   QScore WeakQueen           = Q( 56, 15);
 
-TUNE(SetRange(standardRange), MobilityBonus);
-TUNE(SetRange(standardRange), BishopPawns);
-TUNE(SetRange(standardRange), KingProtector);
-TUNE(SetRange(standardRange), Outpost);
-TUNE(SetRange(standardRange), PassedRank);
-TUNE(SetRange(standardRange), RookOnClosedFile);
-TUNE(SetRange(standardRange), RookOnOpenFile);
-TUNE(SetRange(standardRange), ThreatByMinor);
-TUNE(SetRange(standardRange), ThreatByRook);
-TUNE(SetRange(standardRange), UncontestedOutpost);
-TUNE(SetRange(standardRange), BishopOnKingRing);
-TUNE(SetRange(standardRange), BishopXRayPawns);
-TUNE(SetRange(standardRange), FlankAttacks);
-TUNE(SetRange(standardRange), Hanging);
-TUNE(SetRange(standardRange), KnightOnQueen);
-TUNE(SetRange(standardRange), LongDiagonalBishop);
-TUNE(SetRange(standardRange), MinorBehindPawn);
-TUNE(SetRange(standardRange), PassedFile);
-TUNE(SetRange(standardRange), PawnlessFlank);
-TUNE(SetRange(standardRange), ReachableOutpost);
-TUNE(SetRange(standardRange), RestrictedPiece);
-TUNE(SetRange(standardRange), RookOnKingRing);
-TUNE(SetRange(standardRange), SliderOnQueen);
-TUNE(SetRange(standardRange), ThreatByKing);
-TUNE(SetRange(standardRange), ThreatByPawnPush);
-TUNE(SetRange(standardRange), ThreatBySafePawn);
-TUNE(SetRange(standardRange), TrappedRook);
-TUNE(SetRange(standardRange), WeakQueenProtection);
-TUNE(SetRange(standardRange), WeakQueen);
 // TODO Some explicitly constructed scores remain untuned (kingdanger, space, passers, ...)
 //      Some integer literals remain untuned (winnable, ...).
 //      Some non-bonus parameters remain untuned (lazy threshold, sf, ...)
