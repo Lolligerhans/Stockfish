@@ -281,8 +281,6 @@ namespace {
   QScore TrappedRook         = Q(55,8,1,4);
   QScore WeakQueenProtection = Q(14,3,0,1);
   QScore WeakQueen           = Q(58,18,-5,-5);
-  
-  TUNE(SetRange(-110,260), MobilityBonus);
 
 // TODO Some explicitly constructed scores remain untuned (kingdanger, space, passers, ...)
 //      Some integer literals remain untuned (winnable, ...).
