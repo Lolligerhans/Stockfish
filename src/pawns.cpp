@@ -33,18 +33,18 @@ namespace {
   #define S(mg, eg) make_score(mg, eg)
 
   // Pawn penalties
-  QScore Backward      = Q( 9, 22);
-  QScore Doubled       = Q(13, 51);
-  QScore DoubledEarly  = Q(20,  7);
-  QScore Isolated      = Q( 3, 15);
-  QScore WeakLever     = Q( 4, 58);
-  QScore WeakUnopposed = Q(13, 24);
+  QScore Backward      = Q(10,15,2,2);
+  QScore Doubled       = Q(7,50,0,-3);
+  QScore DoubledEarly  = Q(26,10,-5,3);
+  QScore Isolated      = Q(5,10,-1,1);
+  QScore WeakLever     = Q(13,56,5,5);
+  QScore WeakUnopposed = Q(18,20,1,-4);
 
   // Bonus for blocked pawns at 5th or 6th rank
-  QScore BlockedPawn[2] = { Q(-17, -6), Q(-9, 2) };
+  QScore BlockedPawn[2] = { Q(-17,-4,-1,0), Q(-14,9,-4,4) };
 
   QScore BlockedStorm[RANK_NB] = {
-    Q(0, 0), Q(0, 0), Q(75, 78), Q(-8, 16), Q(-6, 10), Q(-6, 6), Q(0, 2)
+    Q(0, 0), Q(0, 0), Q(75,93,2,-3), Q(-6,14,-3,-5), Q(2,14,8,2), Q(-11,16,3,-2), Q(-1,-9,-3,-10)
   };
 
   // Connected pawn bonus
@@ -73,8 +73,8 @@ namespace {
 
   // KingOnFile[semi-open Us][semi-open Them] contains bonuses/penalties
   // for king when the king is on a semi-open or open file.
-  QScore KingOnFile[2][2] = {{ Q(-21,10), Q(-7, 1)  },
-                                     {  Q(  0,-3), Q( 9,-4) }};
+  QScore KingOnFile[2][2] = {{ Q(-16,16,-6,0), Q(-1,-3,-4,-3)  },
+                                     {  Q(5,-2,-1,0), Q(10,-4,-3,9) }};
 
   #undef S
   #undef V
