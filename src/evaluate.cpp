@@ -230,7 +230,7 @@ namespace {
   // BishopPawns[distance from edge] contains a file-dependent penalty for pawns on
   // squares of the same color as our bishop.
   QScore BishopPawns[int(FILE_NB) / 2] = {
-    Q(3,8,0,-1), Q(2,10,0,-1) Q(2,8,0,0), Q(3,8,0,0) };
+    Q(3,8,0,-1), Q(2,10,0,-1), Q(2,8,0,0), Q(3,8,0,0) };
 
   // KingProtector[knight/bishop] contains penalty for each distance unit to own king
   QScore KingProtector[] = { Q(8,11,0,0), Q(6,7,2,0) };
