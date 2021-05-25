@@ -99,9 +99,6 @@ QScore PBonus[RANK_NB][FILE_NB] =
    { Q( -7, -1), Q(  6,-14), Q( -2, 13), Q(-11, 22), Q(  4, 24), Q(-14, 17), Q( 10,  7), Q( -9,  7) }
   };
 
-TUNE(SetRange(standardRange), Bonus, PSQT::init);
-TUNE(SetRange(standardRange), PBonus, PSQT::init);
-
 } // namespace
 
 
