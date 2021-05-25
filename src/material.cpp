@@ -57,9 +57,6 @@ namespace {
 
   #undef S
 
-  TUNE(SetRange(standardRange), QuadraticOurs);
-  TUNE(SetRange(standardRange), QuadraticTheirs);
-
   // Endgame evaluation and scaling functions are accessed directly and not through
   // the function maps because they correspond to more than one material hash key.
   Endgame<KXK>    EvaluateKXK[] = { Endgame<KXK>(WHITE),    Endgame<KXK>(BLACK) };
