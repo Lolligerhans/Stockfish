@@ -926,7 +926,7 @@ namespace {
 
     mg += u;
     eg += v;
-    auto eg2 = Value((int_fast64_t)eg * (int_fast64_t)eg / 128) * (eg > 0 ? 1 : -1);
+    auto eg2 = Value((int_fast64_t)eg * (int_fast64_t)eg / 256) * (eg > 0 ? 1 : -1);
     eg = (15*eg + eg2) / 16;
 
     // Compute the scale factor for the winning side
