@@ -810,12 +810,18 @@ namespace {
             if (pos.empty(blockSq))
             {
                 squaresToQueen = forward_file_bb(Us, s);
+                Bitboard unsafe2 =
                 unsafeSquares = passed_pawn_span(Us, s);
 
                 bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN);
 
                 if (!(pos.pieces(Them) & bb))
-                    unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
+                    unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them),
+                    // without rook need two coordinating pieces
+                    unsafe2 &= attackedBy2[Them] | (pos.pieces(Them) & attackedBy[Them][ALL_PIECES]);
+                else
+                    // With rook 1 more is enough
+                    unsafe2 &= attackedBy[Them][ALL_PIECES];
 
                 // If there are no enemy pieces or attacks on passed pawn span, assign a big bonus.
                 // Or if there is some, but they are all attacked by our pawns, assign a bit smaller bonus.
@@ -826,6 +832,8 @@ namespace {
                         !(unsafeSquares & squaresToQueen) ? 17 :
                         !(unsafeSquares & blockSq)        ?  7 :
                                                              0 ;
+                if (!(unsafe2 & squaresToQueen))
+                    k += 5;
 
                 // Assign a larger bonus if the block square is defended
                 if ((pos.pieces(Us) & bb) || (attackedBy[Us][ALL_PIECES] & blockSq))
