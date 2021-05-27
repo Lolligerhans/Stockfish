@@ -830,7 +830,7 @@ namespace {
                 int k = !unsafeSquares                    ? 36 :
                 !(unsafeSquares & ~attackedBy[Us][PAWN])  ? 30 :
                         !(unsafeSquares & squaresToQueen) ? 17 :
-                        !(unsafeSquares & blockSq)        ? !(unsafe2 & squaresToQueen) ? 7 : 3 :
+                        !(unsafeSquares & blockSq) && !(unsafe2 & squaresToQueen) ? 7 :
                                                              0 ;
 
                 // Assign a larger bonus if the block square is defended
