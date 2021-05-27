@@ -832,8 +832,8 @@ namespace {
                         !(unsafeSquares & squaresToQueen) ? 17 :
                         !(unsafeSquares & blockSq)        ?  7 :
                                                              0 ;
-                if (!(unsafe2 & squaresToQueen))
-                    k += 5;
+                if (unsafe2 & squaresToQueen)
+                    k = std::max(0, k-5);
 
                 // Assign a larger bonus if the block square is defended
                 if ((pos.pieces(Us) & bb) || (attackedBy[Us][ALL_PIECES] & blockSq))
