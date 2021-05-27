@@ -304,7 +304,7 @@ namespace {
   constexpr Score TrappedRook         = S( 55, 13);
   constexpr Score WeakQueenProtection = S( 14,  0);
   constexpr Score WeakQueen           = S( 56, 15);
-  constexpr Score K[] =
+  Score K[] =
   {
       make_score(36,36),
       make_score(30,30),
@@ -316,6 +316,7 @@ namespace {
   };
 
 #undef S
+TUNE(K);
 
   // Evaluation class computes and stores attacks tables and other working data
   template<Tracing T>
