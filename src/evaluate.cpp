@@ -926,7 +926,8 @@ namespace {
 
     mg += u;
     eg += v;
-    eg = Value((int_fast64_t)eg * (int_fast64_t)eg / 256) * (eg > 0 ? 1 : -1);
+    auto eg2 = Value((int_fast64_t)eg * (int_fast64_t)eg / 256) * (eg > 0 ? 1 : -1);
+    eg = (eg + eg2) / 2;
 
     // Compute the scale factor for the winning side
     Color strongSide = eg > VALUE_DRAW ? WHITE : BLACK;
