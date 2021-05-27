@@ -304,7 +304,16 @@ namespace {
   constexpr Score TrappedRook         = S( 55, 13);
   constexpr Score WeakQueenProtection = S( 14,  0);
   constexpr Score WeakQueen           = S( 56, 15);
+  constexpr Score K[] =
+  {
+      make_score(36,36),
+      make_score(30,30),
+      make_score(17,17),
+      make_score(7,7),
+      make_score(0,0),
 
+      make_score(5,5)
+  };
 
 #undef S
 
@@ -821,17 +830,18 @@ namespace {
                 // Or if there is some, but they are all attacked by our pawns, assign a bit smaller bonus.
                 // Otherwise assign a smaller bonus if the path to queen is not attacked
                 // and even smaller bonus if it is attacked but block square is not.
-                int k = !unsafeSquares                    ? 36 :
-                !(unsafeSquares & ~attackedBy[Us][PAWN])  ? 30 :
-                        !(unsafeSquares & squaresToQueen) ? 17 :
-                        !(unsafeSquares & blockSq)        ?  7 :
-                                                             0 ;
+                Score
+                    k = !unsafeSquares                    ? K[0] :
+                !(unsafeSquares & ~attackedBy[Us][PAWN])  ? K[1] :
+                        !(unsafeSquares & squaresToQueen) ? K[2] :
+                        !(unsafeSquares & blockSq)        ? K[3] :
+                                                            K[4] ;
 
                 // Assign a larger bonus if the block square is defended
                 if ((pos.pieces(Us) & bb) || (attackedBy[Us][ALL_PIECES] & blockSq))
-                    k += 5;
+                    k += K[5];
 
-                bonus += make_score(k * w, k * w);
+                bonus += k * w;
             }
         } // r > RANK_3
 
