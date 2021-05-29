@@ -916,7 +916,7 @@ namespace {
                     +  9 * outflanking
                     + 21 * pawnsOnBothFlanks
                     + 24 * infiltration
-                    + 100 * (!pos.non_pawn_material() && freepawn())
+                    + 26 * (freepawn() ? 2 : 1) * !pos.non_pawn_material()
                     - 43 * almostUnwinnable
                     -110 ;
 
