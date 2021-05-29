@@ -909,7 +909,7 @@ namespace {
     constexpr Bitboard BlackHalf = Rank5BB | Rank6BB | Rank7BB | Rank8BB;
     constexpr Bitboard WhiteHalf = ~BlackHalf;
     int complexity =   9 * pe->passed_count()
-                    + 14 * popcount( (pos.pieces(WHITE, PAWN) & WhiteHalf)
+                    + 16 * popcount( (pos.pieces(WHITE, PAWN) & WhiteHalf)
                                    | (pos.pieces(BLACK, PAWN) & BlackHalf))
                     +  9 * outflanking
                     + 21 * pawnsOnBothFlanks
