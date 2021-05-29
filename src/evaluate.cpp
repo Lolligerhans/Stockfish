@@ -904,6 +904,11 @@ namespace {
 
     bool infiltration =   rank_of(pos.square<KING>(WHITE)) > RANK_4
                        || rank_of(pos.square<KING>(BLACK)) < RANK_5;
+    auto const freepawn = [&]() -> Bitboard
+    {
+        return (shift<NORTH>(pos.pieces(WHITE,PAWN)) & ~(pos.pieces() | attackedBy[BLACK][ALL_PIECES]))
+             | (shift<NORTH>(pos.pieces(BLACK,PAWN)) & ~(pos.pieces() | attackedBy[WHITE][ALL_PIECES]));
+    };
 
     // Compute the initiative bonus for the attacking side
     int complexity =   9 * pe->passed_count()
@@ -911,7 +916,7 @@ namespace {
                     +  9 * outflanking
                     + 21 * pawnsOnBothFlanks
                     + 24 * infiltration
-                    + 51 * !pos.non_pawn_material()
+                    + 51 * (!pos.non_pawn_material() && freepawn())
                     - 43 * almostUnwinnable
                     -110 ;
 
