@@ -160,7 +160,7 @@ public:
   bool has_game_cycle(int ply) const;
   bool has_repeated() const;
   int rule50_count() const;
-  QScore psq_score() const;
+  Score psq_score() const;
   Value non_pawn_material(Color c) const;
   Value non_pawn_material() const;
 
@@ -194,7 +194,7 @@ private:
   Bitboard castlingPath[CASTLING_RIGHT_NB];
   int gamePly;
   Color sideToMove;
-  QScore psq;
+  Score psq;
   Thread* thisThread;
   StateInfo* st;
   bool chess960;
@@ -321,7 +321,7 @@ inline Key Position::material_key() const {
   return st->materialKey;
 }
 
-inline QScore Position::psq_score() const {
+inline Score Position::psq_score() const {
   return psq;
 }
 

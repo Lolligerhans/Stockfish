@@ -33,17 +33,17 @@ namespace {
   #define S(mg, eg) make_score(mg, eg)
 
   // Pawn penalties
-  QScore Backward      = Q(10,15,2,2);
-  QScore Doubled       = Q(7,50,0,-3);
-  QScore DoubledEarly  = Q(26,10,-5,3);
-  QScore Isolated      = Q(5,10,-1,1);
-  QScore WeakLever     = Q(13,56,5,5);
-  QScore WeakUnopposed = Q(18,20,1,-4);
+  constexpr QScore Backward      = Q(10,15,2,2);
+  constexpr QScore Doubled       = Q(7,50,0,-3);
+  constexpr QScore DoubledEarly  = Q(26,10,-5,3);
+  constexpr QScore Isolated      = Q(5,10,-1,1);
+  constexpr QScore WeakLever     = Q(13,56,5,5);
+  constexpr QScore WeakUnopposed = Q(18,20,1,-4);
 
   // Bonus for blocked pawns at 5th or 6th rank
-  QScore BlockedPawn[2] = { Q(-17,-4,-1,0), Q(-14,9,-4,4) };
+  constexpr QScore BlockedPawn[2] = { Q(-17,-4,-1,0), Q(-14,9,-4,4) };
 
-  QScore BlockedStorm[RANK_NB] = {
+  constexpr QScore BlockedStorm[RANK_NB] = {
     Q(0, 0), Q(0, 0), Q(75,93,2,-3), Q(-6,14,-3,-5), Q(2,14,8,2), Q(-11,16,3,-2), Q(-1,-9,-3,-10)
   };
 
@@ -73,7 +73,7 @@ namespace {
 
   // KingOnFile[semi-open Us][semi-open Them] contains bonuses/penalties
   // for king when the king is on a semi-open or open file.
-  QScore KingOnFile[2][2] = {{ Q(-16,16,-6,0), Q(-1,-3,-4,-3)  },
+  constexpr QScore KingOnFile[2][2] = {{ Q(-16,16,-6,0), Q(-1,-3,-4,-3)  },
                                      {  Q(5,-2,-1,0), Q(10,-4,-3,9) }};
 
   #undef S
