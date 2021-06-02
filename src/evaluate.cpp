@@ -231,7 +231,6 @@ namespace {
   };
 
   auto constexpr S = make_score;
-  constexpr QScore Q(int a, int b, int c=0, int d=0) { return make_qscore(a,b,c,d); }
 
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
