@@ -32,7 +32,7 @@ namespace {
   // Polynomial material imbalance parameters
 
   // One Score parameter for each pair (our piece, another of our pieces)
-  QScore QuadraticOurs[][PIECE_TYPE_NB] = {
+  constexpr QScore QuadraticOurs[][PIECE_TYPE_NB] = {
     // OUR PIECE 2
     // bishop pair    pawn         knight       bishop       rook           queen
     {Q(1425,1464,1,3)                                                                  }, // Bishop pair
@@ -44,7 +44,7 @@ namespace {
   };
 
   // One Score parameter for each pair (our piece, their piece)
-  QScore QuadraticTheirs[][PIECE_TYPE_NB] = {
+  constexpr QScore QuadraticTheirs[][PIECE_TYPE_NB] = {
     // THEIR PIECE
     // bishop pair   pawn         knight       bishop       rook         queen
     {                                                                               }, // Bishop pair
