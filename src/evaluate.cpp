@@ -207,7 +207,6 @@ namespace {
   };
 
   auto constexpr S = make_score;
-  QScore Q(int a, int b, int c=0, int d=0) { return make_qscore(a,b,c,d); }
 
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
@@ -229,58 +228,58 @@ namespace {
 
   // BishopPawns[distance from edge] contains a file-dependent penalty for pawns on
   // squares of the same color as our bishop.
-  QScore BishopPawns[int(FILE_NB) / 2] = {
+  constexpr QScore BishopPawns[int(FILE_NB) / 2] = {
     Q(3,8,0,-1), Q(2,10,0,-1), Q(2,8,0,0), Q(3,8,0,0) };
 
   // KingProtector[knight/bishop] contains penalty for each distance unit to own king
-  QScore KingProtector[] = { Q(8,11,0,0), Q(6,7,2,0) };
+  constexpr QScore KingProtector[] = { Q(8,11,0,0), Q(6,7,2,0) };
 
   // Outpost[knight/bishop] contains bonuses for each knight or bishop occupying a
   // pawn protected square on rank 4 to 6 which is also safe from a pawn attack.
-  QScore Outpost[] = { Q(54,41,2,4), Q(30,19,-1,-1) };
+  constexpr QScore Outpost[] = { Q(54,41,2,4), Q(30,19,-1,-1) };
 
   // PassedRank[Rank] contains a bonus according to the rank of a passed pawn
-  QScore PassedRank[RANK_NB] = {
+  constexpr QScore PassedRank[RANK_NB] = {
     Q(0, 0), Q(6,28,3,1), Q(13,24,-1,0), Q(19,41,-2,1), Q(69,70,-3,8), Q(175,169,-2,9), Q(286,274,5,12)
   };
 
-  QScore RookOnClosedFile = Q(11,3,-2,1);
-  QScore RookOnOpenFile[] = { Q(22,5,-8,-2), Q(44,32,13,-5) };
+  constexpr QScore RookOnClosedFile = Q(11,3,-2,1);
+  constexpr QScore RookOnOpenFile[] = { Q(22,5,-8,-2), Q(44,32,13,-5) };
 
   // ThreatByMinor/ByRook[attacked PieceType] contains bonuses according to
   // which piece type attacks which one. Attacks on lesser pieces which are
   // pawn-defended are not considered.
-  QScore ThreatByMinor[PIECE_TYPE_NB] = {
+  constexpr QScore ThreatByMinor[PIECE_TYPE_NB] = {
     Q(0, 0), Q(15,39,-3,-1), Q(60,42,3,11), Q(74,64,-3,2), Q(87,119,-5,11), Q(91,148,-1,0)
   };
 
-  QScore ThreatByRook[PIECE_TYPE_NB] = {
+  constexpr QScore ThreatByRook[PIECE_TYPE_NB] = {
     Q(0, 0), Q(0,46,9,3), Q(42,63,-3,0), Q(43,61,0,-9), Q(1,37,4,1), Q(61,43,3,1)
   };
 
   constexpr Value CorneredBishop = Value(50);
 
   // Assorted bonuses and penalties
-  QScore UncontestedOutpost  = Q(0,11,-1,-3);
-  QScore BishopOnKingRing    = Q(34,6,0,-2);
-  QScore BishopXRayPawns     = Q(6,6,-1,1);
-  QScore FlankAttacks        = Q(9,-1,-1,-1);
-  QScore Hanging             = Q(69,41,-6,0);
-  QScore KnightOnQueen       = Q(16,12,2,-3);
-  QScore LongDiagonalBishop  = Q(43,-4,-2,7);
-  QScore MinorBehindPawn     = Q(17,7,4,5);
-  QScore PassedFile          = Q(13,4,-2,0);
-  QScore PawnlessFlank       = Q(13,96,-4,0);
-  QScore ReachableOutpost    = Q(30,17,-8,-5);
-  QScore RestrictedPiece     = Q(8,5,0,-1);
-  QScore RookOnKingRing      = Q(18,-1,0,2);
-  QScore SliderOnQueen       = Q(65,10,-6,6);
-  QScore ThreatByKing        = Q(29,89,4,8);
-  QScore ThreatByPawnPush    = Q(49,42,1,-1);
-  QScore ThreatBySafePawn    = Q(175,104,1,16);
-  QScore TrappedRook         = Q(55,8,1,4);
-  QScore WeakQueenProtection = Q(14,3,0,1);
-  QScore WeakQueen           = Q(58,18,-5,-5);
+  constexpr QScore UncontestedOutpost  = Q(0,11,-1,-3);
+  constexpr QScore BishopOnKingRing    = Q(34,6,0,-2);
+  constexpr QScore BishopXRayPawns     = Q(6,6,-1,1);
+  constexpr QScore FlankAttacks        = Q(9,-1,-1,-1);
+  constexpr QScore Hanging             = Q(69,41,-6,0);
+  constexpr QScore KnightOnQueen       = Q(16,12,2,-3);
+  constexpr QScore LongDiagonalBishop  = Q(43,-4,-2,7);
+  constexpr QScore MinorBehindPawn     = Q(17,7,4,5);
+  constexpr QScore PassedFile          = Q(13,4,-2,0);
+  constexpr QScore PawnlessFlank       = Q(13,96,-4,0);
+  constexpr QScore ReachableOutpost    = Q(30,17,-8,-5);
+  constexpr QScore RestrictedPiece     = Q(8,5,0,-1);
+  constexpr QScore RookOnKingRing      = Q(18,-1,0,2);
+  constexpr QScore SliderOnQueen       = Q(65,10,-6,6);
+  constexpr QScore ThreatByKing        = Q(29,89,4,8);
+  constexpr QScore ThreatByPawnPush    = Q(49,42,1,-1);
+  constexpr QScore ThreatBySafePawn    = Q(175,104,1,16);
+  constexpr QScore TrappedRook         = Q(55,8,1,4);
+  constexpr QScore WeakQueenProtection = Q(14,3,0,1);
+  constexpr QScore WeakQueen           = Q(58,18,-5,-5);
 
 // TODO Some explicitly constructed scores remain untuned (kingdanger, space, passers, ...)
 //      Some integer literals remain untuned (winnable, ...).
@@ -305,7 +304,7 @@ namespace {
     template<Color Us> QScore threats() const;
     template<Color Us> QScore passed() const;
     template<Color Us> QScore space() const;
-    Score leadershipAdjustment(QScore) const;
+    Score leadershipAdjustment(QScore ) const;
     Value winnable(Score score) const;
 
     const Position& pos;
@@ -432,7 +431,7 @@ namespace {
             score += BishopOnKingRing;
 
         int mob = popcount(b & mobilityArea[Us]);
-        mobility[Us] += to_qscore(MobilityBonus[Pt - 2][mob]);
+        mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
@@ -838,10 +837,10 @@ namespace {
 // A degenerate example would be to treat every evaluation Score as QScore with
 // CG=OG=0, except for some select parameters, and apply additional computation
 // on these parameters after scores are complete. This effectively abuses
-// QScores to accumulate (and store) a subset of the added Score values.
+// QScore s to accumulate (and store) a subset of the added Score values.
 //
 // For example, if instead of Outpost bonus B=Score(X,Y) we use the bonus
-// QScore(X,Y,X,Y), the outpost bonus will be accessible at a later stage,
+// QScore (X,Y,X,Y), the outpost bonus will be accessible at a later stage,
 // e.g., after kingDanger is known. Then, scaling *all* outposts depending on
 // kingDanger can be done using CG and OG values.
 // (Expected to be faster than plain store-load only if used for multiple
@@ -851,7 +850,7 @@ namespace {
 // ALternatively, CG and OG values could be carried into winnable(), and being
 // affected by initiative separately (like MG and EG). This would require
 //  1. explicit tuning/adjustments to the initiative algorithm (not trivial) or
-//  2. the use of QScores for all parameters, including non-Scorey bonuses like
+//  2. the use of QScore s for all parameters, including non-Scorey bonuses like
 //     kingDanger.
 
 template<Tracing T>
@@ -1089,7 +1088,7 @@ Score Evaluation<T>::leadershipAdjustment(QScore score) const
     // Early exit if score is high
     auto lazy_skip = [&](Value lazyThreshold) {
     // QScore version (if at all used) will depend on the concrete
-    // interpretation of QScore: Are CG and OG
+    // interpretation of QScore : Are CG and OG
     //  1. Added onto existing score?
     //  2. Averaged into existing score?
     //  3. Something unrelated and fancy?
