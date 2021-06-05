@@ -115,6 +115,30 @@ namespace Eval {
         }
   }
 
+  /// NNUE::export_net() exports the currently loaded network to a file
+  void NNUE::export_net(const std::optional<std::string>& filename) {
+    std::string actualFilename;
+
+    if (filename.has_value())
+        actualFilename = filename.value();
+    else
+    {
+        if (eval_file_loaded != EvalFileDefaultName)
+        {
+             sync_cout << "Failed to export a net. A non-embedded net can only be saved if the filename is specified." << sync_endl;
+             return;
+        }
+        actualFilename = EvalFileDefaultName;
+    }
+
+    ofstream stream(actualFilename, std::ios_base::binary);
+
+    if (save_eval(stream))
+        sync_cout << "Network saved successfully to " << actualFilename << "." << sync_endl;
+    else
+        sync_cout << "Failed to export a net." << sync_endl;
+  }
+
   /// NNUE::verify() verifies that the last net used was loaded successfully
   void NNUE::verify() {
 
@@ -191,11 +215,10 @@ using namespace Trace;
 namespace {
 
   // Threshold for lazy and space evaluation
-  constexpr Value LazyThreshold1 =  Value(1565);
-  constexpr Value LazyThreshold2 =  Value(1102);
-  constexpr Value SpaceThreshold = Value(11551);
-  constexpr Value NNUEThreshold1 =   Value(682);
-  constexpr Value NNUEThreshold2 =   Value(176);
+  constexpr Value LazyThreshold1    =  Value(1565);
+  constexpr Value LazyThreshold2    =  Value(1102);
+  constexpr Value SpaceThreshold    = Value(11551);
+  constexpr Value NNUEThreshold1    =   Value(800);
 
   // KingAttackWeights[PieceType] contains king attack weights by piece type
   constexpr int KingAttackWeights[PIECE_TYPE_NB] = { 0, 0, 81, 52, 44, 10 };
@@ -1002,7 +1025,7 @@ Score Evaluation<T>::leadershipAdjustment(QScore score) const
     Color strongSide = eg > VALUE_DRAW ? WHITE : BLACK;
     int sf = me->scale_factor(pos, strongSide);
 
-    // If scale factor is not already specific, scale down via general heuristics
+    // If scale factor is not already specific, scale up/down via general heuristics
     if (sf == SCALE_FACTOR_NORMAL)
     {
         if (pos.opposite_bishops())
@@ -1203,12 +1226,10 @@ Value Eval::evaluate(const Position& pos) {
       // Scale and shift NNUE for compatibility with search and classical evaluation
       auto  adjusted_NNUE = [&]()
       {
-         int material = pos.non_pawn_material() + 4 * PawnValueMg * pos.count<PAWN>();
-         int scale =  580
-                    + material / 32
-                    - 4 * pos.rule50_count();
 
-         Value nnue = NNUE::evaluate(pos) * scale / 1024;
+         int scale = 903 + 28 * pos.count<PAWN>() + 28 * pos.non_pawn_material() / 1024;
+
+         Value nnue = NNUE::evaluate(pos, true) * scale / 1024;
 
          if (pos.is_chess960())
              nnue += fix_FRC(pos);
@@ -1216,31 +1237,14 @@ Value Eval::evaluate(const Position& pos) {
          return nnue;
       };
 
-      // If there is PSQ imbalance we use the classical eval. We also introduce
-      // a small probability of using the classical eval when PSQ imbalance is small.
+      // If there is PSQ imbalance we use the classical eval.
       Value psq = Value(abs(eg_value(pos.psq_score())));
       int   r50 = 16 + pos.rule50_count();
       bool  largePsq = psq * 16 > (NNUEThreshold1 + pos.non_pawn_material() / 64) * r50;
-      bool  classical = largePsq || (psq > PawnValueMg / 4 && !(pos.this_thread()->nodes & 0xB));
 
-      // Use classical evaluation for really low piece endgames.
-      // One critical case is the draw for bishop + A/H file pawn vs naked king.
-      bool lowPieceEndgame =   pos.non_pawn_material() == BishopValueMg
-                            || (pos.non_pawn_material() < 2 * RookValueMg && pos.count<PAWN>() < 2);
+      v = largePsq ? Evaluation<NO_TRACE>(pos).value()  // classical
+                   : adjusted_NNUE();                   // NNUE
 
-      v = classical || lowPieceEndgame ? Evaluation<NO_TRACE>(pos).value()
-                                       : adjusted_NNUE();
-
-      // If the classical eval is small and imbalance large, use NNUE nevertheless.
-      // For the case of opposite colored bishops, switch to NNUE eval with small
-      // probability if the classical eval is less than the threshold.
-      if (    largePsq
-          && !lowPieceEndgame
-          && (   abs(v) * 16 < NNUEThreshold2 * r50
-              || (   pos.opposite_bishops()
-                  && abs(v) * 16 < (NNUEThreshold1 + pos.non_pawn_material() / 64) * r50
-                  && !(pos.this_thread()->nodes & 0xB))))
-          v = adjusted_NNUE();
   }
 
   // Damp down the evaluation linearly when shuffling
