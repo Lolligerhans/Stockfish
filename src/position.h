@@ -196,7 +196,7 @@ private:
   StateInfo* st;
   int gamePly;
   Color sideToMove;
-  Score psq;
+  QScore psq;
   bool chess960;
 };
 
