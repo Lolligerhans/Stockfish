@@ -59,6 +59,7 @@ struct Entry {
   Score kingSafety[COLOR_NB];
   int castlingRights[COLOR_NB];
   int blockedCount;
+  uint_least8_t isoCount[COLOR_NB]; // need two because scaled different
 };
 
 typedef HashTable<Entry, 131072> Table;

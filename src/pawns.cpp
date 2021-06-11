@@ -35,7 +35,6 @@ namespace {
   constexpr Score Backward      = S( 9, 22);
   constexpr Score Doubled       = S(13, 51);
   constexpr Score DoubledEarly  = S(20,  7);
-  constexpr Score Isolated      = S( 3, 15);
   constexpr Score WeakLever     = S( 4, 58);
   constexpr Score WeakUnopposed = S(13, 24);
 
@@ -103,6 +102,7 @@ namespace {
 
     Bitboard doubleAttackThem = pawn_double_attacks_bb<Them>(theirPawns);
 
+    e->isoCount[Us] = 0;
     e->passedPawns[Us] = 0;
     e->kingSquares[Us] = SQ_NONE;
     e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
@@ -178,8 +178,11 @@ namespace {
                 && !(theirPawns & adjacent_files_bb(s)))
                 score -= Doubled;
             else
-                score -=  Isolated
-                        + WeakUnopposed * !opposed;
+            {
+                score -= WeakUnopposed * !opposed;
+                ++e->isoCount[Us]; // Remember to subtract 1 (scaled) Isolated score
+//                constexpr Score Isolated      = S( 3, 15);
+            }
         }
 
         else if (backward)
