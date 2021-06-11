@@ -905,14 +905,14 @@ namespace {
                        || rank_of(pos.square<KING>(BLACK)) < RANK_5;
 
     // Compute the initiative bonus for the attacking side
-    int complexity =   8 * pe->passed_count()
+    int complexity =   9 * pe->passed_count()
                     + 12 * pos.count<PAWN>()
                     +  9 * outflanking
-                    + 23 * pawnsOnBothFlanks
-                    + 26 * infiltration
-                    + 53 * !pos.non_pawn_material()
-                    - 46 * almostUnwinnable
-                    -122 ;
+                    + 21 * pawnsOnBothFlanks
+                    + 24 * infiltration
+                    + 51 * !pos.non_pawn_material()
+                    - 43 * almostUnwinnable
+                    -110 ;
 
     Value mg = mg_value(score);
     Value eg = eg_value(score);
@@ -921,7 +921,7 @@ namespace {
     // sign of the midgame or endgame values, and that we carefully cap the bonus
     // so that the midgame and endgame scores do not change sign after the bonus.
     int u = ((mg > 0) - (mg < 0)) * std::clamp(complexity + 52, -abs(mg), 0);
-    int v = ((eg > 0) - (eg < 0)) * std::clamp(complexity, -abs(eg), 57 * abs(eg) / 64);
+    int v = ((eg > 0) - (eg < 0)) * std::clamp(complexity, -abs(eg), abs(eg));
 
     mg += u;
     eg += v;
