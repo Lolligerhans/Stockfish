@@ -1010,8 +1010,8 @@ namespace {
     score += pe->pawn_score(WHITE) - pe->pawn_score(BLACK);
 
     // Load the Isolated scoring that was skipped
-    score += make_score(16,16) * pe->isoCount[WHITE] / (pos.count<BISHOP>(WHITE) + pos.count<KNIGHT>(WHITE) + 1);
-    score -= make_score(16,16) * pe->isoCount[BLACK] / (pos.count<BISHOP>(BLACK) + pos.count<KNIGHT>(BLACK) + 1);
+    score -= make_score(16,16) * pe->isoCount[WHITE] / (pos.count<BISHOP>(WHITE) + pos.count<KNIGHT>(WHITE) + 1);
+    score += make_score(16,16) * pe->isoCount[BLACK] / (pos.count<BISHOP>(BLACK) + pos.count<KNIGHT>(BLACK) + 1);
 
     // Early exit if score is high
     auto lazy_skip = [&](Value lazyThreshold) {
