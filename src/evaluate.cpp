@@ -843,55 +843,11 @@ namespace {
     return score;
   }
 
-// The generic way of dealing with qscores. Before the Score are transformed
-// into a Value, this function can be used to "merge" the CG and OG values onto
-// the ME and EG values. A scaling alternative to "non-pawn-material clamped"
-// can be used (use the intended closedness measure).
-//
-// A degenerate example would be to treat every evaluation Score as QScore with
-// CG=OG=0, except for some select parameters, and apply additional computation
-// on these parameters after scores are complete. This effectively abuses
-// QScore s to accumulate (and store) a subset of the added Score values.
-//
-// For example, if instead of Outpost bonus B=Score(X,Y) we use the bonus
-// QScore (X,Y,X,Y), the outpost bonus will be accessible at a later stage,
-// e.g., after kingDanger is known. Then, scaling *all* outposts depending on
-// kingDanger can be done using CG and OG values.
-// (Expected to be faster than plain store-load only if used for multiple
-// bonuses.)
-//
-// NOTE
-// ALternatively, CG and OG values could be carried into winnable(), and being
-// affected by initiative separately (like MG and EG). This would require
-//  1. explicit tuning/adjustments to the initiative algorithm (not trivial) or
-//  2. the use of QScore s for all parameters, including non-Scorey bonuses like
-//     kingDanger.
-
+// Use 3rd and 4th value to adjust MG and EG based on the winning side.
 template<Tracing T>
 Score Evaluation<T>::leadershipAdjustment(QScore score) const
 {
-    /* leaving this here so I dont need to search repo later
-    auto const blockedPawns =              pos.pieces(WHITE, PAWN)
-                            & shift<SOUTH>(pos.pieces(BLACK, PAWN));
-    auto const interpolation = popcount(blockedPawns);
-    auto constexpr InterpolMax = 8;
-
-    // Weighted sum. More OG if few blocked pawns, more CG if many.
-    auto const og = (InterpolMax-interpolation) * og_value(score);
-    auto const cg = (            interpolation) * cg_value(score);
-
-    // Test order of magnitude of changes to sanitize QScore implementation.
-//    dbg_mean_of(og + cg);
-
-    // Add interpolated value both on MG and EG, later sidestepping normal
-    // scaling.
-    return to_score(score) + make_score(1,1) * int((og + cg) / InterpolMax);
-    */
-
-
-    /// Use 3rd and 4th value to adjust MG and EG based on the winning side.
-
-    // Interpolation w/o scale factor (== estimate of winning side)
+    // Interpolation w/o scale factor (== estimate winning side)
     int valueEstimateNormed = mg_value(score) * int(me->game_phase())
                             + eg_value(score) * int(PHASE_MIDGAME - me->game_phase());
     valueEstimateNormed /= PHASE_MIDGAME;
@@ -905,7 +861,7 @@ Score Evaluation<T>::leadershipAdjustment(QScore score) const
     //           o = EG adjustment if white ahead).
     // NOTE For the black side, values are subtracted. Parameters always
     //      consider "Us" to be winning.
-    // Then, merge values for same game phase, yielding
+    // Then, merge values for each game phase, yielding
     // Score = S(MG given current situation, EG given current situation).
     //
     // Scale the adjustment by +1 if white is winning, by -1 if black is
@@ -968,15 +924,6 @@ Score Evaluation<T>::leadershipAdjustment(QScore score) const
   template<Tracing T>
   Value Evaluation<T>::winnable(Score score) const {
 
-    Value mg = mg_value(score);
-    Value eg = eg_value(score);
-    // NOTE
-    // The commented sections could be used to have CG, OG be affected by
-    // initiative separately. Omitted in favour of the alternative approach
-    // with the mergeClosedness() function.
-//    Value cg = cg_value(score);
-//    Value og = og_value(score);
-
     int outflanking =  distance<File>(pos.square<KING>(WHITE), pos.square<KING>(BLACK))
                     + int(rank_of(pos.square<KING>(WHITE)) - rank_of(pos.square<KING>(BLACK)));
 
@@ -999,18 +946,17 @@ Score Evaluation<T>::leadershipAdjustment(QScore score) const
                     - 43 * almostUnwinnable
                     -110 ;
 
+    Value mg = mg_value(score);
+    Value eg = eg_value(score);
+
     // Now apply the bonus: note that we find the attacking side by extracting the
     // sign of the midgame or endgame values, and that we carefully cap the bonus
     // so that the midgame and endgame scores do not change sign after the bonus.
     int u = ((mg > 0) - (mg < 0)) * std::clamp(complexity + 50, -abs(mg), 0);
     int v = ((eg > 0) - (eg < 0)) * std::max(complexity, -abs(eg));
-//    int w = ((cg > 0) - (cg < 0)) * Utility::clamp(complexity + 50, -abs(cg), 0);
-//    int x = ((og > 0) - (og < 0)) * std::max(complexity, -abs(og));
 
     mg += u;
     eg += v;
-//    og += w;
-//    cg += x;
 
     // Compute the scale factor for the winning side
     Color strongSide = eg > VALUE_DRAW ? WHITE : BLACK;
@@ -1058,10 +1004,6 @@ Score Evaluation<T>::leadershipAdjustment(QScore score) const
     v =  mg * int(me->game_phase())
        + eg * int(PHASE_MIDGAME - me->game_phase()) * ScaleFactor(sf) / SCALE_FACTOR_NORMAL;
     v /= PHASE_MIDGAME;
-//    auto closednessFactor = popcount(shift<NORTH>(pos.pieces(WHITE, PAWN)) & pos.pieces(BLACK, PAWN));
-//    Value v2 = cg * int(    closednessFactor)
-//             + og * int(8 - closednessFactor) * sf / SCALE_FACTOR_NORMAL;
-//    v += v2 / 8;
 
     if constexpr (T)
     {
@@ -1101,12 +1043,7 @@ Score Evaluation<T>::leadershipAdjustment(QScore score) const
 
     // Early exit if score is high
     auto lazy_skip = [&](Value lazyThreshold) {
-    // QScore version (if at all used) will depend on the concrete
-    // interpretation of QScore : Are CG and OG
-    //  1. Added onto existing score?
-    //  2. Averaged into existing score?
-    //  3. Something unrelated and fancy?
-//        return abs(mg_value(score) + eg_value(score) + og_value(score) + cg_value(score)) / 2 > lazyThreshold + pos.non_pawn_material() / 64;
+        // TODO Consider adding the QScore adjustment values
         return abs(mg_value(qscore) + eg_value(qscore)) / 2 > lazyThreshold + pos.non_pawn_material() / 64;
     };
 
@@ -1119,25 +1056,22 @@ Score Evaluation<T>::leadershipAdjustment(QScore score) const
 
     // Pieces evaluated first (also populates attackedBy, attackedBy2).
     // Note that the order of evaluation of the terms is left unspecified.
-    qscore +=
-             (pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
+    qscore += pieces<WHITE, KNIGHT>() - pieces<BLACK, KNIGHT>()
             + pieces<WHITE, BISHOP>() - pieces<BLACK, BISHOP>()
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
-            + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >());
+            + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
-    qscore += (mobility[WHITE] - mobility[BLACK]);
+    qscore += mobility[WHITE] - mobility[BLACK];
 
     // More complex interactions that require fully populated attack bitboards
-    qscore +=
-    (king<   WHITE>() - king<   BLACK>()
-            + passed< WHITE>() - passed< BLACK>());
+    qscore += king<   WHITE>() - king<   BLACK>()
+            + passed< WHITE>() - passed< BLACK>();
 
     if (lazy_skip(LazyThreshold2))
         goto make_v;
 
-    qscore +=
-    (threats<WHITE>() - threats<BLACK>()
-            + space<  WHITE>() - space<  BLACK>());
+    qscore += threats<WHITE>() - threats<BLACK>()
+            + space<  WHITE>() - space<  BLACK>();
 
 make_v:
     // Convert QScore to normal Score and never go back
