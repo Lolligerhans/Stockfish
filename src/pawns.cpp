@@ -33,30 +33,30 @@ namespace {
   #define S(mg, eg) make_score(mg, eg)
 
   // Pawn penalties
-  constexpr QScore Backward      = Q(10,15,2,2);
-  constexpr QScore Doubled       = Q(7,50,0,-3);
-  constexpr QScore DoubledEarly  = Q(26,10,-5,3);
-  constexpr QScore Isolated      = Q(5,10,-1,1);
-  constexpr QScore WeakLever     = Q(13,56,5,5);
-  constexpr QScore WeakUnopposed = Q(18,20,1,-4);
+  constexpr QScore Backward      = Q(10,13,0,3);
+  constexpr QScore Doubled       = Q(6,48,0,0);
+  constexpr QScore DoubledEarly  = Q(26,9,-4,2);
+  constexpr QScore Isolated      = Q(4,9,0,2);
+  constexpr QScore WeakLever     = Q(15,55,7,5);
+  constexpr QScore WeakUnopposed = Q(18,19,0,-4);
 
   // Bonus for blocked pawns at 5th or 6th rank
-  constexpr QScore BlockedPawn[2] = { Q(-17,-4,-1,0), Q(-14,9,-4,4) };
+  constexpr QScore BlockedPawn[2] = { Q(-16,-3,-2,0), Q(-15,8,-4,5) };
 
   constexpr QScore BlockedStorm[RANK_NB] = {
-    Q(0, 0), Q(0, 0), Q(75,93,2,-3), Q(-6,14,-3,-5), Q(2,14,8,2), Q(-11,16,3,-2), Q(-1,-9,-3,-10)
+    Q(0, 0), Q(0, 0), Q(75,93,3,-2), Q(-4,13,-1,-7), Q(1,17,8,-3), Q(-9,13,4,1), Q(-2,-6,-4,-9)
   };
 
   // Connected pawn bonus
-  constexpr int Connected[RANK_NB] = { 0, 5, 7, 11, 23, 48, 87 };
+  constexpr int Connected[RANK_NB] = { 0, 4, 7, 11, 22, 51, 90 };
 
   // Strength of pawn shelter for our king by [distance from edge][rank].
   // RANK_1 = 0 is used for files where we have no pawn, or pawn is behind our king.
   constexpr Value ShelterStrength[int(FILE_NB) / 2][RANK_NB] = {
-    { V( -5), V( 82), V( 92), V( 54), V( 36), V( 22), V(  28) },
-    { V(-44), V( 63), V( 33), V(-50), V(-30), V(-12), V( -62) },
-    { V(-11), V( 77), V( 22), V( -6), V( 31), V(  8), V( -45) },
-    { V(-39), V(-12), V(-29), V(-50), V(-43), V(-68), V(-164) }
+{ V (1), V(81), V(90), V(53), V(35), V(22), V(29) },
+{ V (-42), V(63), V(31), V(-56), V(-31), V(-13), V(-62) },
+{ V (-5), V(83), V(25), V(0), V(26), V(7), V(-48) },
+{ V (-37), V(-13), V(-27), V(-56), V(-39), V(-71), V(-161) }
   };
 
   // Danger of enemy pawns moving toward our king by [distance from edge][rank].
@@ -64,17 +64,17 @@ namespace {
   // is behind our king. Note that UnblockedStorm[0][1-2] accommodate opponent pawn
   // on edge, likely blocked by our king.
   constexpr Value UnblockedStorm[int(FILE_NB) / 2][RANK_NB] = {
-    { V( 87), V(-288), V(-168), V( 96), V( 47), V( 44), V( 46) },
-    { V( 42), V( -25), V( 120), V( 45), V( 34), V( -9), V( 24) },
-    { V( -8), V(  51), V( 167), V( 35), V( -4), V(-16), V(-12) },
-    { V(-17), V( -13), V( 100), V(  4), V(  9), V(-16), V(-31) }
+{ V (88), V(-287), V(-165), V(94), V(47), V(46), V(48) },
+{ V (38), V(-22), V(120), V(43), V(35), V(-7), V(28) },
+{ V (-10), V(55), V(168), V(38), V(-5), V(-19), V(-12) },
+{ V (-21), V(-16), V(99), V(3), V(6), V(-11), V(-33) }
   };
 
 
   // KingOnFile[semi-open Us][semi-open Them] contains bonuses/penalties
   // for king when the king is on a semi-open or open file.
-  constexpr QScore KingOnFile[2][2] = {{ Q(-16,16,-6,0), Q(-1,-3,-4,-3)  },
-                                     {  Q(5,-2,-1,0), Q(10,-4,-3,9) }};
+  constexpr QScore KingOnFile[2][2] = {{ Q(-19,15,-8,0), Q(-1,-4,-2,-1)  },
+                                     {  Q(4,0,2,1), Q(9,0,-3,8) }};
 
   #undef S
   #undef V
