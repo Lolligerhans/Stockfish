@@ -41,6 +41,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <algorithm>
+#include <functional>
 
 #if defined(_MSC_VER)
 // Disable some silly and noisy warning from MSVC compiler
@@ -283,39 +284,87 @@ struct DirtyPiece {
 /// upper 16 bits are used to store the endgame value. We have to take care to
 /// avoid left-shifting a signed int to avoid undefined behavior.
 enum Score : int { SCORE_ZERO };
+enum QAcc : int64_t { QACC_ZERO };
 enum QScore : int64_t { QSCORE_ZERO };
+constexpr QAcc as_qacc(uint64_t const u)
+{
+    union { uint64_t un; QAcc sc; } x = { u };
+    assert(uint64_t(x.sc) == u);
+    return x.sc;
+}
+//enum QParam : int64_t { QPARAM_ZERO };
 static_assert(sizeof(Score) >= 4);
+static_assert(sizeof(QAcc) == 8);
 static_assert(sizeof(QScore) == 8);
 
+template<Color C,
+         typename = std::enable_if_t<C==WHITE || C==BLACK>
+        >
+constexpr QAcc Param(QScore const s)
+{
+    assert(false);
+    return QACC_ZERO;
+}
+
+template<> constexpr QAcc Param<WHITE,void>(QScore const s) { return QAcc(s); } // Do nothing
+template<> constexpr QAcc Param<BLACK,void>(QScore const s)               // Invert sign of 3rd and 4th value (CG and OG)
+{
+    return (QAcc) std::plus<int64_t>()
+    (
+        // Q(MG, EG, 0, 0)
+        (int64_t ) // Sign-expand
+        (uint32_t) // Extract lower bits
+        (uint64_t) s, // Get bit pattern
+
+        // Q(0, 0, -CG, -OG)
+        std::negate<int64_t>()(as_qacc( // Slightly dodgy to-signed conversion
+            (uint64_t(s) + 0x80008000ull) & 0x00000000ull // Extract higher values
+            ))
+    );
+    // The result is Q(MG, EG, -GC, -OG)
+}
+constexpr QAcc Param(QScore const s, Color const c)
+{
+    return c == WHITE ? Param<WHITE>(s)
+                      : Param<BLACK>(s);
+}
+
 // CG = closde game, OG = open game
-constexpr QScore make_qscore(int mg, int eg, int cg = 0, int og = 0) {
+constexpr QScore make_qscore(int mg, int eg, int cg = 0, int og = 0)
+{
   return QScore(int64_t(uint64_t(og) << 48) + int64_t(uint64_t(cg) << 32) + ((int64_t)((uint64_t)eg << 16) + int64_t(mg)));
 }
 auto constexpr Q (int a, int b, int c = 0, int d = 0)
 {
     return make_qscore(a,b,c,d);
 }
+constexpr QAcc make_qacc(int mg, int eg, int cg = 0, int og = 0)
+{
+    return QAcc(make_qscore(mg, eg, cg, og));
+}
 /*
 // TODO Implement.
-constexpr QScore to_qscore(Score s, int cg, int og) {
+constexpr QAcc to_qacc(Score s, int cg, int og) {
 }
 */
-constexpr QScore to_qscore(Score s) {
+constexpr QAcc to_qacc(Score s) {
   // Expand sign bit through signed-cast, then grab bit pattern by unsigned cast.
-  union { uint64_t un; QScore sc; } x = { (uint64_t) (int64_t) (int32_t)s };
+  union { uint64_t un; QAcc sc; } x = { (uint64_t) (int64_t) (int32_t)s };
   assert(to_score(x.sc) == s);
   return x.sc;
 }
-constexpr Score to_score(QScore s) {
+constexpr Score to_score(QAcc s) {
   union { uint32_t un; Score sc; } x = { uint32_t(s) }; // Get bit pattern
-  assert(mg_value(to_qscore(x.sc)) == mg_value(s));
-  assert(eg_value(to_qscore(x.sc)) == eg_value(s));
+  assert(mg_value(to_qacc(x.sc)) == mg_value(s));
+  assert(eg_value(to_qacc(x.sc)) == eg_value(s));
   return x.sc;
 }
 
 constexpr Score make_score(int mg, int eg) {
   return Score((int)((unsigned int)eg << 16) + mg);
 }
+
+auto constexpr S = make_score;
 
 /// Extracting the signed lower and upper 16 bits is not so trivial because
 /// according to the standard a simple cast to short is implementation defined
@@ -326,7 +375,7 @@ constexpr Score make_score(int mg, int eg) {
 //   the sign bit is expanded as "1"s to 32 bit. The expanded bits represent
 //   the value "-1" in the upper 16 bit. When extracting the upper value, it
 //   must be incremented by +1 if the sign bit of the lower value is set.
-inline Value eg_value(QScore s) {
+inline Value eg_value(QAcc s) {
   union { uint16_t u; int16_t s; } eg = { uint16_t( ((uint64_t)s + 0x8000ull) >> 16) };
   return Value(eg.s);
 }
@@ -335,7 +384,7 @@ inline Value eg_value(Score s) {
   return Value(eg.s);
 }
 
-inline Value mg_value(QScore s) {
+inline Value mg_value(QAcc s) {
   union { uint16_t u; int16_t s; } mg = { uint16_t( (uint64_t)s) };
   return Value(mg.s);
 }
@@ -345,12 +394,12 @@ inline Value mg_value(Score s) {
   return Value(mg.s);
 }
 
-inline Value cg_value(QScore s) {
+inline Value cg_value(QAcc s) {
   union { uint16_t u; int16_t s; } cg = { uint16_t( ((uint64_t)s + 0x80008000ull) >> 32) };
   return Value(cg.s);
 }
 
-inline Value og_value(QScore s) {
+inline Value og_value(QAcc s) {
   union { uint16_t u; int16_t s; } og = { uint16_t( ((uint64_t)s + 0x800080008000ull) >> 48) };
   return Value(og.s);
 }
@@ -365,7 +414,7 @@ constexpr inline T& operator-=(T& d1, int d2) { return d1 = d1 - d2; }
 #define ENABLE_BASE_OPERATORS_ON_64(T)                                \
 constexpr T operator+(T d1, T d2) { return T(int64_t(d1) + int64_t(d2)); } \
 constexpr T operator-(T d1, T d2) { return T(int64_t(d1) - int64_t(d2)); } \
-constexpr T operator-(T d) { return T(-int64_t(d)); }                  \
+constexpr T operator-(T d) { return T(-int64_t(d)); }\
 constexpr inline T& operator+=(T& d1, T d2) { return d1 = d1 + d2; }         \
 constexpr inline T& operator-=(T& d1, T d2) { return d1 = d1 - d2; }
 
@@ -392,7 +441,7 @@ ENABLE_INCR_OPERATORS_ON(File)
 ENABLE_INCR_OPERATORS_ON(Rank)
 
 ENABLE_BASE_OPERATORS_ON(Score)
-ENABLE_BASE_OPERATORS_ON_64(QScore)
+ENABLE_BASE_OPERATORS_ON_64(QAcc)
 
 #undef ENABLE_FULL_OPERATORS_ON
 #undef ENABLE_INCR_OPERATORS_ON
@@ -408,20 +457,20 @@ inline Square& operator-=(Square& s, Direction d) { return s = s - d; }
 /// Only declared but not defined. We don't want to multiply two scores due to
 /// a very high risk of overflow. So user should explicitly convert to integer.
 Score operator*(Score, Score) = delete;
-QScore operator*(QScore, QScore) = delete;
+QAcc operator*(QAcc, QAcc) = delete;
 
 /// Division of a Score must be handled separately for each term
-inline QScore operator/(QScore s, int i) {
-  return make_qscore(mg_value(s)/i , eg_value(s)/i , cg_value(s)/i , og_value(s)/i);
+inline QAcc operator/(QAcc s, int i) {
+  return make_qacc(mg_value(s)/i , eg_value(s)/i , cg_value(s)/i , og_value(s)/i);
 }
 inline Score operator/(Score s, int i) {
   return make_score(mg_value(s) / i, eg_value(s) / i);
 }
 
 /// Multiplication of a Score by an integer. We check for overflow in debug mode.
-inline QScore operator*(QScore s, int i) {
+inline QAcc operator*(QAcc s, int i) {
 
-  QScore result = QScore(int64_t(s) * i);
+  QAcc result = QAcc(int64_t(s) * i);
 
   assert(eg_value(result) == (i * eg_value(s)));
   assert(mg_value(result) == (i * mg_value(s)));
@@ -443,14 +492,27 @@ inline Score operator*(Score s, int i) {
 }
 
 // Additional, range-safe, cross-score operators
-constexpr inline QScore& operator+=(QScore& q, Score const& s)
+/*
+constexpr inline QAcc& operator+=(QAcc& q, Score const& s)
 {
-    return q += to_qscore(s);
+    return q += to_qacc(s);
 }
-constexpr inline QScore& operator-=(QScore& q, Score const& s)
+constexpr inline QAcc& operator-=(QAcc& q, Score const& s)
 {
-    return q -= to_qscore(s);
+    return q -= to_qacc(s);
 }
+*/
+
+/*
+constexpr QAcc& operator+=(QAcc& a, QScore const& s)
+{
+    return a = a + QAcc(p);
+}
+constexpr QAcc& operator-=(QAcc& a, QScore const& s)
+{
+    return a = a - QAcc(p);
+}
+*/
 
 /// Multiplication of a Score by a boolean
 inline Score operator*(Score s, bool b) {
