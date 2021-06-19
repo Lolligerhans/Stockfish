@@ -401,12 +401,12 @@ template<> constexpr QAcc Param<WHITE,void>(QScore const s) { return QAcc(s); } 
 template<> constexpr QAcc Param<BLACK,void>(QScore const s)               // Invert sign of 3rd and 4th value (CG and OG)
 {
 //    return make_qacc(mg_value(s), eg_value(s), -cg_value(s), -og_value(s));
+    union { uint32_t u; int32_t s; } l = { (uint32_t) s };
     return (QAcc) std::plus<int64_t>()
     (
         // Q(MG, EG, 0, 0)
         (int64_t ) // Sign-expand
-        (int32_t ) // Implementation-defined to-signed cast
-        (uint32_t) s, // Extract lower bits
+        l.s,
 
         // Q(0, 0, -CG, -OG)
         std::negate<int64_t>()(as_qacc( // Slightly dodgy to-signed conversion
