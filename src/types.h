@@ -297,38 +297,6 @@ static_assert(sizeof(Score) >= 4);
 static_assert(sizeof(QAcc) == 8);
 static_assert(sizeof(QScore) == 8);
 
-template<Color C,
-         typename = std::enable_if_t<C==WHITE || C==BLACK>
-        >
-constexpr QAcc Param(QScore const s)
-{
-    assert(false);
-    return QACC_ZERO;
-}
-
-template<> constexpr QAcc Param<WHITE,void>(QScore const s) { return QAcc(s); } // Do nothing
-template<> constexpr QAcc Param<BLACK,void>(QScore const s)               // Invert sign of 3rd and 4th value (CG and OG)
-{
-    return (QAcc) std::plus<int64_t>()
-    (
-        // Q(MG, EG, 0, 0)
-        (int64_t ) // Sign-expand
-        (uint32_t) // Extract lower bits
-        (uint64_t) s, // Get bit pattern
-
-        // Q(0, 0, -CG, -OG)
-        std::negate<int64_t>()(as_qacc( // Slightly dodgy to-signed conversion
-            (uint64_t(s) + 0x80008000ull) & 0x00000000ull // Extract higher values
-            ))
-    );
-    // The result is Q(MG, EG, -GC, -OG)
-}
-constexpr QAcc Param(QScore const s, Color const c)
-{
-    return c == WHITE ? Param<WHITE>(s)
-                      : Param<BLACK>(s);
-}
-
 // CG = closde game, OG = open game
 constexpr QScore make_qscore(int mg, int eg, int cg = 0, int og = 0)
 {
@@ -376,48 +344,82 @@ auto constexpr S = make_score;
 //   the sign bit is expanded as "1"s to 32 bit. The expanded bits represent
 //   the value "-1" in the upper 16 bit. When extracting the upper value, it
 //   must be incremented by +1 if the sign bit of the lower value is set.
-inline Value eg_value(QAcc s) {
+constexpr Value eg_value(QAcc s) {
   union { uint16_t u; int16_t s; } eg = { uint16_t( ((uint64_t)s + 0x8000ull) >> 16) };
   return Value(eg.s);
 }
-inline Value eg_value(QScore s) {
+constexpr Value eg_value(QScore s) {
   union { uint16_t u; int16_t s; } eg = { uint16_t( ((uint64_t)s + 0x8000ull) >> 16) };
   return Value(eg.s);
 }
-inline Value eg_value(Score s) {
+constexpr Value eg_value(Score s) {
   union { uint16_t u; int16_t s; } eg = { uint16_t(unsigned(s + 0x8000) >> 16) };
   return Value(eg.s);
 }
 
-inline Value mg_value(QAcc s) {
+constexpr Value mg_value(QAcc s) {
   union { uint16_t u; int16_t s; } mg = { uint16_t( (uint64_t)s) };
   return Value(mg.s);
 }
-inline Value mg_value(QScore s) {
+constexpr Value mg_value(QScore s) {
   union { uint16_t u; int16_t s; } mg = { uint16_t( (uint64_t)s) };
   return Value(mg.s);
 }
-inline Value mg_value(Score s) {
+constexpr Value mg_value(Score s) {
   union { uint16_t u; int16_t s; } mg = { uint16_t(unsigned(s)) };
   return Value(mg.s);
 }
 
-inline Value cg_value(QAcc s) {
+constexpr Value cg_value(QAcc s) {
   union { uint16_t u; int16_t s; } cg = { uint16_t( ((uint64_t)s + 0x80008000ull) >> 32) };
   return Value(cg.s);
 }
-inline Value cg_value(QScore s) {
+constexpr Value cg_value(QScore s) {
   union { uint16_t u; int16_t s; } cg = { uint16_t( ((uint64_t)s + 0x80008000ull) >> 32) };
   return Value(cg.s);
 }
 
-inline Value og_value(QScore s) {
+constexpr Value og_value(QScore s) {
   union { uint16_t u; int16_t s; } og = { uint16_t( ((uint64_t)s + 0x800080008000ull) >> 48) };
   return Value(og.s);
 }
-inline Value og_value(QAcc s) {
+constexpr Value og_value(QAcc s) {
   union { uint16_t u; int16_t s; } og = { uint16_t( ((uint64_t)s + 0x800080008000ull) >> 48) };
   return Value(og.s);
+}
+
+template<Color C,
+         typename = std::enable_if_t<C==WHITE || C==BLACK>
+        >
+constexpr QAcc Param(QScore const s)
+{
+    assert(false);
+    return QACC_ZERO;
+}
+
+template<> constexpr QAcc Param<WHITE,void>(QScore const s) { return QAcc(s); } // Do nothing
+template<> constexpr QAcc Param<BLACK,void>(QScore const s)               // Invert sign of 3rd and 4th value (CG and OG)
+{
+    return make_qacc(mg_value(s), eg_value(s), -cg_value(s), -og_value(s));
+    return (QAcc) std::plus<int64_t>()
+    (
+        // Q(MG, EG, 0, 0)
+        (int64_t ) // Sign-expand
+        (uint32_t) // Extract lower bits
+        (uint64_t) s, // Get bit pattern
+
+        // Q(0, 0, -CG, -OG)
+        std::negate<int64_t>()(as_qacc( // Slightly dodgy to-signed conversion
+            (uint64_t(s) + 0x80008000ull) & 0x00000000ull // Extract higher values
+            ))
+    );
+    // The result is Q(MG, EG, -GC, -OG)
+}
+
+constexpr QAcc Param(QScore const s, Color const c)
+{
+    return c == WHITE ? Param<WHITE>(s)
+                      : Param<BLACK>(s);
 }
 
 #define ENABLE_BASE_OPERATORS_ON(T)                                \
