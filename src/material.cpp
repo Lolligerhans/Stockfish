@@ -89,7 +89,7 @@ namespace {
   /// piece type for both colors.
 
   template<Color Us>
-  QScore imbalance(const int pieceCount[][PIECE_TYPE_NB]) {
+  QAcc imbalance(const int pieceCount[][PIECE_TYPE_NB]) {
 
     constexpr Color Them = ~Us;
 
@@ -110,7 +110,7 @@ namespace {
         bonus += v * pieceCount[Us][pt1];
     }
 
-    return bonus;
+    return Param<Us>(bonus);
   }
 
 } // namespace

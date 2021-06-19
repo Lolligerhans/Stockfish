@@ -205,8 +205,6 @@ namespace {
       {}, {}, {803, 1292}, {639, 974}, {1087, 1878}, {759, 1132}
   };
 
-  auto constexpr S = make_score;
-
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
   constexpr QScore MobilityBonus[][32] = {
@@ -299,12 +297,12 @@ constexpr int Space = 0; // Use range [-128, 128]
 
   private:
     template<Color Us> void initialize();
-    template<Color Us, PieceType Pt> QScore pieces();
-    template<Color Us> QScore king() const;
-    template<Color Us> QScore threats() const;
-    template<Color Us> QScore passed() const;
-    template<Color Us> QScore space() const;
-    Score leadershipAdjustment(QScore ) const;
+    template<Color Us, PieceType Pt> QAcc pieces();
+    template<Color Us> QAcc king() const;
+    template<Color Us> QAcc threats() const;
+    template<Color Us> QAcc passed() const;
+    template<Color Us> QAcc space() const;
+    Score leadershipAdjustment(QAcc) const;
     Value winnable(Score score) const;
 
     const Position& pos;
@@ -389,7 +387,7 @@ constexpr int Space = 0; // Use range [-128, 128]
   // Evaluation::pieces() scores pieces of a given color and type
 
   template<Tracing T> template<Color Us, PieceType Pt>
-  QScore Evaluation<T>::pieces() {
+  QAcc Evaluation<T>::pieces() {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Down = -pawn_push(Us);
@@ -484,8 +482,8 @@ constexpr int Space = 0; // Use range [-128, 128]
                     Direction d = pawn_push(Us) + (file_of(s) == FILE_A ? EAST : WEST);
                     if (pos.piece_on(s + d) == make_piece(Us, PAWN))
                         // TODO Parametrize 3rd and 4th value
-                        score -= !pos.empty(s + d + pawn_push(Us)) ? make_score(CorneredBishop, CorneredBishop) * 4
-                                                                   : make_score(CorneredBishop, CorneredBishop) * 3;
+                        score -= !pos.empty(s + d + pawn_push(Us)) ? Q(CorneredBishop, CorneredBishop, 0, 0) * 4
+                                                                   : Q(CorneredBishop, CorneredBishop, 0, 0) * 3;
                 }
             }
         }
@@ -528,14 +526,14 @@ constexpr int Space = 0; // Use range [-128, 128]
     if constexpr (T)
         Trace::add(Pt, Us, to_score(score));
 
-    return score;
+    return Param<Us>(score);
   }
 
 
   // Evaluation::king() assigns bonuses and penalties to a king of a given color
 
   template<Tracing T> template<Color Us>
-  QScore Evaluation<T>::king() const {
+  QAcc Evaluation<T>::king() const {
 
     constexpr Color    Them = ~Us;
     constexpr Bitboard Camp = (Us == WHITE ? AllSquares ^ Rank6BB ^ Rank7BB ^ Rank8BB
@@ -641,7 +639,7 @@ constexpr int Space = 0; // Use range [-128, 128]
     if constexpr (T)
         Trace::add(KING, Us, to_score(score));
 
-    return score;
+    return Param<Us>(score);
   }
 
 
@@ -649,7 +647,7 @@ constexpr int Space = 0; // Use range [-128, 128]
   // attacking and the attacked pieces.
 
   template<Tracing T> template<Color Us>
-  QScore Evaluation<T>::threats() const {
+  QAcc Evaluation<T>::threats() const {
 
     constexpr Color     Them     = ~Us;
     constexpr Direction Up       = pawn_push(Us);
@@ -742,14 +740,14 @@ constexpr int Space = 0; // Use range [-128, 128]
     if constexpr (T)
         Trace::add(THREAT, Us, to_score(score));
 
-    return score;
+    return Param<Us>(score);
   }
 
   // Evaluation::passed() evaluates the passed pawns and candidate passed
   // pawns of the given color.
 
   template<Tracing T> template<Color Us>
-  QScore Evaluation<T>::passed() const {
+  QAcc Evaluation<T>::passed() const {
 
     constexpr Color     Them = ~Us;
     constexpr Direction Up   = pawn_push(Us);
@@ -847,12 +845,12 @@ constexpr int Space = 0; // Use range [-128, 128]
     if constexpr (T)
         Trace::add(PASSED, Us, to_score(score));
 
-    return score;
+    return Param<Us>(score);
   }
 
 // Use 3rd and 4th value to adjust MG and EG based on the winning side.
 template<Tracing T>
-Score Evaluation<T>::leadershipAdjustment(QScore score) const
+Score Evaluation<T>::leadershipAdjustment(QAcc score) const
 {
     // Interpolation w/o scale factor (== estimate winning side)
     int valueEstimateNormed = mg_value(score) * int(me->game_phase())
@@ -887,11 +885,11 @@ Score Evaluation<T>::leadershipAdjustment(QScore score) const
   // Finally, the space bonus is multiplied by a weight which decreases according to occupancy.
 
   template<Tracing T> template<Color Us>
-  QScore Evaluation<T>::space() const {
+  QAcc Evaluation<T>::space() const {
 
     // Early exit if, for example, both queens or 6 minor pieces have been exchanged
     if (pos.non_pawn_material() < SpaceThreshold)
-        return QSCORE_ZERO;
+        return QACC_ZERO;
 
     constexpr Color Them     = ~Us;
     constexpr Direction Down = -pawn_push(Us);
@@ -920,7 +918,7 @@ Score Evaluation<T>::leadershipAdjustment(QScore score) const
     if constexpr (T)
         Trace::add(SPACE, Us, to_score(score));
 
-    return score;
+    return Param<Us>(score);
   }
 
 
@@ -1042,11 +1040,12 @@ Score Evaluation<T>::leadershipAdjustment(QScore score) const
     // Initialize score by reading the incrementally updated scores included in
     // the position object (material + piece square tables) and the material
     // imbalance. Score is computed internally from the white point of view.
-    QScore qscore = (pos.psq_score() + me->imbalance()) + to_qscore(pos.this_thread()->contempt);
+    QAcc qscore = (pos.psq_score() + me->imbalance()) + to_qacc(pos.this_thread()->contempt);
 
     // Probe the pawn hash table
     pe = Pawns::probe(pos);
-    qscore += (pe->pawn_score(WHITE) - pe->pawn_score(BLACK));
+    qscore += Param<WHITE>(pe->pawn_score(WHITE))
+            - Param<BLACK>(pe->pawn_score(BLACK));
 
     // Early exit if score is high
     auto lazy_skip = [&](Value lazyThreshold) {
@@ -1068,7 +1067,7 @@ Score Evaluation<T>::leadershipAdjustment(QScore score) const
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
-    qscore += mobility[WHITE] - mobility[BLACK];
+    qscore += Param<WHITE>(mobility[WHITE]) - Param<BLACK>(mobility[BLACK]);
 
     // More complex interactions that require fully populated attack bitboards
     qscore += king<   WHITE>() - king<   BLACK>()

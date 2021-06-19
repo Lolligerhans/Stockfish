@@ -359,6 +359,7 @@ constexpr Score to_score(QAcc s) {
   assert(eg_value(to_qacc(x.sc)) == eg_value(s));
   return x.sc;
 }
+constexpr Score to_score(QScore s) { return to_score(QAcc(s)); }
 
 constexpr Score make_score(int mg, int eg) {
   return Score((int)((unsigned int)eg << 16) + mg);
@@ -379,6 +380,10 @@ inline Value eg_value(QAcc s) {
   union { uint16_t u; int16_t s; } eg = { uint16_t( ((uint64_t)s + 0x8000ull) >> 16) };
   return Value(eg.s);
 }
+inline Value eg_value(QScore s) {
+  union { uint16_t u; int16_t s; } eg = { uint16_t( ((uint64_t)s + 0x8000ull) >> 16) };
+  return Value(eg.s);
+}
 inline Value eg_value(Score s) {
   union { uint16_t u; int16_t s; } eg = { uint16_t(unsigned(s + 0x8000) >> 16) };
   return Value(eg.s);
@@ -388,7 +393,10 @@ inline Value mg_value(QAcc s) {
   union { uint16_t u; int16_t s; } mg = { uint16_t( (uint64_t)s) };
   return Value(mg.s);
 }
-
+inline Value mg_value(QScore s) {
+  union { uint16_t u; int16_t s; } mg = { uint16_t( (uint64_t)s) };
+  return Value(mg.s);
+}
 inline Value mg_value(Score s) {
   union { uint16_t u; int16_t s; } mg = { uint16_t(unsigned(s)) };
   return Value(mg.s);
@@ -398,7 +406,15 @@ inline Value cg_value(QAcc s) {
   union { uint16_t u; int16_t s; } cg = { uint16_t( ((uint64_t)s + 0x80008000ull) >> 32) };
   return Value(cg.s);
 }
+inline Value cg_value(QScore s) {
+  union { uint16_t u; int16_t s; } cg = { uint16_t( ((uint64_t)s + 0x80008000ull) >> 32) };
+  return Value(cg.s);
+}
 
+inline Value og_value(QScore s) {
+  union { uint16_t u; int16_t s; } og = { uint16_t( ((uint64_t)s + 0x800080008000ull) >> 48) };
+  return Value(og.s);
+}
 inline Value og_value(QAcc s) {
   union { uint16_t u; int16_t s; } og = { uint16_t( ((uint64_t)s + 0x800080008000ull) >> 48) };
   return Value(og.s);
@@ -442,6 +458,7 @@ ENABLE_INCR_OPERATORS_ON(Rank)
 
 ENABLE_BASE_OPERATORS_ON(Score)
 ENABLE_BASE_OPERATORS_ON_64(QAcc)
+ENABLE_BASE_OPERATORS_ON_64(QScore)
 
 #undef ENABLE_FULL_OPERATORS_ON
 #undef ENABLE_INCR_OPERATORS_ON
@@ -463,6 +480,9 @@ QAcc operator*(QAcc, QAcc) = delete;
 inline QAcc operator/(QAcc s, int i) {
   return make_qacc(mg_value(s)/i , eg_value(s)/i , cg_value(s)/i , og_value(s)/i);
 }
+inline QScore operator/(QScore s, int i) {
+  return make_qscore(mg_value(s)/i , eg_value(s)/i , cg_value(s)/i , og_value(s)/i);
+}
 inline Score operator/(Score s, int i) {
   return make_score(mg_value(s) / i, eg_value(s) / i);
 }
@@ -471,6 +491,18 @@ inline Score operator/(Score s, int i) {
 inline QAcc operator*(QAcc s, int i) {
 
   QAcc result = QAcc(int64_t(s) * i);
+
+  assert(eg_value(result) == (i * eg_value(s)));
+  assert(mg_value(result) == (i * mg_value(s)));
+  assert(cg_value(result) == (i * cg_value(s)));
+  assert(og_value(result) == (i * og_value(s)));
+  assert((i == 0) || (result / i) == s);
+
+  return result;
+}
+inline QScore operator*(QScore s, int i) {
+
+  QScore result = QScore(int64_t(s) * i);
 
   assert(eg_value(result) == (i * eg_value(s)));
   assert(mg_value(result) == (i * mg_value(s)));
