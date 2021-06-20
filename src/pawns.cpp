@@ -81,9 +81,6 @@ namespace {
 
 // TODO Some values and literals and explicitly constructed scores remain untuned.
 
-constexpr int Support[2] = {0, 0}; // Use range [-128, 128]
-constexpr int Shelter[2] = {0, 0}; // Use range [-128, 128]
-
   /// evaluate() calculates a score for the static pawn structure of the given position.
   /// We cannot use the location of pieces or king in this function, as the evaluation
   /// of the pawn structure will be stored in a small cache for speed reasons, and will
@@ -174,10 +171,7 @@ constexpr int Shelter[2] = {0, 0}; // Use range [-128, 128]
                    + 22 * popcount(support);
 
             // TODO Parametrize 3rd and 4th value
-            score += make_qscore(v,
-                                 v * (r - 2) / 4,
-                                 v * Support[0] / 128,
-                                 v * (r-2) * Support[1] / (4 * 128));
+            score += make_qscore(v, v * (r - 2) / 4, 0, 0);
         }
 
         else if (!neighbours)
@@ -258,19 +252,13 @@ QScore Entry::evaluate_shelter(const Position& pos, Square ksq) const {
 
       int d = edge_distance(f);
       // TODO Parametrize 3rd and 4th value
-      bonus += make_qscore(ShelterStrength[d][ourRank],
-                           0,
-                           ShelterStrength[d][ourRank] * Shelter[0] / 128,
-                           0);
+      bonus += make_qscore(ShelterStrength[d][ourRank], 0, 0, 0);
 
       if (ourRank && (ourRank == theirRank - 1))
           bonus -= BlockedStorm[theirRank];
       else
           // TODO Parametrize 3rd and 4th value
-          bonus -= make_qscore(UnblockedStorm[d][theirRank],
-                               0,
-                               UnblockedStorm[d][theirRank] * Shelter[2] / 128,
-                               0);
+          bonus -= make_qscore(UnblockedStorm[d][theirRank], 0, 0, 0);
   }
 
   // King On File

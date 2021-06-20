@@ -273,16 +273,6 @@ namespace {
 //      Some integer literals remain untuned (winnable, ...).
 //      Some non-bonus parameters remain untuned (lazy threshold, sf, ...)
 
-// Consider +- 1 pawn to be winning
-constexpr int estimateNorm {128}; // The threshold that we consider "much better".
-                                  // Use range [96, 160].
-                                  // Alternatively do not tune at all to be on the safe side.
-                                  // This has a pretty big impact.
-constexpr int Kd[4] = {0, 0, 0, 0}; // Use range [-128, 128]
-constexpr int Pass[3] = {0, 0, 0}; // Use range [-128, 128]
-constexpr int PassFree[2] = {0, 0}; // Use range [-128, 128]
-constexpr int Space = 0; // Use range [-128, 128]
-
 #undef S
 
   // Evaluation class computes and stores attacks tables and other working data
@@ -615,19 +605,7 @@ constexpr int Space = 0; // Use range [-128, 128]
     // Transform the kingDanger units into a Score, and subtract it from the evaluation
     if (kingDanger > 100)
         // TODO Parametrize 3rd and 4th value
-        // TODO Optimize whatever the tuning spits out
-        score -= make_qscore(kingDanger * kingDanger / 4096, kingDanger / 16,
-                     // Each summand aims to contribute about ~50% of magnitude of the tuned quadratic/linear term (MG and EG, resp).
-                     // Divide by 2 so effect is 50%.
-                     // Divide by 128 so logical tuning range is [-128, 128]
-
-                     ( kingDanger * Kd[0] / (32*128)
-                     + kingDanger * kingDanger / 2048 * Kd[1] / (4 * 128)),
-
-                     ( kingDanger * Kd[2] / (32 * 128)
-                     + kingDanger * kingDanger / 2048 * Kd[3] / (4 * 128))
-
-                     );
+        score -= make_qscore(kingDanger * kingDanger / 4096, kingDanger / 16, 0, 0);
 
     // Penalty when our king is on a pawnless flank
     if (!(pos.pieces(PAWN) & KingFlank[file_of(ksq)]))
@@ -792,22 +770,14 @@ constexpr int Space = 0; // Use range [-128, 128]
 
             // Adjust bonus based on the king's proximity
             // TODO Parametrize 3rd and 4th value
-            //
-            // TODO Optimize depending on tuning
-            auto const proxThem = king_proximity(Them, blockSq);
-            auto const proxUs   = king_proximity(Us, blockSq);
-            auto const v = w * (  proxThem * 19 / 4
-                                - proxUs   *  2    );
-            auto const vv = w * ( proxThem * Pass[0]
-                                - proxUs   * Pass[1]) / 128;
-
-            bonus += make_qscore(0, v, 0, vv);
+            bonus += make_qscore(0, (  king_proximity(Them, blockSq) * 19 / 4
+                                    - king_proximity(Us,   blockSq) *  2) * w,
+                                 0, 0);
 
             // If blockSq is not the queening square then consider also a second push
             if (r != RANK_7)
                 // TODO Parametrize 3rd and 4th value
-                bonus -= make_qscore(0, king_proximity(Us, blockSq + Up) * w,
-                                     0, king_proximity(Us, blockSq + Up) * w * Pass[3] / 128);
+                bonus -= make_qscore(0, king_proximity(Us, blockSq + Up) * w, 0, 0);
 
             // If the pawn is free to advance, then increase the bonus
             if (pos.empty(blockSq))
@@ -835,7 +805,7 @@ constexpr int Space = 0; // Use range [-128, 128]
                     k += 5;
 
                 // TODO Parametrize 3rd and 4th value
-                bonus += make_qscore(k * w, k * w, k*w*PassFree[0] / 128, k*w*PassFree[1] / 128);
+                bonus += make_qscore(k * w, k * w, 0, 0);
             }
         } // r > RANK_3
 
@@ -856,6 +826,7 @@ Score Evaluation<T>::leadershipAdjustment(QAcc score) const
     int valueEstimateNormed = mg_value(score) * int(me->game_phase())
                             + eg_value(score) * int(PHASE_MIDGAME - me->game_phase());
     valueEstimateNormed /= PHASE_MIDGAME;
+    auto constexpr estimateNorm {128}; // Consider +- 1 pawn to be winning
     valueEstimateNormed = std::clamp<int>(valueEstimateNormed, -estimateNorm, estimateNorm);
 
     // Interpret QScore = Q(m, e, c, o) as tuple
@@ -912,8 +883,7 @@ Score Evaluation<T>::leadershipAdjustment(QAcc score) const
     int bonus = popcount(safe) + popcount(behind & safe & ~attackedBy[Them][ALL_PIECES]);
     int weight = pos.count<ALL_PIECES>(Us) - 3 + std::min(pe->blocked_count(), 9);
     // TODO Parametrize 3rd and 4th value
-    QScore score = Q(bonus * weight * weight / 16, 0,
-                     bonus * weight * weight * Space / (16 * 128));
+    QScore score = Q(bonus * weight * weight / 16, 0);
 
     if constexpr (T)
         Trace::add(SPACE, Us, to_score(score));
