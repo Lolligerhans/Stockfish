@@ -108,7 +108,7 @@ namespace {
     e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
     e->blockedCount += popcount(shift<Up>(ourPawns) & (theirPawns | doubleAttackThem));
 
-    Bitboard movable = ~shift<Down>(theirPawns | (doubleAttackThem & ~e->pawnAttacks[Us]));
+    Bitboard movable = ~shift<Down>((theirPawns | doubleAttackThem) & ~e->pawnAttacks[Us]);
 
     // Loop through all pawns of the current color and score each pawn
     while (b)
