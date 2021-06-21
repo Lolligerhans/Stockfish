@@ -102,6 +102,7 @@ namespace {
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
     Bitboard doubleAttackThem = pawn_double_attacks_bb<Them>(theirPawns);
+    Bitboard movable = ~shift<Down>(theirPawns | doubleAttackThem);
 
     e->passedPawns[Us] = 0;
     e->kingSquares[Us] = SQ_NONE;
@@ -163,7 +164,7 @@ namespace {
             e->passedPawns[Us] |= s;
 
         // Score this pawn
-        if ((support & ~shift<Down>(theirPawns)) | phalanx)
+        if ((support & movable) | phalanx)
         {
             int v =  Connected[r] * (2 + bool(phalanx) - bool(opposed))
                    + 22 * popcount(support);
