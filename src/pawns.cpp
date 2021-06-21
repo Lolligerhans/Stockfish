@@ -131,7 +131,7 @@ namespace {
         if (doubled)
         {
             // Additional doubled penalty if none of their pawns is fixed
-            if (!(ourPawns & shift<Down>(theirPawns | pawn_attacks_bb<Them>(theirPawns))))
+            if (1 >= popcount(ourPawns & shift<Down>(theirPawns | pawn_attacks_bb<Them>(theirPawns))))
                 score -= DoubledEarly;
         }
 
