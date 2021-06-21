@@ -102,12 +102,13 @@ namespace {
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
     Bitboard doubleAttackThem = pawn_double_attacks_bb<Them>(theirPawns);
-    Bitboard movable = ~shift<Down>(theirPawns | doubleAttackThem);
 
     e->passedPawns[Us] = 0;
     e->kingSquares[Us] = SQ_NONE;
     e->pawnAttacks[Us] = e->pawnAttacksSpan[Us] = pawn_attacks_bb<Us>(ourPawns);
     e->blockedCount += popcount(shift<Up>(ourPawns) & (theirPawns | doubleAttackThem));
+
+    Bitboard movable = ~shift<Down>(theirPawns | (doubleAttackThem & ~e->pawnAttacks[Us]));
 
     // Loop through all pawns of the current color and score each pawn
     while (b)
