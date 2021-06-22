@@ -225,9 +225,13 @@ namespace {
 
   // BishopPawns[distance from edge] contains a file-dependent penalty for pawns on
   // squares of the same color as our bishop.
-  constexpr Score BishopPawns[int(FILE_NB) / 2] = {
-    S(3, 8), S(3, 9), S(2, 8), S(3, 8)
+  constexpr Score BishopPawns[]
+  {
+      S( 5, 20), S( 5, 15), S( 4, 14), S( 4, 12), S( 3, 11), S( 3, 10),
+      S( 3, 9), S( 3, 7), S( 2, 6), S( 2, 5), S( 1, 4), S( 1, 3),
+      S( 1, 2), S( 1, 1)
   };
+  static_assert(sizeof(BishopPawns) == 14*sizeof(Score));
 
   // KingProtector[knight/bishop] contains penalty for each distance unit to own king
   constexpr Score KingProtector[] = { S(8, 9), S(6, 9) };
@@ -459,7 +463,7 @@ namespace {
                 // when the bishop is outside the pawn chain.
                 Bitboard blocked = pos.pieces(Us, PAWN) & shift<Down>(pos.pieces());
 
-                score -= BishopPawns[edge_distance(file_of(s))] * pos.pawns_on_same_color_squares(Us, s)
+                score -= BishopPawns[mob] * pos.pawns_on_same_color_squares(Us, s)
                                      * (!(attackedBy[Us][PAWN] & s) + popcount(blocked & CenterFiles));
 
                 // Penalty for all enemy pawns x-rayed
