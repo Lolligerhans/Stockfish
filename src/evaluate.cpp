@@ -454,13 +454,16 @@ namespace {
 
             if constexpr (Pt == BISHOP)
             {
+                Bitboard constexpr TheirHalf = Us == WHITE ? Rank8BB | Rank7BB | Rank6BB | Rank5BB
+                                                           : Rank1BB | Rank2BB | Rank3BB | Rank4BB;
+
                 // Penalty according to the number of our pawns on the same color square as the
                 // bishop, bigger when the center files are blocked with pawns and smaller
                 // when the bishop is outside the pawn chain.
                 Bitboard blocked = pos.pieces(Us, PAWN) & shift<Down>(pos.pieces());
 
                 score -= BishopPawns[edge_distance(file_of(s))] * pos.pawns_on_same_color_squares(Us, s)
-                                     * (!(attackedBy[Us][PAWN] & s) + popcount(blocked & CenterFiles));
+                                     * ((not(b & TheirHalf)) + !(attackedBy[Us][PAWN] & s) + popcount(blocked & CenterFiles));
 
                 // Penalty for all enemy pawns x-rayed
                 score -= BishopXRayPawns * popcount(attacks_bb<BISHOP>(s) & pos.pieces(Them, PAWN));
