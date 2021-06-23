@@ -744,7 +744,7 @@ namespace {
 
     b = pe->passed_pawns(Us);
 
-    blockedPassers = b & shift<Down>(pos.pieces(Them, PAWN));
+    blockedPassers = b & shift<Down>(pos.pieces(Them));
     if (blockedPassers)
     {
         helpers =  shift<Up>(pos.pieces(Us, PAWN))
