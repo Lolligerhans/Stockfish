@@ -429,19 +429,31 @@ namespace {
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
+            constexpr Bitboard Side[]
+            {
+                FileABB | FileBBB | FileCBB | FileDBB,
+                CenterFiles,
+                FileEBB | FileFBB | FileGBB | FileHBB
+            };
+
+            Bitboard const side = Side[ (file_of(s) >= FILE_C)
+                                      + (file_of(s) >  FILE_F)];
+
             // Bonus if the piece is on an outpost square or can reach one
             // Bonus for knights (UncontestedOutpost) if few relevant targets
             bb = OutpostRanks & (attackedBy[Us][PAWN] | shift<Down>(pos.pieces(PAWN)))
                               & ~pe->pawn_attacks_span(Them);
             Bitboard targets = pos.pieces(Them) & ~pos.pieces(PAWN);
 
+            if (bb & s)
+            {
             if (   Pt == KNIGHT
-                && bb & s & ~CenterFiles // on a side outpost
                 && !(b & targets)        // no relevant attacks
-                && (!more_than_one(targets & (s & QueenSide ? QueenSide : KingSide))))
-                score += UncontestedOutpost * popcount(pos.pieces(PAWN) & (s & QueenSide ? QueenSide : KingSide));
-            else if (bb & s)
+                && (!more_than_one(targets & (side))))
+                score += UncontestedOutpost * popcount(pos.pieces(PAWN) & (side));
+            else
                 score += Outpost[Pt == BISHOP];
+            }
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
                 score += ReachableOutpost;
 
