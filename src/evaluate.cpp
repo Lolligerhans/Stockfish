@@ -258,7 +258,7 @@ namespace {
   constexpr Value CorneredBishop = Value(50);
 
   // Assorted bonuses and penalties
-  constexpr Score UncontestedOutpost  = S(  1, 10);
+  constexpr Score UncontestedOutpost  = S(  1,  5);
   constexpr Score BishopOnKingRing    = S( 24,  0);
   constexpr Score BishopXRayPawns     = S(  4,  5);
   constexpr Score FlankAttacks        = S(  8,  0);
@@ -433,14 +433,17 @@ namespace {
             // Bonus for knights (UncontestedOutpost) if few relevant targets
             bb = OutpostRanks & (attackedBy[Us][PAWN] | shift<Down>(pos.pieces(PAWN)))
                               & ~pe->pawn_attacks_span(Them);
-            Bitboard targets = pos.pieces(Them) & ~pos.pieces(PAWN);
 
-            if (   Pt == KNIGHT
-                && bb & s & ~CenterFiles // on a side outpost
+            if (Bitboard targets = pos.pieces(Them) & ~pos.pieces(PAWN);
+                Pt == KNIGHT
+                && ~CenterFiles & s // on a side outpost
                 && !(b & targets)        // no relevant attacks
                 && (!more_than_one(targets & (s & QueenSide ? QueenSide : KingSide))))
+            {
                 score += UncontestedOutpost * popcount(pos.pieces(PAWN) & (s & QueenSide ? QueenSide : KingSide));
-            else if (bb & s)
+            }
+
+            if (bb & s)
                 score += Outpost[Pt == BISHOP];
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
                 score += ReachableOutpost;
