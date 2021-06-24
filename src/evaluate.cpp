@@ -440,7 +440,7 @@ namespace {
                 && !(b & targets)        // no relevant attacks
                 && (!more_than_one(targets & (s & QueenSide ? QueenSide : KingSide))))
                 score += UncontestedOutpost * popcount(pos.pieces(PAWN) & (s & QueenSide ? QueenSide : KingSide))
-                                            * (1 + bool(pos.pieces(Them, PAWN) & ~attackedBy[Them][PAWN]));
+                                            * (1 + more_than_one(pos.pieces(Them, PAWN) & ~attackedBy[Them][PAWN]));
             else if (bb & s)
                 score += Outpost[Pt == BISHOP];
             else if (Pt == KNIGHT && bb & b & ~pos.pieces(Us))
